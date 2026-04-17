@@ -1,0 +1,1621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Base · Integrated AI Internal Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&family=IBM+Plex+Mono:wght@300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+
+<style>
+/* ══════════════════════════════════════════
+   BASE PALETTE
+   Near-black ground — infrastructure register
+   Underneath all six territories
+   ══════════════════════════════════════════ */
+:root {
+  /* Base ground */
+  --ground:     #0A0E14;
+  --surface:    #111827;
+  --surface-2:  #161D2C;
+  --surface-3:  #1C2538;
+  --border:     rgba(255,255,255,0.07);
+  --border-l:   rgba(255,255,255,0.04);
+
+  /* Base accent — warm slate, infrastructure */
+  --base-a:     #7B8FA8;   /* primary UI chrome */
+  --base-b:     rgba(123,143,168,0.12);
+  --base-rule:  rgba(123,143,168,0.18);
+
+  /* Text hierarchy */
+  --white:      #E8E9EC;
+  --cream:      #C4CDD8;
+  --muted:      rgba(196,205,216,0.45);
+  --ghost:      rgba(196,205,216,0.2);
+
+  /* Territory colours — surfaced in Base */
+  --corp-orange: #D66A35;
+  --corp-steel:  #3A5A78;
+  --io-lola:     #1A4A3A;
+  --io-acid:     #D4E84A;
+  --idx-teal:    #00A896;
+  --mio-cobalt:  #2B52A8;
+  --mio-kitchen: #E9BC28;
+  --ws-denim:    #4A6584;
+  --ws-cotton:   #E8C84E;
+  --prot-mustard:#C4922A;
+
+  /* Fonts */
+  --corp: 'Plus Jakarta Sans', sans-serif;
+  --io:   'Syne', sans-serif;
+  --mono: 'IBM Plex Mono', monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; background: var(--ground); }
+
+body {
+  font-family: var(--corp);
+  background: var(--ground);
+  color: var(--white);
+  font-size: 13px;
+  line-height: 1.55;
+  font-weight: 300;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+/* Fine instrument grid */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    repeating-linear-gradient(90deg, rgba(123,143,168,0.025) 0, rgba(123,143,168,0.025) 1px, transparent 1px, transparent 64px),
+    repeating-linear-gradient(180deg, rgba(123,143,168,0.02) 0, rgba(123,143,168,0.02) 1px, transparent 1px, transparent 64px);
+  pointer-events: none; z-index: 0;
+}
+
+/* ══════════════════════════════════════════
+   LAYOUT SHELL
+   ══════════════════════════════════════════ */
+.shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── TOPBAR ── */
+.topbar {
+  height: 48px;
+  background: rgba(10,14,20,0.96);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 28px;
+  gap: 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Wordmark */
+.wordmark {
+  font-family: var(--corp);
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: -0.02em;
+  color: var(--white);
+  display: flex;
+  align-items: baseline;
+  gap: 0;
+  margin-right: 32px;
+  flex-shrink: 0;
+}
+
+.wm-base { color: var(--white); }
+.wm-dot  {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--corp-orange);
+  margin: 0 2px 2px;
+  flex-shrink: 0;
+}
+
+/* Tab nav */
+.tab-nav {
+  display: flex;
+  height: 100%;
+  flex: 1;
+  gap: 0;
+}
+
+.tab {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding: 0 18px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: color 0.14s, border-color 0.14s;
+  white-space: nowrap;
+  position: relative;
+}
+
+.tab:hover { color: var(--cream); }
+
+.tab.active {
+  color: var(--white);
+  border-bottom-color: var(--corp-orange);
+}
+
+.tab-pip {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  margin-left: 6px;
+  flex-shrink: 0;
+}
+
+/* Topbar right */
+.topbar-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.status-pill {
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.sp-live {
+  background: rgba(26,74,58,0.2);
+  border: 1px solid rgba(212,232,74,0.2);
+  color: var(--io-acid);
+}
+
+.pip-live {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--io-acid);
+  animation: pip 2s ease-in-out infinite;
+}
+
+@keyframes pip { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+.topbar-date {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  color: var(--ghost);
+}
+
+/* ══════════════════════════════════════════
+   VIEWS
+   ══════════════════════════════════════════ */
+.view { display: none; flex: 1; }
+.view.active { display: block; }
+
+/* ── VIEW HEADER ── */
+.view-header {
+  padding: 36px 28px 28px;
+  border-bottom: 1px solid var(--border-l);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.vh-left {}
+
+.vh-eyebrow {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--corp-orange);
+  opacity: 0.65;
+  margin-bottom: 8px;
+}
+
+.vh-title {
+  font-family: var(--io);
+  font-weight: 800;
+  font-size: 28px;
+  letter-spacing: -0.02em;
+  color: var(--white);
+  line-height: 1;
+}
+
+.vh-sub {
+  font-family: var(--corp);
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--muted);
+  margin-top: 6px;
+  max-width: 440px;
+  line-height: 1.5;
+}
+
+.vh-right {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--ghost);
+  text-transform: uppercase;
+  text-align: right;
+}
+
+/* ── SECTION CONTENT ── */
+.view-content { padding: 28px; }
+
+/* ══════════════════════════════════════════
+   SECTION A — PRODUCTS GRID
+   ══════════════════════════════════════════ */
+
+/* Three orientation tiles */
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.product-tile {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.12s;
+  position: relative;
+}
+
+.product-tile:hover {
+  transform: translateY(-2px);
+}
+
+.pt-accent-bar {
+  height: 3px;
+  width: 100%;
+}
+
+.pt-body {
+  padding: 20px 22px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pt-label {
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  opacity: 0.5;
+}
+
+.pt-name {
+  font-family: var(--io);
+  font-weight: 800;
+  font-size: 22px;
+  letter-spacing: -0.02em;
+  color: var(--white);
+  line-height: 1;
+}
+
+.pt-name .pt-dot {
+  font-size: 26px;
+  line-height: 1;
+}
+
+.pt-desc {
+  font-family: var(--corp);
+  font-size: 12px;
+  font-weight: 300;
+  color: var(--muted);
+  line-height: 1.5;
+  margin-top: 2px;
+}
+
+.pt-footer {
+  padding: 12px 22px;
+  border-top: 1px solid var(--border-l);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.pt-status {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pt-status-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+}
+
+.pt-live-dot { animation: pip 2s infinite; }
+
+.pt-link {
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.35;
+  color: var(--cream);
+}
+
+/* Signal chips on tiles */
+.pt-signal {
+  margin-top: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  color: var(--cream);
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 3px 9px;
+}
+
+/* ── Layer architecture mini diagram ── */
+.layer-diagram {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  overflow: hidden;
+}
+
+.ld-layer {
+  flex: 1;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-right: 1px solid var(--border);
+  position: relative;
+}
+
+.ld-layer:last-child { border-right: none; }
+
+.ld-layer::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--l-color, var(--base-a));
+}
+
+.ld-name {
+  font-family: var(--io);
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: -0.01em;
+  color: var(--white);
+}
+
+.ld-sub {
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--l-color, var(--base-a));
+  opacity: 0.7;
+}
+
+.ld-desc {
+  font-family: var(--corp);
+  font-size: 11px;
+  font-weight: 300;
+  color: var(--muted);
+  line-height: 1.45;
+  margin-top: 2px;
+}
+
+/* ══════════════════════════════════════════
+   SECTION B — DESIGN REGISTER
+   ══════════════════════════════════════════ */
+
+.design-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+/* Commission card */
+.commission-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.14s, transform 0.12s;
+}
+
+.commission-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--border-l);
+}
+
+.cc-swatch {
+  height: 5px;
+  width: 100%;
+}
+
+.cc-body {
+  padding: 14px 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.cc-num {
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.cc-name {
+  font-family: var(--corp);
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--white);
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+.cc-territory {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin-top: 1px;
+}
+
+.cc-status {
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 2px;
+  margin-top: 4px;
+  display: inline-block;
+}
+
+.cc-confirmed {
+  background: rgba(61,140,111,0.12);
+  color: #6dccaa;
+  border: 1px solid rgba(61,140,111,0.2);
+}
+
+.cc-parked {
+  background: rgba(123,143,168,0.1);
+  color: var(--base-a);
+  border: 1px solid var(--base-rule);
+}
+
+/* Style guide card — wider */
+.sg-card {
+  grid-column: span 2;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 20px 22px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  cursor: pointer;
+  transition: border-color 0.14s;
+}
+
+.sg-card:hover { border-color: rgba(214,106,53,0.3); }
+
+.sg-mark {
+  font-family: var(--io);
+  font-weight: 800;
+  font-size: 36px;
+  letter-spacing: -0.04em;
+  color: rgba(255,255,255,0.1);
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.sg-text {}
+
+.sg-label {
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--corp-orange);
+  opacity: 0.65;
+  margin-bottom: 4px;
+}
+
+.sg-name {
+  font-family: var(--corp);
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: -0.01em;
+  color: var(--white);
+}
+
+.sg-sub {
+  font-family: var(--corp);
+  font-size: 12px;
+  font-weight: 300;
+  color: var(--muted);
+  margin-top: 3px;
+  line-height: 1.4;
+}
+
+/* ══════════════════════════════════════════
+   SECTION C — KNOWLEDGE
+   ══════════════════════════════════════════ */
+
+.knowledge-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.knowledge-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 20px 22px;
+  cursor: pointer;
+  transition: border-color 0.14s, transform 0.12s;
+  position: relative;
+  overflow: hidden;
+}
+
+.knowledge-card:hover { transform: translateY(-2px); }
+
+.kc-accent {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+}
+
+.kc-label {
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+  padding-left: 10px;
+}
+
+.kc-name {
+  font-family: var(--corp);
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: -0.01em;
+  color: var(--white);
+  padding-left: 10px;
+  margin-bottom: 6px;
+}
+
+.kc-desc {
+  font-family: var(--corp);
+  font-size: 12px;
+  font-weight: 300;
+  color: var(--muted);
+  line-height: 1.55;
+  padding-left: 10px;
+  margin-bottom: 10px;
+}
+
+.kc-items {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding-left: 10px;
+}
+
+.kc-item {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  color: var(--cream);
+  opacity: 0.6;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border-l);
+  cursor: pointer;
+  transition: opacity 0.1s;
+}
+
+.kc-item:last-child { border-bottom: none; }
+.kc-item:hover { opacity: 0.9; }
+
+.kc-item-dot {
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: var(--base-a);
+  flex-shrink: 0;
+  opacity: 0.5;
+}
+
+/* ══════════════════════════════════════════
+   SECTION D — WORKSHOP
+   ══════════════════════════════════════════ */
+
+.workshop-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+/* Style Files featured card */
+.sf-featured {
+  grid-column: span 2;
+  background: var(--surface-2);
+  border: 1px solid rgba(78,101,132,0.3);
+  border-radius: 8px;
+  padding: 22px 24px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: center;
+}
+
+.sff-left {}
+
+.sff-eyebrow {
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ws-cotton);
+  opacity: 0.7;
+  margin-bottom: 8px;
+}
+
+.sff-title {
+  font-family: var(--io);
+  font-weight: 800;
+  font-size: 22px;
+  letter-spacing: -0.02em;
+  color: var(--white);
+  margin-bottom: 6px;
+}
+
+.sff-desc {
+  font-family: var(--corp);
+  font-size: 12px;
+  font-weight: 300;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.sff-right {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.sff-file {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: border-color 0.12s;
+}
+
+.sff-file:hover { border-color: rgba(78,101,132,0.4); }
+
+.sff-file-name {
+  font-family: var(--corp);
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--white);
+}
+
+.sff-file-meta {
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.sff-file-status {
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 2px;
+}
+
+.sff-confirmed {
+  background: rgba(58,107,58,0.12);
+  color: #6dccaa;
+  border: 1px solid rgba(58,107,58,0.2);
+}
+
+.sff-pending {
+  background: rgba(139,74,0,0.12);
+  color: #E8A060;
+  border: 1px solid rgba(139,74,0,0.25);
+}
+
+/* Workshop tiles */
+.workshop-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 20px 22px;
+  cursor: pointer;
+  transition: border-color 0.14s, transform 0.12s;
+}
+
+.workshop-card:hover { transform: translateY(-2px); }
+
+.wc-label {
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ws-cotton);
+  opacity: 0.65;
+  margin-bottom: 6px;
+}
+
+.wc-name {
+  font-family: var(--corp);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  color: var(--white);
+  margin-bottom: 6px;
+}
+
+.wc-desc {
+  font-family: var(--corp);
+  font-size: 12px;
+  font-weight: 300;
+  color: var(--muted);
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+
+.wc-link {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--ws-denim);
+  opacity: 0.7;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.wc-link::before {
+  content: '';
+  width: 12px; height: 1px;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+/* ══════════════════════════════════════════
+   UTILITY
+   ══════════════════════════════════════════ */
+.section-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border-l);
+}
+
+.row-gap { margin-bottom: 28px; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.18); }
+
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- ── TOPBAR ── -->
+  <div class="topbar">
+    <div class="wordmark">
+      <span class="wm-base">BASE</span>
+      <div class="wm-dot"></div>
+    </div>
+
+    <nav class="tab-nav">
+      <div class="tab active" onclick="showView('products')">
+        Products
+        <div class="tab-pip" style="background:var(--corp-orange)"></div>
+      </div>
+      <div class="tab" onclick="showView('design')">
+        Design Register
+        <div class="tab-pip" style="background:var(--io-acid)"></div>
+      </div>
+      <div class="tab" onclick="showView('knowledge')">
+        Knowledge
+        <div class="tab-pip" style="background:var(--corp-steel)"></div>
+      </div>
+      <div class="tab" onclick="showView('workshop')">
+        Workshop
+        <div class="tab-pip" style="background:var(--ws-cotton)"></div>
+      </div>
+      <div class="tab" onclick="showView('partners')">
+        Partners
+        <div class="tab-pip" style="background:var(--muted)"></div>
+      </div>
+    </nav>
+
+    <div class="topbar-right">
+      <div class="status-pill sp-live">
+        <div class="pip-live"></div>
+        IO Alpha · Live
+      </div>
+      <div class="topbar-date">17 Apr 2026 · W16</div>
+    </div>
+  </div>
+
+  <div class="view active" id="view-products">
+    <div class="view-header">
+      <div class="vh-left">
+        <div class="vh-eyebrow">Section A · Products</div>
+        <div class="vh-title">Products</div>
+        <div class="vh-sub">Mesh.OS operating system and IAI's commercial products. Integrated AI is the company — everything below it.</div>
+      </div>
+      <div class="vh-right">IAI · Mesh.OS · Tools · Consulting</div>
+    </div>
+
+    <div class="view-content">
+
+      <!-- Company header — not a tile -->
+      <div class="section-label">The company</div>
+      <div style="background:var(--surface-2);border:1px solid rgba(214,106,53,0.2);border-left:3px solid var(--corp-orange);border-radius:6px;padding:18px 22px;margin-bottom:28px;display:flex;align-items:center;justify-content:space-between;gap:20px;">
+        <div>
+          <div style="font-family:var(--corp);font-weight:800;font-size:18px;letter-spacing:-0.02em;color:var(--white);margin-bottom:4px">Integrated <span style="color:var(--corp-orange)">AI</span></div>
+          <div style="font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted)">Industrial AI Leadership · Hunter Valley NSW · Head brand</div>
+        </div>
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:0.1em;color:var(--corp-orange);opacity:0.6;text-transform:uppercase">integratedai.com.au →</div>
+      </div>
+
+      <!-- Mesh.OS operating system -->
+      <div class="section-label">Mesh.OS — the operating system</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:28px;">
+
+        <!-- Grid -->
+        <div class="product-tile" style="border-top:3px solid var(--io-acid);">
+          <div class="pt-body">
+            <div class="pt-label">Business interface</div>
+            <div class="pt-name">GRID<span class="pt-dot" style="color:var(--io-acid)">.</span><span style="color:var(--io-acid);font-size:16px;font-weight:400">IO</span></div>
+            <div class="pt-desc">Operational layer. Sprint board, schedule, content plan, priority list. Agents write here. Marnie manages from here.</div>
+            <div class="pt-signal" style="color:var(--io-acid)">
+              <div style="width:5px;height:5px;border-radius:50%;background:var(--io-acid);flex-shrink:0;animation:pip 2s infinite"></div>
+              14 active · 2 gates
+            </div>
+          </div>
+          <div class="pt-footer">
+            <div class="pt-status" style="color:var(--io-acid)">
+              <div class="pt-status-dot pt-live-dot" style="background:var(--io-acid)"></div>
+              Live · Railway
+            </div>
+            <div class="pt-link">grid.integratedai.com.au →</div>
+          </div>
+        </div>
+
+        <!-- Pulse -->
+        <div class="product-tile" style="border-top:3px solid #4A90D9;">
+          <div class="pt-body">
+            <div class="pt-label">IP layer · Integrated Protocol</div>
+            <div class="pt-name" style="color:var(--white)">The <span style="color:#4A90D9">Pulse</span></div>
+            <div class="pt-desc">Agent interaction layer. Piper is the front door. Time-of-day context. State zones, input, decision queue. Navy/cobalt register.</div>
+            <div class="pt-signal" style="color:#4A90D9">
+              <div style="width:5px;height:5px;border-radius:50%;background:#4A90D9;flex-shrink:0;animation:pip 2s infinite"></div>
+              Piper · 4 tasks active · 2 pending
+            </div>
+          </div>
+          <div class="pt-footer">
+            <div class="pt-status" style="color:#4A90D9">
+              <div class="pt-status-dot pt-live-dot" style="background:#4A90D9"></div>
+              Built · Active
+            </div>
+            <div class="pt-link">Pulse identity →</div>
+          </div>
+        </div>
+
+        <!-- Marnie.IO -->
+        <div class="product-tile" style="border-top:3px solid var(--mio-kitchen);">
+          <div class="pt-body">
+            <div class="pt-label">Personal operations · Family point</div>
+            <div class="pt-name">Marnie<span class="pt-dot" style="color:var(--mio-kitchen)">.</span><span style="color:var(--mio-kitchen);font-size:16px;font-weight:400">IO</span></div>
+            <div class="pt-desc">Personal operating interface. Health OS, daily intelligence, Piper tile. Cobalt ground. Family point alongside.</div>
+            <div class="pt-signal" style="color:var(--mio-cobalt)">
+              <div style="width:5px;height:5px;border-radius:50%;background:var(--mio-kitchen);flex-shrink:0"></div>
+              DI W16 · 4 Flag · 5 Watch
+            </div>
+          </div>
+          <div class="pt-footer">
+            <div class="pt-status" style="color:var(--muted)">
+              <div class="pt-status-dot" style="background:var(--muted)"></div>
+              In Build
+            </div>
+            <div class="pt-link">Marnie.IO →</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Products -->
+      <div class="section-label">Products</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:28px;">
+
+        <!-- Industrial AI Index -->
+        <div class="product-tile" style="border-top:3px solid var(--idx-teal);">
+          <div class="pt-body">
+            <div class="pt-label">Diagnostic tool</div>
+            <div class="pt-name" style="font-size:18px;line-height:1.15">Industrial<br><span style="color:var(--idx-teal)">AI Index</span></div>
+            <div class="pt-desc">AI readiness diagnostic for manufacturers. 8 minutes. Four pillars. Archetype result. Free to complete. Entry point to CAIO engagement.</div>
+            <div class="pt-signal" style="color:var(--idx-teal)">
+              <div style="width:5px;height:5px;border-radius:50%;background:var(--idx-teal);flex-shrink:0;animation:pip 2s infinite"></div>
+              index.integratedai.com.au
+            </div>
+          </div>
+          <div class="pt-footer">
+            <div class="pt-status" style="color:var(--idx-teal)">
+              <div class="pt-status-dot pt-live-dot" style="background:var(--idx-teal)"></div>
+              Live · Vercel
+            </div>
+            <div class="pt-link">index.integratedai.com.au →</div>
+          </div>
+        </div>
+
+        <!-- Hunter AI Index -->
+        <div class="product-tile" style="border-top:3px solid var(--corp-steel);">
+          <div class="pt-body">
+            <div class="pt-label">Data publication · Annual</div>
+            <div class="pt-name" style="font-size:18px;line-height:1.15">Hunter<br><span style="color:var(--corp-steel)">AI Index</span></div>
+            <div class="pt-desc">Aggregated benchmark report for the Hunter Region. Published annually once sufficient completions. Regional media and HMA value.</div>
+            <div class="pt-signal" style="color:var(--corp-steel)">
+              <div style="width:5px;height:5px;border-radius:50%;background:var(--corp-steel);flex-shrink:0"></div>
+              Requires 30–50 completions
+            </div>
+          </div>
+          <div class="pt-footer">
+            <div class="pt-status" style="color:var(--muted)">
+              <div class="pt-status-dot" style="background:var(--muted)"></div>
+              In Pipeline
+            </div>
+            <div class="pt-link">Hunter region →</div>
+          </div>
+        </div>
+
+        <!-- Field Office -->
+        <div class="product-tile" style="border-top:3px solid var(--corp-orange);opacity:0.85;">
+          <div class="pt-body">
+            <div class="pt-label">Consulting product · Stages + outputs</div>
+            <div class="pt-name" style="font-size:18px;line-height:1.15">Field<br><span style="color:var(--corp-orange)">Office</span></div>
+            <div class="pt-desc">AI readiness consulting engagement. Structured stages, defined outputs, scales with client need. Consumer product name — not yet activated.</div>
+            <div class="pt-signal" style="color:var(--corp-orange);opacity:0.6">
+              <div style="width:5px;height:5px;border-radius:50%;background:var(--corp-orange);flex-shrink:0;opacity:0.5"></div>
+              Holding page
+            </div>
+          </div>
+          <div class="pt-footer">
+            <div class="pt-status" style="color:var(--muted)">
+              <div class="pt-status-dot" style="background:var(--muted)"></div>
+              Not yet activated
+            </div>
+            <div class="pt-link">About →</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Architecture -->
+      <div class="section-label">Architecture</div>
+      <div class="layer-diagram">
+        <div class="ld-layer" style="--l-color: var(--io-acid);">
+          <div class="ld-name">Grid.IO</div>
+          <div class="ld-sub">Operational</div>
+          <div class="ld-desc">Sprint board, schedule, content plan. Business interface.</div>
+        </div>
+        <div class="ld-layer" style="--l-color: #4A90D9;">
+          <div class="ld-name">The Pulse</div>
+          <div class="ld-sub">IP Layer</div>
+          <div class="ld-desc">Agent interaction. Piper front door. Integrated Protocol.</div>
+        </div>
+        <div class="ld-layer" style="--l-color: var(--mio-kitchen);">
+          <div class="ld-name">Marnie.IO</div>
+          <div class="ld-sub">Personal</div>
+          <div class="ld-desc">Health OS, DI, personal operating interface.</div>
+        </div>
+        <div class="ld-layer" style="--l-color: var(--corp-orange); border-right:none;">
+          <div class="ld-name">Mesh.OS</div>
+          <div class="ld-sub">Foundation</div>
+          <div class="ld-desc">The operating system. All three layers sit inside it.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+    <div class="view-content">
+
+      <div class="section-label">Operating surfaces</div>
+
+      <div class="products-grid row-gap">
+
+        <!-- IAI tile -->
+        <div class="product-tile" style="border-top: 3px solid var(--corp-orange);">
+          <div class="pt-body">
+            <div class="pt-label">The business</div>
+            <div class="pt-name" style="color:var(--white)">Integrated<br><span style="color:var(--corp-orange)">AI</span></div>
+            <div class="pt-desc">IAI · ICS · TMM · HMA. The business context. Hunter Valley NSW — industrial AI leadership.</div>
+            <div class="pt-signal" style="color:var(--corp-orange)">
+              <div style="width:5px;height:5px;border-radius:50%;background:var(--corp-orange);flex-shrink:0"></div>
+              integratedai.com.au
+            </div>
+          </div>
+          <div class="pt-footer">
+            <div class="pt-status" style="color:var(--corp-orange)">
+              <div class="pt-status-dot pt-live-dot" style="background:var(--corp-orange)"></div>
+              Live · Active
+            </div>
+            <div class="pt-link">integratedai.com.au →</div>
+          </div>
+        </div>
+
+        <!-- Grid.IO tile -->
+        <div class="product-tile" style="border-top: 3px solid var(--io-acid);">
+          <div class="pt-body">
+            <div class="pt-label">Operational layer</div>
+            <div class="pt-name">GRID<span class="pt-dot" style="color:var(--io-acid)">.</span><span style="color:var(--io-acid);font-size:16px;font-weight:400">IO</span></div>
+            <div class="pt-desc">Sprint board, schedule, content plan, priority list. Agents write here. Marnie manages from here.</div>
+            <div class="pt-signal" style="color:var(--io-acid)">
+              <div style="width:5px;height:5px;border-radius:50%;background:var(--io-acid);flex-shrink:0;animation:pip 2s infinite"></div>
+              14 active tasks · 2 gates
+            </div>
+          </div>
+          <div class="pt-footer">
+            <div class="pt-status" style="color:var(--io-acid)">
+              <div class="pt-status-dot pt-live-dot" style="background:var(--io-acid)"></div>
+              Live · Railway
+            </div>
+            <div class="pt-link">grid.integratedai.com.au →</div>
+          </div>
+        </div>
+
+        <!-- Marnie.IO tile -->
+        <div class="product-tile" style="border-top: 3px solid var(--mio-kitchen);">
+          <div class="pt-body">
+            <div class="pt-label">Personal layer</div>
+            <div class="pt-name">Marnie<span class="pt-dot" style="color:var(--mio-kitchen)">.</span><span style="color:var(--mio-kitchen);font-size:16px;font-weight:400">IO</span></div>
+            <div class="pt-desc">Health OS, daily intelligence, Piper tile. Personal operating interface on cobalt ground.</div>
+            <div class="pt-signal" style="color:var(--mio-cobalt)">
+              <div style="width:5px;height:5px;border-radius:50%;background:var(--mio-kitchen);flex-shrink:0"></div>
+              DI · W16 · 4 Flag · 5 Watch
+            </div>
+          </div>
+          <div class="pt-footer">
+            <div class="pt-status" style="color:var(--muted)">
+              <div class="pt-status-dot" style="background:var(--muted)"></div>
+              In Build
+            </div>
+            <div class="pt-link">Marnie.IO →</div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="section-label">Architecture</div>
+
+      <div class="layer-diagram">
+        <div class="ld-layer" style="--l-color: var(--io-acid);">
+          <div class="ld-name">Grid.IO</div>
+          <div class="ld-sub">Operational</div>
+          <div class="ld-desc">Sprint board, schedule, content plan. Agents write here.</div>
+        </div>
+        <div class="ld-layer" style="--l-color: var(--mio-kitchen);">
+          <div class="ld-name">Marnie.IO</div>
+          <div class="ld-sub">Personal</div>
+          <div class="ld-desc">Health OS, DI, Piper. Personal operating interface.</div>
+        </div>
+        <div class="ld-layer" style="--l-color: var(--corp-orange);">
+          <div class="ld-name">Base</div>
+          <div class="ld-sub">Foundation · Here</div>
+          <div class="ld-desc">Internal hub. Products, design, knowledge, Workshop.</div>
+        </div>
+        <div class="ld-layer" style="--l-color: var(--corp-steel); border-right:none;">
+          <div class="ld-name">IAI</div>
+          <div class="ld-sub">The business</div>
+          <div class="ld-desc">All three layers sit inside IAI. The business context.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       VIEW B — DESIGN REGISTER
+       ══════════════════════════════════════ -->
+  <div class="view" id="view-design">
+    <div class="view-header">
+      <div class="vh-left">
+        <div class="vh-eyebrow">Section B · Design</div>
+        <div class="vh-title">Design Register</div>
+        <div class="vh-sub">All identity commissions and the full system style guide. C1 through C13.</div>
+      </div>
+      <div class="vh-right">Lumen · Head of Design · C1–C13</div>
+    </div>
+
+    <div class="view-content">
+
+      <div class="section-label">Reference</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px">
+        <div class="sg-card">
+          <div class="sg-mark">SG</div>
+          <div class="sg-text">
+            <div class="sg-label">Full system reference</div>
+            <div class="sg-name">IAI Style Guide v1</div>
+            <div class="sg-sub">Six territory identities · Typography · Palette architecture · 70s industrial warm</div>
+          </div>
+        </div>
+        <div class="sg-card">
+          <div class="sg-mark">AI</div>
+          <div class="sg-text">
+            <div class="sg-label">Style Files · Workshop</div>
+            <div class="sg-name">AI Style Files</div>
+            <div class="sg-sub">Mirror sessions documented · Style File 001 confirmed · Style File 002 confirmed · C5 commission</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-label">Commission register · C1–C13</div>
+
+      <div class="design-grid">
+
+        <div class="commission-card">
+          <div class="cc-swatch" style="background:var(--prot-mustard)"></div>
+          <div class="cc-body">
+            <div class="cc-num">C1</div>
+            <div class="cc-name">Mrs Wilson Protocol</div>
+            <div class="cc-territory">Mustard · Charcoal · Paper</div>
+            <div class="cc-status cc-confirmed">Confirmed</div>
+          </div>
+        </div>
+
+        <div class="commission-card">
+          <div class="cc-swatch" style="background:var(--io-lola)"></div>
+          <div class="cc-body">
+            <div class="cc-num">C2</div>
+            <div class="cc-name">Daily Intelligence</div>
+            <div class="cc-territory">Lola's Green · Acid Yellow · Signal system</div>
+            <div class="cc-status cc-confirmed">Confirmed</div>
+          </div>
+        </div>
+
+        <div class="commission-card">
+          <div class="cc-swatch" style="background:rgba(123,143,168,0.4)"></div>
+          <div class="cc-body">
+            <div class="cc-num">C3</div>
+            <div class="cc-name">IP Designation</div>
+            <div class="cc-territory">Parked pending brief revision</div>
+            <div class="cc-status cc-parked">Parked</div>
+          </div>
+        </div>
+
+        <div class="commission-card">
+          <div class="cc-swatch" style="background:var(--ws-denim)"></div>
+          <div class="cc-body">
+            <div class="cc-num">C4</div>
+            <div class="cc-name">Revisionist Workshop</div>
+            <div class="cc-territory">Denim · Cotton · Paper warm</div>
+            <div class="cc-status cc-confirmed">Confirmed</div>
+          </div>
+        </div>
+
+        <div class="commission-card">
+          <div class="cc-swatch" style="background:var(--ws-cotton)"></div>
+          <div class="cc-body">
+            <div class="cc-num">C5</div>
+            <div class="cc-name">AI Style Files</div>
+            <div class="cc-territory">Workshop territory · Libre Baskerville</div>
+            <div class="cc-status cc-confirmed">Confirmed</div>
+          </div>
+        </div>
+
+        <div class="commission-card">
+          <div class="cc-swatch" style="background:var(--mio-cobalt)"></div>
+          <div class="cc-body">
+            <div class="cc-num">C6</div>
+            <div class="cc-name">Marnie.IO</div>
+            <div class="cc-territory">Cobalt · Kitchen Yellow · Ground</div>
+            <div class="cc-status cc-confirmed">Confirmed</div>
+          </div>
+        </div>
+
+        <div class="commission-card">
+          <div class="cc-swatch" style="background:var(--corp-orange)"></div>
+          <div class="cc-body">
+            <div class="cc-num">C7</div>
+            <div class="cc-name">IAI Corporate Refresh</div>
+            <div class="cc-territory">Safety Orange · Steel Blue · Charcoal</div>
+            <div class="cc-status cc-confirmed">Confirmed</div>
+          </div>
+        </div>
+
+        <div class="commission-card">
+          <div class="cc-swatch" style="background:var(--io-lola)"></div>
+          <div class="cc-body">
+            <div class="cc-num">C8</div>
+            <div class="cc-name">Grid.IO Redesign</div>
+            <div class="cc-territory">Lola's Green · Syne · IBM Plex</div>
+            <div class="cc-status cc-confirmed">Confirmed</div>
+          </div>
+        </div>
+
+        <div class="commission-card">
+          <div class="cc-swatch" style="background:var(--ws-denim)"></div>
+          <div class="cc-body">
+            <div class="cc-num">C9</div>
+            <div class="cc-name">Substack Review</div>
+            <div class="cc-territory">Revisionist Workshop · F0EBE0</div>
+            <div class="cc-status cc-confirmed">Confirmed</div>
+          </div>
+        </div>
+
+        <div class="commission-card">
+          <div class="cc-swatch" style="background:var(--io-lola)"></div>
+          <div class="cc-body">
+            <div class="cc-num">C10</div>
+            <div class="cc-name">DI Interface</div>
+            <div class="cc-territory">Dark field · Five elements · Mobile</div>
+            <div class="cc-status cc-confirmed">Confirmed</div>
+          </div>
+        </div>
+
+        <div class="commission-card">
+          <div class="cc-swatch" style="background:var(--mio-cobalt)"></div>
+          <div class="cc-body">
+            <div class="cc-num">C11</div>
+            <div class="cc-name">Piper Tile</div>
+            <div class="cc-territory">Marnie.IO · 390px · One face</div>
+            <div class="cc-status cc-confirmed">Confirmed</div>
+          </div>
+        </div>
+
+        <div class="commission-card">
+          <div class="cc-swatch" style="background:var(--corp-orange)"></div>
+          <div class="cc-body">
+            <div class="cc-num">C12</div>
+            <div class="cc-name">Clear Ground</div>
+            <div class="cc-territory">AI Readiness landing page</div>
+            <div class="cc-status cc-confirmed">Confirmed</div>
+          </div>
+        </div>
+
+        <div class="commission-card" style="border-color:rgba(214,106,53,0.3)">
+          <div class="cc-swatch" style="background:linear-gradient(90deg,#0A0E14 50%,#3A5A78 100%)"></div>
+          <div class="cc-body">
+            <div class="cc-num">C13</div>
+            <div class="cc-name">Base</div>
+            <div class="cc-territory">Foundation layer · This interface</div>
+            <div class="cc-status" style="background:rgba(214,106,53,0.1);color:var(--corp-orange);border:1px solid rgba(214,106,53,0.25)">Active</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       VIEW C — KNOWLEDGE
+       ══════════════════════════════════════ -->
+  <div class="view" id="view-knowledge">
+    <div class="view-header">
+      <div class="vh-left">
+        <div class="vh-eyebrow">Section C · Knowledge</div>
+        <div class="vh-title">Knowledge and Reports</div>
+        <div class="vh-sub">Clio's domain surfaced visually. Vault, org chart, key reports — curated, not a file browser.</div>
+      </div>
+      <div class="vh-right">Clio · Head of Knowledge · Maren / Ikigai</div>
+    </div>
+
+    <div class="view-content">
+
+      <div class="section-label">Vault and structure</div>
+
+      <div class="knowledge-grid row-gap">
+
+        <div class="knowledge-card">
+          <div class="kc-accent" style="background:var(--corp-steel)"></div>
+          <div class="kc-label">Foundational documents</div>
+          <div class="kc-name">Vault</div>
+          <div class="kc-desc">IAI's foundational documents. Naming architecture, brand positioning, palette architecture, IO operating principles.</div>
+          <div class="kc-items">
+            <div class="kc-item"><div class="kc-item-dot"></div>IAI Brand Positioning v1</div>
+            <div class="kc-item"><div class="kc-item-dot"></div>IO Naming Architecture v1</div>
+            <div class="kc-item"><div class="kc-item-dot"></div>Palette Architecture v1</div>
+            <div class="kc-item"><div class="kc-item-dot"></div>Agent Roster v2.0</div>
+          </div>
+        </div>
+
+        <div class="knowledge-card">
+          <div class="kc-accent" style="background:var(--corp-steel)"></div>
+          <div class="kc-label">Agent hierarchy</div>
+          <div class="kc-name">Org Chart</div>
+          <div class="kc-desc">Current agent roster across all five verticals. Business, Workshop, Family, Ikigai, Shared Services.</div>
+          <div class="kc-items">
+            <div class="kc-item"><div class="kc-item-dot"></div>Arna Overview</div>
+            <div class="kc-item"><div class="kc-item-dot"></div>Business vertical — Reid</div>
+            <div class="kc-item"><div class="kc-item-dot"></div>Workshop vertical — Sable</div>
+            <div class="kc-item"><div class="kc-item-dot"></div>Family vertical — Neve</div>
+            <div class="kc-item"><div class="kc-item-dot"></div>Ikigai vertical — Maren</div>
+          </div>
+        </div>
+
+        <div class="knowledge-card">
+          <div class="kc-accent" style="background:var(--idx-teal)"></div>
+          <div class="kc-label">Platform intelligence</div>
+          <div class="kc-name">Flint Notes</div>
+          <div class="kc-desc">Flint's weekly platform intelligence. Claude API developments, shipping, deprecations, IAI action items.</div>
+          <div class="kc-items">
+            <div class="kc-item"><div class="kc-item-dot" style="background:var(--idx-teal)"></div>Flint W15 — April 2026</div>
+            <div class="kc-item"><div class="kc-item-dot" style="background:var(--idx-teal)"></div>Haiku 3 deprecation — 19 Apr</div>
+            <div class="kc-item"><div class="kc-item-dot" style="background:var(--idx-teal)"></div>Cowork RBAC — activate</div>
+          </div>
+        </div>
+
+        <div class="knowledge-card">
+          <div class="kc-accent" style="background:var(--muted)"></div>
+          <div class="kc-label">External</div>
+          <div class="kc-name">Help and Support</div>
+          <div class="kc-desc">External references. Not built in Base — links out to relevant support resources.</div>
+          <div class="kc-items">
+            <div class="kc-item"><div class="kc-item-dot"></div>Anthropic docs.claude.com →</div>
+            <div class="kc-item"><div class="kc-item-dot"></div>Claude API reference →</div>
+            <div class="kc-item"><div class="kc-item-dot"></div>Wix support →</div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       VIEW D — WORKSHOP
+       ══════════════════════════════════════ -->
+  <div class="view" id="view-workshop">
+    <div class="view-header">
+      <div class="vh-left">
+        <div class="vh-eyebrow">Section D · Workshop</div>
+        <div class="vh-title">Revisionist Workshop</div>
+        <div class="vh-sub">Internal home for the Workshop even though it lives externally at Substack. The two most-accessed assets surfaced here.</div>
+      </div>
+      <div class="vh-right">Sable · Chief of Workshop · Substack</div>
+    </div>
+
+    <div class="view-content">
+
+      <div class="section-label">AI Style Files</div>
+
+      <div class="workshop-grid row-gap">
+
+        <div class="sf-featured">
+          <div class="sff-left">
+            <div class="sff-eyebrow">Mirror · Style documentation</div>
+            <div class="sff-title">AI Style Files</div>
+            <div class="sff-desc">Mirror's session notes documented as editorial style files. Sepia ink-on-paper illustration. Scout signal read. Fit and condition notes. Intelligence update at close.</div>
+          </div>
+          <div class="sff-right">
+            <div class="sff-file">
+              <div>
+                <div class="sff-file-name">Style File 001 — HIF Day One</div>
+                <div class="sff-file-meta">14 Apr 2026 · Scout W13 · Texture contrast</div>
+              </div>
+              <div class="sff-file-status sff-confirmed">Confirmed</div>
+            </div>
+            <div class="sff-file">
+              <div>
+                <div class="sff-file-name">Style File 002 — Military Shirt</div>
+                <div class="sff-file-meta">16 Apr 2026 · Scout W15 · Military silhouette</div>
+              </div>
+              <div class="sff-file-status sff-confirmed">Confirmed</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="workshop-card">
+          <div class="wc-label">Content pipeline</div>
+          <div class="wc-name">Content Plan</div>
+          <div class="wc-desc">Current Workshop content pipeline. Post schedule, drafts in progress, Scout W13 and W15 activations. Operational view available in Grid.IO content tab.</div>
+          <div class="wc-link">Grid content tab (operational view)</div>
+        </div>
+
+        <div class="workshop-card">
+          <div class="wc-label">External publication</div>
+          <div class="wc-name">Revisionist Substack</div>
+          <div class="wc-desc">The external face of the Workshop. F0EBE0 paper warm ground, E8C84E accent, warp-and-weft mark. About and Definitions pages pending Rue rewrite.</div>
+          <div class="wc-link">shoppingthearchive.substack.com →</div>
+        </div>
+
+      </div>
+
+      <div class="section-label">Rotation tracker — Scout W15</div>
+
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:7px;overflow:hidden;">
+        <div style="padding:14px 20px;border-bottom:1px solid var(--border-l);font-family:var(--mono);font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted)">Military shirt rotation — three colourways</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);">
+          <div style="padding:16px 20px;border-right:1px solid var(--border-l);">
+            <div style="font-family:var(--mono);font-size:8px;letter-spacing:0.12em;text-transform:uppercase;color:#6dccaa;margin-bottom:5px">01 · Active</div>
+            <div style="font-family:var(--corp);font-size:13px;font-weight:500;color:var(--white);margin-bottom:3px">Black [ID 49]</div>
+            <div style="font-family:var(--mono);font-size:9px;color:var(--muted)">Style File 002 · Confirmed</div>
+          </div>
+          <div style="padding:16px 20px;border-right:1px solid var(--border-l);">
+            <div style="font-family:var(--mono);font-size:8px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">02 · To follow</div>
+            <div style="font-family:var(--corp);font-size:13px;font-weight:500;color:var(--muted);margin-bottom:3px">Khaki [ID 48]</div>
+            <div style="font-family:var(--mono);font-size:9px;color:var(--ghost)">Pending activation</div>
+          </div>
+          <div style="padding:16px 20px;">
+            <div style="font-family:var(--mono);font-size:8px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">03 · To follow</div>
+            <div style="font-family:var(--corp);font-size:13px;font-weight:500;color:var(--muted);margin-bottom:3px">Baby Pink [ID 58]</div>
+            <div style="font-family:var(--mono);font-size:9px;color:var(--ghost)">Pending activation</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+  <!-- ══════════════════════════════════════
+       VIEW E — PARTNERS
+       ══════════════════════════════════════ -->
+  <div class="view" id="view-partners">
+    <div class="view-header">
+      <div class="vh-left">
+        <div class="vh-eyebrow">Section E · Partners</div>
+        <div class="vh-title">Business Partners</div>
+        <div class="vh-sub">Kick off to partner systems and interfaces. IAI's active business relationships.</div>
+      </div>
+      <div class="vh-right">ICS · TMM · HMA · HIF</div>
+    </div>
+
+    <div class="view-content">
+
+      <div class="section-label">Active partners</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+
+        <div class="knowledge-card" style="cursor:pointer;">
+          <div class="kc-accent" style="background:#FF6B1A"></div>
+          <div class="kc-label">Integrated Coating Services</div>
+          <div class="kc-name">ICS</div>
+          <div class="kc-desc">Dan Garness. IO Beta instance — the second IO deployment in the world. Active trial engagement.</div>
+          <div class="kc-items">
+            <div class="kc-item"><div class="kc-item-dot" style="background:#FF6B1A"></div>IO Beta instance</div>
+            <div class="kc-item"><div class="kc-item-dot" style="background:#FF6B1A"></div>Cord — Head of ICS (emerging)</div>
+            <div class="kc-item"><div class="kc-item-dot" style="background:#FF6B1A"></div>→ ICS systems</div>
+          </div>
+        </div>
+
+        <div class="knowledge-card" style="cursor:pointer;">
+          <div class="kc-accent" style="background:#00C9C9"></div>
+          <div class="kc-label">The Measured Marketer</div>
+          <div class="kc-name">TMM</div>
+          <div class="kc-desc">Jacqui's business. Hedweld. Tammy manages TMM operations day-to-day. IAI firewall absolute — TMM and IAI never mix.</div>
+          <div class="kc-items">
+            <div class="kc-item"><div class="kc-item-dot" style="background:#00C9C9"></div>Tammy — Head of TMM</div>
+            <div class="kc-item"><div class="kc-item-dot" style="background:#00C9C9"></div>Hedweld engagement active</div>
+            <div class="kc-item"><div class="kc-item-dot" style="background:#00C9C9"></div>→ TMM systems</div>
+          </div>
+        </div>
+
+        <div class="knowledge-card" style="cursor:pointer;">
+          <div class="kc-accent" style="background:#2255F5"></div>
+          <div class="kc-label">Hunter Manufacturing Awards</div>
+          <div class="kc-name">HMA</div>
+          <div class="kc-desc">Marnie is a board director. Wave 4 rollout — HMA board directors and broader network. Hunter Innovation Festival context.</div>
+          <div class="kc-items">
+            <div class="kc-item"><div class="kc-item-dot" style="background:#2255F5"></div>Marnie — board director</div>
+            <div class="kc-item"><div class="kc-item-dot" style="background:#2255F5"></div>Hunter — Head of HMA (planned)</div>
+            <div class="kc-item"><div class="kc-item-dot" style="background:#2255F5"></div>→ HMA systems</div>
+          </div>
+        </div>
+
+        <div class="knowledge-card" style="cursor:pointer;">
+          <div class="kc-accent" style="background:var(--corp-steel)"></div>
+          <div class="kc-label">Hunter Innovation Festival</div>
+          <div class="kc-name">HIF</div>
+          <div class="kc-desc">Festival Director role active. First day confirmed 14 April 2026. Creative office environment.</div>
+          <div class="kc-items">
+            <div class="kc-item"><div class="kc-item-dot"></div>Festival Director — Marnie</div>
+            <div class="kc-item"><div class="kc-item-dot"></div>14 April 2026 · Confirmed</div>
+            <div class="kc-item"><div class="kc-item-dot"></div>→ HIF systems</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+<script>
+function showView(id) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  const el = document.getElementById('view-' + id);
+  if (el) el.classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+</script>
+
+</body>
+</html>
