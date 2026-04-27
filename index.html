@@ -916,7 +916,7 @@ body::before {
         <div class="pip-live"></div>
         IO Alpha · Live
       </div>
-      <div class="topbar-date">17 Apr 2026 · W16</div>
+      <div class="topbar-date" id="base-topbar-date">17 Apr 2026 · W16</div>
     </div>
   </div>
 
@@ -955,7 +955,7 @@ body::before {
             <div class="pt-desc">Operational layer. Sprint board, schedule, content plan, priority list. Agents write here. Marnie manages from here.</div>
             <div class="pt-signal" style="color:var(--io-acid)">
               <div style="width:5px;height:5px;border-radius:50%;background:var(--io-acid);flex-shrink:0;animation:pip 2s infinite"></div>
-              14 active · 2 gates
+              <span id="base-grid-signal">14 active · 2 gates</span>
             </div>
           </div>
           <div class="pt-footer">
@@ -995,7 +995,7 @@ body::before {
             <div class="pt-desc">Personal operating interface. Health OS, daily intelligence, Piper tile. Cobalt ground. Family point alongside.</div>
             <div class="pt-signal" style="color:var(--mio-cobalt)">
               <div style="width:5px;height:5px;border-radius:50%;background:var(--mio-kitchen);flex-shrink:0"></div>
-              DI W16 · 4 Flag · 5 Watch
+              <span id="base-mio-signal">DI W16 · 4 Flag · 5 Watch</span>
             </div>
           </div>
           <div class="pt-footer">
@@ -1138,7 +1138,7 @@ body::before {
             <div class="pt-desc">Sprint board, schedule, content plan, priority list. Agents write here. Marnie manages from here.</div>
             <div class="pt-signal" style="color:var(--io-acid)">
               <div style="width:5px;height:5px;border-radius:50%;background:var(--io-acid);flex-shrink:0;animation:pip 2s infinite"></div>
-              14 active tasks · 2 gates
+              <span id="base-arch-grid">14 active tasks · 2 gates</span>
             </div>
           </div>
           <div class="pt-footer">
@@ -1158,7 +1158,7 @@ body::before {
             <div class="pt-desc">Health OS, daily intelligence, Piper tile. Personal operating interface on cobalt ground.</div>
             <div class="pt-signal" style="color:var(--mio-cobalt)">
               <div style="width:5px;height:5px;border-radius:50%;background:var(--mio-kitchen);flex-shrink:0"></div>
-              DI · W16 · 4 Flag · 5 Watch
+              <span id="base-arch-mio">DI · W16 · 4 Flag · 5 Watch</span>
             </div>
           </div>
           <div class="pt-footer">
@@ -1398,7 +1398,7 @@ body::before {
           <div class="kc-label">Foundational documents</div>
           <div class="kc-name">Vault</div>
           <div class="kc-desc">IAI's foundational documents. Naming architecture, brand positioning, palette architecture, IO operating principles.</div>
-          <div class="kc-items">
+          <div class="kc-items" id="base-vault-items">
             <div class="kc-item"><div class="kc-item-dot"></div>IAI Brand Positioning v1</div>
             <div class="kc-item"><div class="kc-item-dot"></div>IO Naming Architecture v1</div>
             <div class="kc-item"><div class="kc-item-dot"></div>Palette Architecture v1</div>
@@ -1408,7 +1408,7 @@ body::before {
 
         <div class="knowledge-card">
           <div class="kc-accent" style="background:var(--corp-steel)"></div>
-          <div class="kc-label">Agent hierarchy</div>
+          <div class="kc-label" id="base-roster-label">Agent hierarchy</div>
           <div class="kc-name">Org Chart</div>
           <div class="kc-desc">Current agent roster across all five verticals. Business, Workshop, Family, Ikigai, Shared Services.</div>
           <div class="kc-items">
@@ -1425,7 +1425,7 @@ body::before {
           <div class="kc-label">Platform intelligence</div>
           <div class="kc-name">Flint Notes</div>
           <div class="kc-desc">Flint's weekly platform intelligence. Claude API developments, shipping, deprecations, IAI action items.</div>
-          <div class="kc-items">
+          <div class="kc-items" id="base-flint-items">
             <div class="kc-item"><div class="kc-item-dot" style="background:var(--idx-teal)"></div>Flint W15 — April 2026</div>
             <div class="kc-item"><div class="kc-item-dot" style="background:var(--idx-teal)"></div>Haiku 3 deprecation — 19 Apr</div>
             <div class="kc-item"><div class="kc-item-dot" style="background:var(--idx-teal)"></div>Cowork RBAC — activate</div>
@@ -1608,6 +1608,81 @@ body::before {
   </div>
 
 <script>
+// ── Base live data ────────────────────────────────────────────────────────────
+(function () {
+
+  // ISO week number
+  function isoWeek(d) {
+    const tmp = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    tmp.setUTCDate(tmp.getUTCDate() + 4 - (tmp.getUTCDay() || 7));
+    const y1  = new Date(Date.UTC(tmp.getUTCFullYear(), 0, 1));
+    return Math.ceil((((tmp - y1) / 86400000) + 1) / 7);
+  }
+
+  function fmtDate(d) {
+    return d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  // ── Date + week — immediate, client-side ───────────────────────────────────
+  const now  = new Date();
+  const week = isoWeek(now);
+  const wStr = 'W' + week;
+
+  const topbarDate = document.getElementById('base-topbar-date');
+  if (topbarDate) topbarDate.textContent = fmtDate(now) + ' · ' + wStr;
+
+  const mioSignal = document.getElementById('base-mio-signal');
+  if (mioSignal) mioSignal.textContent = 'DI ' + wStr + ' · 4 Flag · 5 Watch';
+
+  const archMio = document.getElementById('base-arch-mio');
+  if (archMio) archMio.textContent = 'DI · ' + wStr + ' · 4 Flag · 5 Watch';
+
+  // ── Live data fetch ────────────────────────────────────────────────────────
+  fetch('https://api.integratedai.com.au/base/data')
+    .then(function (r) { return r.ok ? r.json() : Promise.reject('non-ok'); })
+    .then(function (data) {
+
+      // Grid counts
+      if (data.grid) {
+        var a = data.grid.active, g = data.grid.gates;
+        var gridSig = document.getElementById('base-grid-signal');
+        if (gridSig) gridSig.textContent = a + ' active · ' + g + ' gates';
+        var archGrid = document.getElementById('base-arch-grid');
+        if (archGrid) archGrid.textContent = a + ' active tasks · ' + g + ' gates';
+      }
+
+      // KB listings
+      if (data.kb) {
+
+        // Vault items
+        var vaultEl = document.getElementById('base-vault-items');
+        if (vaultEl && data.kb.vault && data.kb.vault.length) {
+          vaultEl.innerHTML = data.kb.vault.map(function (f) {
+            return '<div class="kc-item"><div class="kc-item-dot"></div>' + f.name + '</div>';
+          }).join('');
+        }
+
+        // Flint notes
+        var flintEl = document.getElementById('base-flint-items');
+        if (flintEl && data.kb.flint && data.kb.flint.length) {
+          flintEl.innerHTML = data.kb.flint.map(function (f) {
+            return '<div class="kc-item"><div class="kc-item-dot" style="background:var(--idx-teal)"></div>' + f.name + '</div>';
+          }).join('');
+        }
+
+        // Roster version in Org Chart label
+        if (data.kb.rosterVersion) {
+          var rosterEl = document.getElementById('base-roster-label');
+          if (rosterEl) rosterEl.textContent = 'Agent hierarchy · v' + data.kb.rosterVersion;
+        }
+      }
+    })
+    .catch(function () {
+      // Silent fail — static fallback content remains in place
+    });
+
+})();
+
 function showView(id) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
