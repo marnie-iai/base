@@ -43,6 +43,120 @@ body {
   min-height: 100vh;
 }
 
+/* ─── PERSISTENT NAV ───────────────────────────────────────────────────────── */
+.base-nav {
+  background: #FFFFFF;
+  border-bottom: 1px solid rgba(28,36,44,0.08);
+  position: sticky;
+  top: 0;
+  z-index: 200;
+}
+.base-nav-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+.base-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  text-decoration: none;
+}
+.base-brand-mark {
+  width: 32px; height: 32px; border-radius: 7px;
+  background: #0E1117;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.base-brand-dot {
+  width: 12px; height: 12px; border-radius: 50%;
+  background: #D66A35;
+}
+.base-brand-name {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  color: #1C242C;
+}
+.base-nav-tools {
+  display: flex;
+  align-items: center;
+  border-left: 1px solid rgba(28,36,44,0.08);
+  border-right: 1px solid rgba(28,36,44,0.08);
+  margin: 0 20px;
+  padding: 0 4px;
+  height: 36px;
+  flex-shrink: 0;
+}
+.base-nav-tool {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 12px;
+  height: 100%;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(28,36,44,0.55);
+  transition: color 0.15s;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.base-nav-tool:hover { color: #00D4B4; }
+.base-nav-tool.disabled { opacity: 0.35; cursor: default; pointer-events: none; }
+.base-nav-tool-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: #00D4B4;
+  flex-shrink: 0;
+}
+.base-nav-search-wrap {
+  flex: 1;
+  max-width: 400px;
+  position: relative;
+  margin-right: 20px;
+}
+.base-nav-search-input {
+  width: 100%;
+  height: 36px;
+  padding: 0 14px 0 36px;
+  border: 1.5px solid rgba(28,36,44,0.16);
+  border-radius: 7px;
+  background: #F5F2EC;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 300;
+  color: #1C242C;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.base-nav-search-input::placeholder { color: rgba(28,36,44,0.4); }
+.base-nav-search-input:focus {
+  border-color: var(--denim);
+  box-shadow: 0 0 0 3px rgba(74,101,132,0.12);
+  background: #FFFFFF;
+}
+.base-nav-search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(28,36,44,0.4);
+  pointer-events: none;
+}
+.base-nav-date {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: rgba(28,36,44,0.55);
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+
 /* ─── READER CHROME ─────────────────────────────────────────────────────────── */
 .reader-chrome {
   background: var(--base-ground);
@@ -52,7 +166,7 @@ body {
   align-items: center;
   gap: 16px;
   position: sticky;
-  top: 0;
+  top: 60px;
   z-index: 100;
 }
 .reader-back {
@@ -657,6 +771,34 @@ body {
 </head>
 <body>
 
+<!-- PERSISTENT NAV -->
+<nav class="base-nav">
+  <div class="base-nav-inner">
+    <a class="base-brand" href="/">
+      <div class="base-brand-mark"><div class="base-brand-dot"></div></div>
+      <div class="base-brand-name">BASE.</div>
+    </a>
+    <div class="base-nav-tools">
+      <a class="base-nav-tool" href="https://grid.integratedai.com.au" target="_blank" rel="noopener">
+        <div class="base-nav-tool-dot"></div>Grid.IO
+      </a>
+      <a class="base-nav-tool" href="https://marnie-io.vercel.app" target="_blank" rel="noopener">
+        <div class="base-nav-tool-dot"></div>Mio
+      </a>
+      <span class="base-nav-tool disabled">
+        <div class="base-nav-tool-dot"></div>DI
+      </span>
+    </div>
+    <div class="base-nav-search-wrap">
+      <svg class="base-nav-search-icon" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/>
+      </svg>
+      <input type="text" id="nav-kb-search" class="base-nav-search-input" placeholder="Search knowledge base…" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="base-nav-date" id="nav-date"></div>
+  </div>
+</nav>
+
 <!-- READER CHROME -->
 <div class="reader-chrome" id="reader-chrome">
   <a class="reader-back" id="reader-back" href="/">← Back</a>
@@ -1092,6 +1234,26 @@ async function main() {
 }
 
 main();
+
+// ── Persistent nav ────────────────────────────────────────────────────────────
+(function () {
+  // Date
+  const dateEl = document.getElementById('nav-date');
+  if (dateEl) {
+    const d = new Date();
+    dateEl.textContent = d.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' });
+  }
+  // Search → navigate to Base with ?q=
+  const navSearch = document.getElementById('nav-kb-search');
+  if (navSearch) {
+    navSearch.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        const q = this.value.trim();
+        if (q.length >= 2) window.location = '/?q=' + encodeURIComponent(q);
+      }
+    });
+  }
+})();
 </script>
 </body>
 </html>

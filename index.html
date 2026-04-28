@@ -69,21 +69,22 @@ body {
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
-  z-index: 100;
+  z-index: 200;
 }
 .header-inner {
   max-width: var(--max-w);
   margin: 0 auto;
   padding: 0 24px;
-  height: 56px;
+  height: 60px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 0;
 }
 .brand {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-shrink: 0;
 }
 .brand-mark {
   width: 32px; height: 32px; border-radius: 7px;
@@ -113,58 +114,112 @@ body {
   font-size: 11px;
   color: var(--text-muted);
   letter-spacing: 0.04em;
+  flex-shrink: 0;
 }
 
-/* ── Tools strip ──────────────────────────────────────────────────────────── */
-.tools-strip {
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-}
-.tools-inner {
-  max-width: var(--max-w);
-  margin: 0 auto;
-  padding: 0 24px;
-  height: 36px;
+/* ── Nav tools ────────────────────────────────────────────────────────────── */
+.nav-tools {
   display: flex;
   align-items: center;
-}
-.tools-label {
-  font-family: var(--font-mono);
-  font-size: 9px;
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  padding-right: 16px;
+  border-left: 1px solid var(--border);
   border-right: 1px solid var(--border);
-  margin-right: 12px;
-  white-space: nowrap;
+  margin: 0 20px;
+  padding: 0 4px;
+  height: 36px;
+  flex-shrink: 0;
 }
-.tool-link {
+.nav-tool {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   padding: 0 12px;
-  height: 36px;
+  height: 100%;
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 500;
   color: var(--text-muted);
   transition: color 0.15s;
   white-space: nowrap;
+  text-decoration: none;
 }
-.tool-link:hover { color: var(--teal); }
-.tool-link.disabled { opacity: 0.4; cursor: default; pointer-events: none; }
-.tool-dot {
-  width: 6px; height: 6px; border-radius: 50%;
+.nav-tool:hover { color: var(--teal); }
+.nav-tool.disabled { opacity: 0.35; cursor: default; pointer-events: none; }
+.nav-tool-dot {
+  width: 5px; height: 5px; border-radius: 50%;
   background: var(--teal);
   flex-shrink: 0;
 }
-.tool-coming {
+.nav-tool-coming {
   font-size: 9px;
   color: var(--text-muted);
-  letter-spacing: 0.06em;
-  margin-left: 2px;
+  letter-spacing: 0.04em;
+  opacity: 0.6;
+}
+
+/* ── Nav search ───────────────────────────────────────────────────────────── */
+.nav-search-wrap {
+  flex: 1;
+  max-width: 400px;
+  position: relative;
+  margin-right: 20px;
+}
+.nav-search-input {
+  width: 100%;
+  height: 36px;
+  padding: 0 14px 0 36px;
+  border: 1.5px solid var(--border-strong);
+  border-radius: 7px;
+  background: var(--ground);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.nav-search-input::placeholder { color: var(--text-muted); }
+.nav-search-input:focus {
+  border-color: var(--denim);
+  box-shadow: 0 0 0 3px rgba(74,101,132,0.12);
+  background: var(--surface);
+}
+.nav-search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+.nav-search-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.10);
+  z-index: 300;
+  overflow: hidden;
+  display: none;
+}
+.nav-search-dropdown.visible { display: block; }
+.nav-search-status {
+  padding: 10px 14px 0;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+  min-height: 0;
+}
+.nav-search-results {
+  max-height: 380px;
+  overflow-y: auto;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 /* ── Main layout ──────────────────────────────────────────────────────────── */
@@ -176,9 +231,7 @@ body {
   flex-direction: column;
 }
 
-/* ── Search ───────────────────────────────────────────────────────────────── */
-.search-section { margin-bottom: 32px; }
-.search-wrap { position: relative; }
+/* ── Search results (shared between nav dropdown and any future use) ──────── */
 .search-input {
   width: 100%;
   padding: 14px 20px 14px 52px;
@@ -584,67 +637,50 @@ body {
 <!-- ── Header ─────────────────────────────────────────────────────────────── -->
 <header class="site-header">
   <div class="header-inner">
+    <!-- Brand -->
     <div class="brand">
       <div class="brand-mark"><div class="brand-dot"></div></div>
       <div>
         <div class="brand-name">BASE.</div>
-        <div class="brand-sub">Integrated AI · Personal Intranet</div>
+        <div class="brand-sub">Integrated AI</div>
       </div>
     </div>
+
+    <!-- Tools -->
+    <nav class="nav-tools">
+      <a class="nav-tool" href="https://grid.integratedai.com.au" target="_blank" rel="noopener">
+        <div class="nav-tool-dot"></div>Grid.IO
+      </a>
+      <a class="nav-tool" href="https://marnie-io.vercel.app" target="_blank" rel="noopener">
+        <div class="nav-tool-dot"></div>Mio
+      </a>
+      <span class="nav-tool disabled">
+        <div class="nav-tool-dot"></div>DI <span class="nav-tool-coming">soon</span>
+      </span>
+    </nav>
+
+    <!-- Search -->
+    <div class="nav-search-wrap" id="nav-search-wrap">
+      <svg class="nav-search-icon" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/>
+      </svg>
+      <input type="text" id="kb-search" class="nav-search-input" placeholder="Search knowledge base…" autocomplete="off" spellcheck="false">
+      <div class="nav-search-dropdown" id="nav-search-dropdown">
+        <div class="nav-search-status" id="search-status"></div>
+        <div class="nav-search-results" id="search-results"></div>
+      </div>
+    </div>
+
+    <!-- Date -->
     <div class="header-date" id="header-date"></div>
   </div>
 </header>
 
-<!-- ── Tools strip ─────────────────────────────────────────────────────────── -->
-<div class="tools-strip">
-  <div class="tools-inner">
-    <div class="tools-label">Tools</div>
-    <a class="tool-link" href="https://grid.integratedai.com.au" target="_blank" rel="noopener">
-      <div class="tool-dot"></div>Grid.IO
-    </a>
-    <a class="tool-link" href="https://marnie-io.vercel.app" target="_blank" rel="noopener">
-      <div class="tool-dot"></div>Mio
-    </a>
-    <span class="tool-link disabled">
-      <div class="tool-dot"></div>DI <span class="tool-coming">coming soon</span>
-    </span>
-  </div>
-</div>
-
 <!-- ── Main ───────────────────────────────────────────────────────────────── -->
 <div class="main-wrap">
 
-  <!-- Search -->
-  <div class="search-section">
-    <div class="search-wrap">
-      <svg class="search-icon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/>
-      </svg>
-      <input type="text" id="kb-search" class="search-input" placeholder="Search knowledge base…" autocomplete="off" spellcheck="false">
-    </div>
-    <div class="search-status" id="search-status"></div>
-    <div class="search-results" id="search-results"></div>
-  </div>
-
-  <!-- ── Foundations ──────────────────────────────────────────────────────── -->
-  <section class="point-section foundations-section open" id="sec-foundations">
-    <div class="section-header" onclick="toggleSection('sec-foundations')">
-      <div class="section-accent"></div>
-      <div class="section-header-content">
-        <div class="section-titles">
-          <span class="section-name">Foundations</span>
-          <span class="section-sub">IAI · All Points</span>
-        </div>
-        <span class="section-chevron">▼</span>
-      </div>
-    </div>
-    <div class="section-body" id="body-foundations">
-      <div class="section-loading">Loading…</div>
-    </div>
-  </section>
-
   <!-- ── Business ─────────────────────────────────────────────────────────── -->
-  <section class="point-section business-section" id="sec-business">
+  <section class="point-section business-section open" id="sec-business">
     <div class="section-header" onclick="toggleSection('sec-business')">
       <div class="section-accent"></div>
       <div class="section-header-content">
@@ -741,6 +777,23 @@ body {
       </div>
     </div>
     <div class="section-body" id="body-images">
+      <div class="section-loading">Loading…</div>
+    </div>
+  </section>
+
+  <!-- ── Foundations (system layer) ───────────────────────────────────────── -->
+  <section class="point-section foundations-section" id="sec-foundations">
+    <div class="section-header" onclick="toggleSection('sec-foundations')">
+      <div class="section-accent"></div>
+      <div class="section-header-content">
+        <div class="section-titles">
+          <span class="section-name">Foundations</span>
+          <span class="section-sub">Agent Library · Vault · Filing Standards</span>
+        </div>
+        <span class="section-chevron">▼</span>
+      </div>
+    </div>
+    <div class="section-body" id="body-foundations">
       <div class="section-loading">Loading…</div>
     </div>
   </section>
@@ -1282,19 +1335,43 @@ async function loadImages() {
 let _searchTimer = null;
 const _searchCache = {};
 
-document.getElementById('kb-search').addEventListener('input', function () {
+const _kbSearch   = document.getElementById('kb-search');
+const _dropdown   = document.getElementById('nav-search-dropdown');
+
+function showDropdown() { _dropdown.classList.add('visible'); }
+function hideDropdown() { _dropdown.classList.remove('visible'); }
+
+_kbSearch.addEventListener('input', function () {
   clearTimeout(_searchTimer);
   const q = this.value.trim();
   const status  = document.getElementById('search-status');
   const results = document.getElementById('search-results');
-  if (q.length < 2) { status.textContent = ''; results.innerHTML = ''; return; }
+  if (q.length < 2) {
+    status.textContent = '';
+    results.innerHTML = '';
+    hideDropdown();
+    return;
+  }
+  showDropdown();
   status.textContent = 'Searching…';
   _searchTimer = setTimeout(() => doSearch(q), 400);
+});
+
+_kbSearch.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape') { hideDropdown(); this.blur(); }
+});
+
+// Close dropdown on outside click
+document.addEventListener('click', function (e) {
+  if (!document.getElementById('nav-search-wrap').contains(e.target)) {
+    hideDropdown();
+  }
 });
 
 async function doSearch(q) {
   const status  = document.getElementById('search-status');
   const results = document.getElementById('search-results');
+  showDropdown();
   if (_searchCache[q]) {
     renderSearchResults(_searchCache[q]);
     const n = (_searchCache[q].items || []).length;
@@ -1344,9 +1421,28 @@ function renderSearchResults(data) {
   const el = document.getElementById('header-date');
   if (el) el.textContent = fmtDate(now) + ' · W' + isoWeek(now);
 
-  // Foundations is open by default — load immediately
+  // Business is first and open by default
+  _loaded['sec-business'] = true;
+  loadBusiness();
+
+  // Preload Foundations in background (Agent Library roster fetch)
   _loaded['sec-foundations'] = true;
   loadFoundations();
+
+  // Restore scroll to hash anchor if present
+  if (window.location.hash) {
+    const target = document.getElementById(window.location.hash.slice(1));
+    if (target) setTimeout(() => target.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+  }
+
+  // Handle ?q= param from reader search navigation
+  const urlQ = new URLSearchParams(window.location.search).get('q');
+  if (urlQ) {
+    _kbSearch.value = urlQ;
+    showDropdown();
+    doSearch(urlQ);
+    _kbSearch.focus();
+  }
 })();
 </script>
 </body>
