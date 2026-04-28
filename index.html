@@ -859,37 +859,19 @@ function buildFilters(files, grid, btnClass) {
 async function loadFoundations() {
   const body = document.getElementById('body-foundations');
   try {
-    const [portraits, vault, agents] = await Promise.all([
-      fetchPortraits(),
+    const [vault, agents] = await Promise.all([
       fetchKB('kb/00-foundations/vault'),
       fetchKB('kb/00-foundations/agents'),
     ]);
 
-    // Build agent doc lookup by name key
-    const agentDocs = {};
-    agents.forEach(f => {
-      const key = f.name.replace(/\.[a-z0-9]+$/i,'').toLowerCase().replace(/[-_]/g,' ').trim();
-      agentDocs[key] = RAW_BASE + f.path;
-    });
-
     let html = '';
 
-    // Agent Library
+    // Agent Library — text only, no images (portraits are in Image Library)
     html += '<div class="subsection"><div class="subsection-label">Agent Library</div>';
-    if (portraits.length) {
-      html += '<div class="portrait-grid">';
-      portraits.forEach(p => {
-        const name = agentName(p.name);
-        const imgUrl = 'https://raw.githubusercontent.com/marnie-iai/agent-portraits/main/portraits/' + p.name;
-        const docUrl = agentDocs[name.toLowerCase()] || imgUrl;
-        html += `<a class="portrait-card" href="${docUrl}" target="_blank" rel="noopener">
-          <div class="portrait-wrap"><img src="${imgUrl}" alt="${name}" loading="lazy"></div>
-          <div class="portrait-name">${name}</div>
-        </a>`;
-      });
-      html += '</div>';
+    if (agents.length) {
+      html += renderDocList(agents);
     } else {
-      html += '<div class="section-empty">Agent portraits unavailable</div>';
+      html += '<div class="section-empty">No agent documents found</div>';
     }
     html += '</div>';
 
@@ -1109,11 +1091,27 @@ async function loadImages() {
     return 'Other';
   };
 
+  const PORTRAITS_RAW = 'https://raw.githubusercontent.com/marnie-iai/agent-portraits/main/';
+
   try {
-    const all = await Promise.all(ALL_KB_PATHS.map(p => fetchKB(p)));
-    const images = all.flat()
+    const [allKb, portraits] = await Promise.all([
+      Promise.all(ALL_KB_PATHS.map(p => fetchKB(p))),
+      fetchPortraits(),
+    ]);
+
+    // KB images
+    const kbImages = allKb.flat()
       .filter(f => IMG_EXTS.has(fileExt(f.name)))
-      .map(f => ({ ...f, _point: pointLabel(f.path) }));
+      .map(f => ({ ...f, _point: pointLabel(f.path), _rawUrl: RAW_BASE + f.path }));
+
+    // Agent portrait images from public repo — tagged separately
+    const portraitImages = portraits.map(p => ({
+      ...p,
+      _point: 'Agents',
+      _rawUrl: PORTRAITS_RAW + p.path,
+    }));
+
+    const images = [...kbImages, ...portraitImages];
 
     if (!images.length) { loader.textContent = 'No images found in the knowledge base'; return; }
 
@@ -1129,7 +1127,7 @@ async function loadImages() {
     const renderMasonry = () => {
       const filtered = activePoint === 'All' ? images : images.filter(f => f._point === activePoint);
       masonry.innerHTML = filtered.map(f => {
-        const url = RAW_BASE + f.path;
+        const url = f._rawUrl;
         return `<a class="masonry-item" href="${url}" target="_blank" rel="noopener">
           <img src="${url}" alt="${f.name}" loading="lazy">
           <div class="masonry-hover">
