@@ -101,6 +101,29 @@ app.get('/api/portraits', async (req, res) => {
   }
 });
 
+// Diagnostic endpoint — confirms PAT is set and shows GitHub API status
+app.get('/api/debug', async (_req, res) => {
+  const testUrl = `https://api.github.com/repos/${KB_REPO}/contents/kb/00-foundations`;
+  const headers = {
+    'User-Agent': 'IAI-Base/3.0',
+    'Accept': 'application/vnd.github.v3+json',
+  };
+  if (GITHUB_PAT) headers['Authorization'] = `Bearer ${GITHUB_PAT}`;
+  try {
+    const r = await fetch(testUrl, { headers });
+    const text = await r.text();
+    return res.json({
+      patSet: !!GITHUB_PAT,
+      patPrefix: GITHUB_PAT ? GITHUB_PAT.slice(0, 10) + '…' : null,
+      githubStatus: r.status,
+      githubStatusText: r.statusText,
+      responsePreview: text.slice(0, 300),
+    });
+  } catch (err) {
+    return res.json({ patSet: !!GITHUB_PAT, fetchError: err.message });
+  }
+});
+
 // Serve index.html for all other routes
 app.get('*', (_req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
