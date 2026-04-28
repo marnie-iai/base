@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent — Integrated AI</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='112' fill='%230E1117'/><circle cx='256' cy='256' r='96' fill='%23D66A35'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@300;400;500&family=Zilla+Slab:wght@700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+
+<!-- Duotone SVG filter: Denim × Cotton Yellow -->
+<svg style="display:none" aria-hidden="true">
+  <defs>
+    <filter id="duotone-denim-cotton">
+      <feColorMatrix type="saturate" values="0"/>
+      <feComponentTransfer>
+        <feFuncR type="table" tableValues="0.290 0.906"/>
+        <feFuncG type="table" tableValues="0.392 0.784"/>
+        <feFuncB type="table" tableValues="0.518 0.306"/>
+      </feComponentTransfer>
+    </filter>
+  </defs>
+</svg>
+
+<style>
+:root {
+  --ground:        #F5F2EC;
+  --warm:          #F6F2EA;
+  --surface:       #FFFFFF;
+  --text:          #1C242C;
+  --muted:         #A89E8E;
+  --muted-soft:    rgba(28,36,44,0.55);
+  --border:        rgba(28,36,44,0.08);
+  --border-strong: rgba(28,36,44,0.16);
+  --denim:         #4A6584;
+  --cotton:        #E8C84E;
+  --font-body:     'Plus Jakarta Sans', sans-serif;
+  --font-mono:     'IBM Plex Mono', monospace;
+  --font-display:  'Zilla Slab', serif;
+  --font-ikigai:   'Playfair Display', serif;
+  --point-business:  #3A5A78;
+  --point-workshop:  #4A6584;
+  --point-family:    #2B52A8;
+  --point-ikigai:    #C4922A;
+  --point-resource:  #1C242C;
+  --point-foundations: #E8C84E;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+a { color: inherit; text-decoration: none; }
+img { display: block; }
+body {
+  font-family: var(--font-body);
+  font-weight: 300;
+  color: var(--text);
+  background: var(--ground);
+  background-image:
+    repeating-linear-gradient(rgba(28,36,44,0.04) 0px, rgba(28,36,44,0.04) 1px, transparent 1px, transparent 80px),
+    repeating-linear-gradient(90deg, rgba(28,36,44,0.04) 0px, rgba(28,36,44,0.04) 1px, transparent 1px, transparent 80px);
+  min-height: 100vh;
+}
+
+/* ── Back nav ────────────────────────────────────────────────────────────── */
+.back-nav {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+}
+.back-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted-soft);
+  transition: color 0.12s;
+}
+.back-link:hover { color: var(--denim); }
+.back-arrow { font-size: 14px; line-height: 1; }
+
+/* ── Header band ─────────────────────────────────────────────────────────── */
+.agent-header {
+  background: var(--warm);
+  border-bottom: 2px solid var(--denim);
+}
+.header-inner {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 32px 24px 28px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 32px;
+}
+.header-left { flex: 1; min-width: 0; }
+.header-point {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.point-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  flex-shrink: 0;
+}
+.point-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted-soft);
+}
+.status-badge {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 20px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.status-badge.live    { background: rgba(40,120,60,0.1);  color: #287844; }
+.status-badge.active  { background: rgba(74,101,132,0.12); color: var(--denim); }
+.status-badge.planned { background: rgba(28,36,44,0.06);  color: var(--muted-soft); }
+
+.agent-name {
+  font-family: var(--font-ikigai);
+  font-size: clamp(28px, 5vw, 42px);
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  margin-bottom: 6px;
+}
+.agent-role {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--muted-soft);
+  letter-spacing: 0.02em;
+  margin-bottom: 12px;
+}
+.reports-to {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+.reports-to a { color: var(--denim); }
+.reports-to a:hover { text-decoration: underline; }
+
+/* Portrait */
+.portrait-block {
+  flex-shrink: 0;
+}
+.portrait-img-wrap {
+  width: 120px; height: 120px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1.5px solid var(--border-strong);
+  background: var(--denim);
+  position: relative;
+}
+.portrait-img-wrap img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  filter: url(#duotone-denim-cotton);
+  display: block;
+}
+.portrait-initials {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--cotton);
+  background: var(--denim);
+}
+
+/* ── Main layout ─────────────────────────────────────────────────────────── */
+.constellation-body {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 32px 24px 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* ── Section ─────────────────────────────────────────────────────────────── */
+.cs-section {
+  margin-bottom: 36px;
+}
+.cs-section-title {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.02em;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--cotton);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.cs-section-count {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--muted-soft);
+  font-weight: 400;
+}
+
+/* ── File card ───────────────────────────────────────────────────────────── */
+.file-cards { display: flex; flex-direction: column; gap: 6px; }
+.file-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid transparent;
+  border-radius: 8px;
+  transition: border-color 0.12s, transform 0.1s, box-shadow 0.1s;
+}
+.file-card:hover {
+  border-color: var(--border-strong);
+  border-left-color: var(--denim);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(28,36,44,0.06);
+}
+.file-card-icon {
+  width: 32px; height: 32px; border-radius: 6px;
+  background: rgba(28,36,44,0.04);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.file-card-icon svg { width: 14px; height: 14px; color: var(--muted-soft); }
+.file-card-body { flex: 1; min-width: 0; }
+.file-card-name {
+  font-size: 13px; font-weight: 500; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+.file-card-path {
+  font-family: var(--font-mono); font-size: 10px; color: var(--muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.file-badge {
+  font-family: var(--font-mono); font-size: 9px; font-weight: 500;
+  padding: 2px 7px; border-radius: 4px;
+  background: var(--cotton); color: var(--text);
+  letter-spacing: 0.06em; text-transform: uppercase; flex-shrink: 0;
+}
+
+/* Featured card (Identity prompt doc) */
+.file-card.featured {
+  border-left-color: var(--denim);
+  background: rgba(74,101,132,0.04);
+  padding: 16px 18px;
+}
+.file-card.featured .file-card-name { font-size: 14px; }
+
+/* ── Related agents ──────────────────────────────────────────────────────── */
+.related-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 8px;
+}
+.related-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  transition: border-color 0.12s;
+}
+.related-card:hover { border-color: var(--denim); }
+.related-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.related-info { min-width: 0; }
+.related-name {
+  font-size: 12px; font-weight: 600; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.related-role {
+  font-family: var(--font-mono); font-size: 10px; color: var(--muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  margin-top: 1px;
+}
+
+/* ── Empty / loading ─────────────────────────────────────────────────────── */
+.cs-loading, .cs-error {
+  padding: 60px 0; text-align: center;
+  font-family: var(--font-mono); font-size: 12px; color: var(--muted-soft);
+}
+.cs-error { color: rgba(180,60,60,0.7); }
+.cs-empty {
+  font-family: var(--font-mono); font-size: 11px; color: var(--muted);
+  font-style: italic;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .header-inner { flex-direction: column-reverse; gap: 20px; padding: 24px 16px 20px; }
+  .constellation-body { padding: 24px 16px 60px; }
+  .back-nav { padding: 0 16px; }
+  .related-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+}
+</style>
+</head>
+<body>
+
+<!-- Back nav -->
+<nav class="back-nav">
+  <a class="back-link" href="/#sec-foundations">
+    <span class="back-arrow">←</span>Agent Library
+  </a>
+</nav>
+
+<!-- Loaded by JS -->
+<div id="constellation">
+  <div class="cs-loading">Loading…</div>
+</div>
+
+<script>
+'use strict';
+
+const POINT_COLORS = {
+  business: '#3A5A78', workshop: '#4A6584', family: '#2B52A8',
+  ikigai: '#C4922A', resource: '#1C242C', foundations: '#E8C84E',
+};
+const POINT_LABELS = {
+  business: 'Business', workshop: 'Workshop', family: 'Family',
+  ikigai: 'Operating Protocols', resource: 'Resource', foundations: 'Foundations',
+};
+
+function fileExt(name) {
+  const m = name.match(/\.([a-z0-9]+)$/i);
+  return m ? m[1].toLowerCase() : '';
+}
+function cleanName(filename) {
+  return filename
+    .replace(/\.[a-z0-9]+$/i, '')
+    .replace(/[-_]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/\b\w/g, c => c.toUpperCase());
+}
+
+const FILE_ICON = `<svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+  <path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/>
+  <polyline points="13 2 13 9 20 9"/>
+</svg>`;
+
+function renderFileCard(f, featured = false) {
+  const ext = fileExt(f.name);
+  return `<a class="file-card${featured ? ' featured' : ''}" href="${f.url}" target="_blank" rel="noopener">
+    <div class="file-card-icon">${FILE_ICON}</div>
+    <div class="file-card-body">
+      <div class="file-card-name">${cleanName(f.name)}</div>
+      <div class="file-card-path">${f.path}</div>
+    </div>
+    <span class="file-badge">${ext.toUpperCase()}</span>
+  </a>`;
+}
+
+function sectionHtml(title, count, bodyHtml) {
+  const countStr = count > 0 ? `<span class="cs-section-count">${count}</span>` : '';
+  return `<div class="cs-section">
+    <div class="cs-section-title">${title} ${countStr}</div>
+    ${bodyHtml}
+  </div>`;
+}
+
+function renderConstellation(agent) {
+  // Update page title
+  document.title = `${agent.name} — Integrated AI`;
+
+  const pointColor = POINT_COLORS[agent.point] || '#4A6584';
+  const pointLabel = POINT_LABELS[agent.point] || agent.point;
+  const statusClass = agent.status || 'live';
+
+  // Portrait
+  const portraitHtml = `<div class="portrait-img-wrap">
+    <img
+      src="${agent.portraitUrl}"
+      alt="${agent.name}"
+      onerror="this.style.display='none';this.parentNode.innerHTML='<div class=\\'portrait-initials\\'>${agent.name.slice(0,2).toUpperCase()}</div>'"
+    >
+  </div>`;
+
+  // Reports to
+  const reportsToHtml = agent.reportsToName
+    ? `<div class="reports-to">Reports to <a href="/agent/${agent.reportsTo}">${agent.reportsToName}</a></div>`
+    : '';
+
+  // Identity section
+  let identityHtml = '';
+  if (agent.identity && agent.identity.length) {
+    // Most recent first (already sorted), show featured + older versions
+    const [primary, ...rest] = agent.identity;
+    let inner = renderFileCard(primary, true);
+    if (rest.length) {
+      inner += `<details style="margin-top:8px">
+        <summary style="font-family:var(--font-mono);font-size:10px;color:var(--muted-soft);cursor:pointer;padding:4px 0;list-style:none">
+          + ${rest.length} older version${rest.length > 1 ? 's' : ''}
+        </summary>
+        <div class="file-cards" style="margin-top:6px">${rest.map(f => renderFileCard(f)).join('')}</div>
+      </details>`;
+    }
+    identityHtml = sectionHtml('Identity', agent.identity.length, `<div class="file-cards">${inner}</div>`);
+  } else {
+    identityHtml = sectionHtml('Identity', 0, '<div class="cs-empty">Prompt doc not yet filed</div>');
+  }
+
+  // Briefs section
+  let briefsHtml = '';
+  if (agent.briefs && agent.briefs.length) {
+    briefsHtml = sectionHtml(
+      'Briefs', agent.briefs.length,
+      `<div class="file-cards">${agent.briefs.map(f => renderFileCard(f)).join('')}</div>`
+    );
+  }
+
+  // Related agents section
+  let relatedHtml = '';
+  if (agent.related && agent.related.length) {
+    const cards = agent.related.map(a => {
+      const pc = POINT_COLORS[a.point] || '#4A6584';
+      return `<a class="related-card" href="/agent/${a.slug}">
+        <div class="related-dot" style="background:${pc}"></div>
+        <div class="related-info">
+          <div class="related-name">${a.name}</div>
+          <div class="related-role">${a.role}</div>
+        </div>
+      </a>`;
+    }).join('');
+    relatedHtml = sectionHtml('Related Agents', agent.related.length, `<div class="related-grid">${cards}</div>`);
+  }
+
+  document.getElementById('constellation').innerHTML = `
+    <header class="agent-header">
+      <div class="header-inner">
+        <div class="header-left">
+          <div class="header-point">
+            <div class="point-dot" style="background:${pointColor}"></div>
+            <span class="point-label">${pointLabel}</span>
+            <span class="status-badge ${statusClass}">${statusClass}</span>
+          </div>
+          <div class="agent-name">${agent.name}</div>
+          <div class="agent-role">${agent.role}</div>
+          ${reportsToHtml}
+        </div>
+        <div class="portrait-block">${portraitHtml}</div>
+      </div>
+    </header>
+    <div class="constellation-body">
+      ${identityHtml}
+      ${briefsHtml}
+      ${relatedHtml}
+    </div>`;
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+(async function () {
+  const slug = window.location.pathname.replace(/^\/agent\//, '').replace(/\/$/, '');
+  if (!slug) {
+    document.getElementById('constellation').innerHTML = '<div class="cs-error">No agent specified</div>';
+    return;
+  }
+
+  try {
+    const r = await fetch('/api/agent/' + slug);
+    if (r.status === 404) {
+      document.getElementById('constellation').innerHTML =
+        `<div class="cs-error" style="padding:80px 24px">
+          Agent not found.<br>
+          <a href="/" style="color:var(--denim);font-family:var(--font-mono);font-size:11px;margin-top:12px;display:inline-block">← Return to Agent Library</a>
+        </div>`;
+      return;
+    }
+    if (!r.ok) throw new Error('API error');
+    const data = await r.json();
+    renderConstellation(data);
+  } catch {
+    document.getElementById('constellation').innerHTML =
+      '<div class="cs-error">Failed to load agent data — try refreshing</div>';
+  }
+})();
+</script>
+</body>
+</html>

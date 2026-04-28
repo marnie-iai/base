@@ -489,6 +489,84 @@ body {
 .masonry-item:hover .masonry-hover { opacity: 1; }
 .masonry-fname { font-family: var(--font-mono); font-size: 10px; color: white; line-height: 1.4; word-break: break-all; }
 
+/* ── Agent text cards (Agent Library) ────────────────────────────────────── */
+.agent-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 8px;
+}
+.agent-text-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  background: var(--ground);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  transition: border-color 0.12s, transform 0.1s;
+  cursor: pointer;
+}
+.agent-text-card:hover {
+  border-color: var(--denim);
+  transform: translateY(-1px);
+}
+.atc-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.atc-point {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-muted);
+  letter-spacing: 0.06em;
+  min-width: 0;
+  overflow: hidden;
+}
+.atc-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.atc-status {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 500;
+  padding: 1px 6px;
+  border-radius: 20px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+.atc-status.live    { background: rgba(40,120,60,0.1);  color: #287844; }
+.atc-status.active  { background: rgba(74,101,132,0.12); color: var(--denim); }
+.atc-status.planned { background: rgba(28,36,44,0.06);  color: var(--text-muted); }
+.atc-name {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.2;
+}
+.atc-role {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+  line-height: 1.4;
+}
+.atc-desc {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.45;
+  margin-top: 2px;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
 /* ── Responsive ───────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
   .main-wrap { padding: 20px 16px 60px; }
@@ -858,22 +936,49 @@ function buildFilters(files, grid, btnClass) {
 }
 
 // ── Foundations ───────────────────────────────────────────────────────────────
+const POINT_COLORS = {
+  business: '#3A5A78', workshop: '#4A6584', family: '#2B52A8',
+  ikigai: '#C4922A', resource: '#1C242C', foundations: '#E8C84E',
+};
+const POINT_LABELS = {
+  business: 'Business', workshop: 'Workshop', family: 'Family',
+  ikigai: 'Operating Protocols', resource: 'Resource', foundations: 'Foundations',
+};
+const STATUS_LABELS = { live: 'Live', active: 'Active', planned: 'Planned' };
+
 async function loadFoundations() {
   const body = document.getElementById('body-foundations');
   try {
-    const [vault, agents] = await Promise.all([
+    const [vault, roster] = await Promise.all([
       fetchKB('kb/00-foundations/vault'),
-      fetchKB('kb/00-foundations/agents'),
+      fetch('/api/roster').then(r => r.ok ? r.json() : []),
     ]);
 
     let html = '';
 
-    // Agent Library — text only, no images (portraits are in Image Library)
+    // Agent Library — text cards from roster, link to constellation
     html += '<div class="subsection"><div class="subsection-label">Agent Library</div>';
-    if (agents.length) {
-      html += renderDocList(agents);
+    const liveAgents = roster.filter(a => a.status !== 'planned');
+    if (liveAgents.length) {
+      html += '<div class="agent-card-grid">';
+      liveAgents.forEach(agent => {
+        const pc = POINT_COLORS[agent.point] || '#4A6584';
+        const pl = POINT_LABELS[agent.point] || agent.point;
+        const sl = STATUS_LABELS[agent.status] || agent.status;
+        const statusCls = agent.status || 'live';
+        html += `<a class="agent-text-card" href="/agent/${agent.slug}">
+          <div class="atc-top">
+            <div class="atc-point"><div class="atc-dot" style="background:${pc}"></div><span>${pl}</span></div>
+            <span class="atc-status ${statusCls}">${sl}</span>
+          </div>
+          <div class="atc-name">${agent.name}</div>
+          <div class="atc-role">${agent.role}</div>
+          ${agent.description ? `<div class="atc-desc">${agent.description}</div>` : ''}
+        </a>`;
+      });
+      html += '</div>';
     } else {
-      html += '<div class="section-empty">No agent documents found</div>';
+      html += '<div class="section-empty">Agent roster unavailable</div>';
     }
     html += '</div>';
 
