@@ -351,16 +351,20 @@ body {
 .filter-btn.active { background: var(--denim); border-color: var(--denim); color: white; }
 
 /* ── File grid ────────────────────────────────────────────────────────────── */
+/* ── Canonical card grid — single definition, applied uniformly everywhere ── */
 .file-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 10px;
+  align-items: start;
 }
 .file-card {
   display: flex; flex-direction: column;
   border: 1px solid var(--border); border-radius: var(--radius-sm);
   overflow: hidden; background: var(--ground);
   transition: border-color 0.12s, transform 0.12s; cursor: pointer;
+  min-height: 80px; /* consistent height floor — prevents short-filename cards collapsing */
+  text-decoration: none;
 }
 .file-card:hover { border-color: var(--denim); transform: translateY(-1px); }
 .card-thumb-wrap {
@@ -372,9 +376,9 @@ body {
   display: flex; align-items: center; justify-content: center; height: 100%;
   font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); letter-spacing: 0.08em;
 }
-.card-body { padding: 10px 12px 12px; flex: 1; display: flex; flex-direction: column; gap: 6px; }
-.card-name { font-size: 12px; font-weight: 600; color: var(--text); line-height: 1.35; }
-.card-meta { display: flex; align-items: center; gap: 6px; margin-top: auto; }
+.card-body { padding: 12px 12px 12px; flex: 1; display: flex; flex-direction: column; gap: 8px; }
+.card-name { font-size: 12px; font-weight: 600; color: var(--text); line-height: 1.4; }
+.card-meta { display: flex; align-items: center; gap: 6px; margin-top: auto; padding-top: 4px; }
 .file-badge {
   font-family: var(--font-mono); font-size: 9px; font-weight: 500;
   padding: 2px 6px; border-radius: 3px;
@@ -623,11 +627,13 @@ body {
 /* ── Responsive ───────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
   .main-wrap { padding: 20px 16px 60px; }
-  .header-inner, .tools-inner { padding: 0 16px; }
+  .header-inner { padding: 0 16px; }
   .file-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
   .portrait-grid { grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); }
   .masonry-grid { columns: 2; }
   .brand-sub { display: none; }
+  .nav-tools { display: none; }
+  .nav-search-wrap { margin-right: 12px; }
 }
 
 </style>
@@ -938,6 +944,12 @@ function renderDocList(files, from) {
   return '<div class="doc-list">' + files.map(f => docItemHtml(f, from)).join('') + '</div>';
 }
 
+// Returns the same file-grid HTML as renderGrid but as a string (for use in template literals)
+function renderGridHtml(files, from) {
+  if (!files.length) return '<div class="section-empty">No files found</div>';
+  return '<div class="file-grid">' + files.map(f => fileCardHtml(f, from)).join('') + '</div>';
+}
+
 function fileCardHtml(f, from) {
   const ext = fileExt(f.name);
   const isMd = ext === 'md';
@@ -1045,7 +1057,7 @@ async function loadFoundations() {
 
     // Vault
     html += '<div class="subsection"><div class="subsection-label">Vault</div>';
-    html += renderDocList(vault, '/#sec-foundations');
+    html += renderGridHtml(vault, '/#sec-foundations');
     html += '</div>';
 
     // Filing Standards (static)
@@ -1179,12 +1191,12 @@ async function loadIkigai() {
 
     // Protocols
     html += '<div class="ik-subsec"><div class="ik-subsec-title">Protocols</div>';
-    html += root.length ? renderDocList(root, '/#sec-ikigai') : '<div class="section-empty">No protocol documents found</div>';
+    html += root.length ? renderGridHtml(root, '/#sec-ikigai') : '<div class="section-empty">No protocol documents found</div>';
     html += '</div>';
 
     // Pursuits
     html += '<div class="ik-subsec"><div class="ik-subsec-title">Pursuits</div>';
-    html += pursuits.length ? renderDocList(pursuits, '/#sec-ikigai') : '<div class="section-empty">No pursuit briefs found</div>';
+    html += pursuits.length ? renderGridHtml(pursuits, '/#sec-ikigai') : '<div class="section-empty">No pursuit briefs found</div>';
     html += '</div>';
 
     // Intelligence — Pulse / deep navy register
@@ -1212,7 +1224,7 @@ async function loadIkigai() {
 
     // Gaps
     html += '<div class="ik-subsec"><div class="ik-subsec-title">Gaps</div>';
-    html += gaps.length ? renderDocList(gaps, '/#sec-ikigai') : '<div class="section-empty">No gap register entries found</div>';
+    html += gaps.length ? renderGridHtml(gaps, '/#sec-ikigai') : '<div class="section-empty">No gap register entries found</div>';
     html += '</div>';
 
     html += '</div>';

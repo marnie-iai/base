@@ -206,9 +206,14 @@ app.get('/api/search', async (req, res) => {
   try {
     const url = `https://api.github.com/search/code?q=${encodeURIComponent(q.trim())}+repo:${KB_REPO}&per_page=30`;
     const data = await ghFetch(url, true);
-    const result = data || { items: [] };
-    cacheSet(key, result);
-    return res.json(result);
+    if (!data) {
+      // ghFetch returned null — API error (likely 401/403). Do NOT cache.
+      console.error('[GET /api/search] GitHub returned null — check PAT scopes and validity');
+      return res.json({ items: [], error: 'github_auth' });
+    }
+    // Only cache successful (non-null) responses
+    cacheSet(key, data, TTL_5M);
+    return res.json(data);
   } catch (err) {
     console.error('[GET /api/search]', err.message);
     return res.json({ items: [] });
@@ -355,20 +360,35 @@ app.get('/api/filemeta', async (req, res) => {
 
 // Diagnostic
 app.get('/api/debug', async (_req, res) => {
-  const testUrl = `https://api.github.com/repos/${KB_REPO}/contents/kb/00-foundations`;
   const headers = { 'User-Agent': 'IAI-Base/3.0', 'Accept': 'application/vnd.github.v3+json' };
   if (GITHUB_PAT) headers['Authorization'] = `Bearer ${GITHUB_PAT}`;
+
+  // Test 1 — basic contents API (confirms PAT works)
+  let contentsStatus, contentsPreview, contentsErr;
   try {
-    const r = await fetch(testUrl, { headers });
-    const text = await r.text();
-    return res.json({
-      patSet: !!GITHUB_PAT, patPrefix: GITHUB_PAT ? GITHUB_PAT.slice(0, 10) + '…' : null,
-      githubStatus: r.status, githubStatusText: r.statusText,
-      responsePreview: text.slice(0, 300),
-    });
-  } catch (err) {
-    return res.json({ patSet: !!GITHUB_PAT, fetchError: err.message });
-  }
+    const r = await fetch(`https://api.github.com/repos/${KB_REPO}/contents/kb/00-foundations`, { headers });
+    contentsStatus = r.status;
+    contentsPreview = (await r.text()).slice(0, 200);
+  } catch (err) { contentsErr = err.message; }
+
+  // Test 2 — code search API (separate scope requirement)
+  let searchStatus, searchPreview, searchErr;
+  try {
+    const r = await fetch(
+      `https://api.github.com/search/code?q=arna+repo:${KB_REPO}&per_page=1`,
+      { headers }
+    );
+    searchStatus = r.status;
+    searchPreview = (await r.text()).slice(0, 200);
+  } catch (err) { searchErr = err.message; }
+
+  return res.json({
+    patSet: !!GITHUB_PAT,
+    patPrefix: GITHUB_PAT ? GITHUB_PAT.slice(0, 10) + '…' : null,
+    patType: GITHUB_PAT ? (GITHUB_PAT.startsWith('ghp_') ? 'classic ✓' : GITHUB_PAT.startsWith('github_pat_') ? 'fine-grained' : 'unknown') : 'not set',
+    contents: { status: contentsStatus, preview: contentsPreview, error: contentsErr },
+    search:   { status: searchStatus,   preview: searchPreview,   error: searchErr },
+  });
 });
 
 // In-app document reader
