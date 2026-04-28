@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reading — Base</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Playfair+Display:ital,wght@0,700;0,800;1,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Zilla+Slab:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+
+/* ─── TOKENS ────────────────────────────────────────────────────────────────── */
+:root {
+  --base-ground:    #F6F2EA;
+  --reader-ground:  #F9F6F0;
+  --denim:          #4A6584;
+  --cotton:         #E8C84E;
+  --charcoal:       #2E2E2E;
+  --charcoal-mid:   #5A5550;
+  --charcoal-muted: #8A8480;
+  --mustard:        #C4922A;
+  --mustard-dim:    rgba(196,146,42,0.12);
+  --mustard-border: rgba(196,146,42,0.30);
+  --dark-charcoal:  #1C242C;
+  --code-bg:        #EDE9E0;
+  --code-border:    rgba(74,101,132,0.20);
+  --code-block-bg:  #1C242C;
+  --code-block-txt: #C8D8E8;
+  --border:         rgba(74,101,132,0.15);
+  --border-strong:  rgba(74,101,132,0.30);
+  --nav-bg:         #1C242C;
+  --nav-text:       #E8ECF0;
+  --nav-muted:      #7A8FA0;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--reader-ground);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  color: var(--charcoal);
+  min-height: 100vh;
+}
+
+/* ─── READER CHROME ─────────────────────────────────────────────────────────── */
+.reader-chrome {
+  background: var(--base-ground);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 40px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.reader-back {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--denim);
+  text-decoration: none;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.reader-back:hover { opacity: 0.7; }
+.reader-crumb {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--charcoal-muted);
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
+}
+.crumb-seg {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.crumb-sep { opacity: 0.4; flex-shrink: 0; }
+.crumb-link {
+  color: var(--denim);
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.crumb-link:hover { opacity: 0.7; }
+.crumb-current { color: var(--charcoal-muted); }
+.reader-meta {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.file-badge {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 3px 7px;
+  border-radius: 3px;
+  border: 1px solid var(--border-strong);
+  color: var(--charcoal-mid);
+  background: white;
+}
+.vault-badge {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 3px 7px;
+  border-radius: 3px;
+  border: 1px solid var(--mustard-border);
+  color: var(--mustard);
+  background: var(--mustard-dim);
+}
+.reader-date {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--charcoal-muted);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+/* ─── PROGRESS BAR ──────────────────────────────────────────────────────────── */
+.progress-track {
+  height: 2px;
+  background: var(--border);
+  position: relative;
+}
+.progress-fill {
+  height: 100%;
+  background: var(--denim);
+  width: 0%;
+  transition: width 0.1s linear;
+}
+.progress-fill.protocol { background: var(--mustard); }
+
+/* ─── READER SURFACE ────────────────────────────────────────────────────────── */
+.reader-surface {
+  min-height: calc(100vh - 80px);
+  display: flex;
+  justify-content: center;
+  padding: 56px 24px 80px;
+}
+
+/* ─── CONTENT COLUMN ────────────────────────────────────────────────────────── */
+.content-col {
+  width: 100%;
+  max-width: 680px;
+}
+
+/* ─── DOCUMENT HEADER ───────────────────────────────────────────────────────── */
+.doc-title-block {
+  margin-bottom: 40px;
+  padding-bottom: 28px;
+  border-bottom: 1px solid var(--border);
+}
+.founding-rule {
+  height: 3px;
+  background: var(--mustard);
+  width: 48px;
+  border-radius: 1.5px;
+  margin-bottom: 16px;
+}
+.doc-display-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--dark-charcoal);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  margin-bottom: 12px;
+}
+.doc-display-title.technical {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.doc-display-title.agent {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+.doc-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.doc-meta-item {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--charcoal-muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.doc-meta-sep { color: var(--border-strong); }
+
+/* ─── LOADING / ERROR ───────────────────────────────────────────────────────── */
+.reader-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 0;
+  color: var(--charcoal-muted);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+.reader-error {
+  padding: 40px 0;
+  color: var(--charcoal-mid);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 15px;
+}
+.reader-error a { color: var(--denim); }
+
+/* ─── FOUNDING / PROTOCOL REGISTER ─────────────────────────────────────────── */
+.register-founding .md-h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--dark-charcoal);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  margin: 40px 0 16px;
+}
+.register-founding .md-h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--dark-charcoal);
+  line-height: 1.3;
+  margin: 36px 0 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.register-founding .md-h3 {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--mustard);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin: 28px 0 10px;
+}
+.register-founding .md-h4,
+.register-founding .md-h5,
+.register-founding .md-h6 {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--charcoal-mid);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin: 20px 0 8px;
+}
+.register-founding .md-body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--charcoal);
+  line-height: 1.8;
+  margin-bottom: 20px;
+}
+.register-founding .md-blockquote {
+  border-left: 3px solid var(--mustard);
+  margin: 28px 0;
+  padding: 16px 24px;
+  background: var(--mustard-dim);
+  border-radius: 0 6px 6px 0;
+}
+.register-founding .md-blockquote .md-body {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+  font-style: italic;
+  color: var(--dark-charcoal);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ─── TECHNICAL / DEV REGISTER ─────────────────────────────────────────────── */
+.register-technical .md-h1 {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--dark-charcoal);
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin: 36px 0 14px;
+}
+.register-technical .md-h2 {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--denim);
+  letter-spacing: -0.01em;
+  margin: 32px 0 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.register-technical .md-h2::before {
+  content: '';
+  width: 4px;
+  height: 18px;
+  background: var(--denim);
+  border-radius: 2px;
+  flex-shrink: 0;
+  opacity: 0.5;
+}
+.register-technical .md-h3 {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--charcoal-mid);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin: 24px 0 8px;
+}
+.register-technical .md-h4,
+.register-technical .md-h5,
+.register-technical .md-h6 {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--charcoal-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin: 18px 0 6px;
+}
+.register-technical .md-body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 400;
+  color: var(--charcoal);
+  line-height: 1.75;
+  margin-bottom: 18px;
+}
+.register-technical .md-blockquote {
+  border-left: 3px solid var(--denim);
+  margin: 24px 0;
+  padding: 12px 20px;
+  background: rgba(74,101,132,0.06);
+  border-radius: 0 4px 4px 0;
+}
+.register-technical .md-blockquote .md-body {
+  margin: 0;
+  color: var(--charcoal-mid);
+  font-style: italic;
+}
+
+/* ─── AGENT REGISTER ────────────────────────────────────────────────────────── */
+.register-agent .md-h1 {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--dark-charcoal);
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+  margin: 36px 0 14px;
+}
+.register-agent .md-h2 {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--dark-charcoal);
+  margin: 30px 0 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+.register-agent .md-h3 {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--charcoal-mid);
+  margin: 22px 0 8px;
+}
+.register-agent .md-h4,
+.register-agent .md-h5,
+.register-agent .md-h6 {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--charcoal-muted);
+  margin: 16px 0 6px;
+}
+.register-agent .md-body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 400;
+  color: var(--charcoal);
+  line-height: 1.75;
+  margin-bottom: 16px;
+}
+.register-agent .md-blockquote {
+  border-left: 3px solid var(--denim);
+  margin: 20px 0;
+  padding: 10px 18px;
+  background: rgba(74,101,132,0.05);
+  border-radius: 0 4px 4px 0;
+}
+.register-agent .md-blockquote .md-body {
+  margin: 0;
+  color: var(--charcoal-mid);
+  font-style: italic;
+}
+
+/* ─── SHARED MARKDOWN ELEMENTS ──────────────────────────────────────────────── */
+
+/* Inline code — all registers */
+.md-code-inline {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--denim);
+  background: var(--code-bg);
+  border: 1px solid var(--code-border);
+  border-radius: 4px;
+  padding: 1px 6px;
+}
+
+/* Code block */
+.md-code-block {
+  background: var(--code-block-bg);
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.06);
+  margin: 20px 0;
+  overflow: hidden;
+}
+.code-block-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.code-block-lang {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--nav-muted);
+}
+.code-block-body {
+  padding: 16px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--code-block-txt);
+  line-height: 1.7;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+/* Strong / em */
+.md-strong { font-weight: 600; color: var(--dark-charcoal); }
+.md-em     { font-style: italic; color: var(--charcoal-mid); }
+
+/* HR */
+.md-hr {
+  border: none;
+  height: 1px;
+  background: linear-gradient(90deg, var(--mustard) 0%, var(--border) 40%, transparent 100%);
+  margin: 36px 0;
+  opacity: 0.5;
+}
+
+/* Lists — unordered */
+.md-ul {
+  list-style: none;
+  margin: 0 0 18px 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.md-ul > li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 15px;
+  color: var(--charcoal);
+  line-height: 1.7;
+}
+.md-ul > li::before {
+  content: '▪';
+  color: var(--mustard);
+  font-size: 10px;
+  margin-top: 5px;
+  flex-shrink: 0;
+}
+/* Nested unordered lists */
+.md-ul .md-ul {
+  margin: 6px 0 0 0;
+}
+.md-ul .md-ul > li::before {
+  content: '◦';
+  color: var(--charcoal-muted);
+}
+
+/* Lists — ordered */
+.md-ol {
+  list-style: none;
+  margin: 0 0 18px 0;
+  padding: 0;
+  counter-reset: md-counter;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.md-ol > li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 15px;
+  color: var(--charcoal);
+  line-height: 1.7;
+  counter-increment: md-counter;
+}
+.md-ol > li::before {
+  content: counter(md-counter) '.';
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--mustard);
+  min-width: 18px;
+  margin-top: 3px;
+  flex-shrink: 0;
+  font-weight: 500;
+}
+
+/* Tables */
+.table-wrap {
+  overflow-x: auto;
+  margin: 20px 0;
+  border-radius: 6px;
+}
+.md-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 14px;
+  min-width: 400px;
+}
+.md-table th {
+  background: var(--denim);
+  color: white;
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 10px 14px;
+  text-align: left;
+}
+.md-table th:first-child { border-radius: 6px 0 0 0; }
+.md-table th:last-child  { border-radius: 0 6px 0 0; }
+.md-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  color: var(--charcoal);
+  vertical-align: top;
+  line-height: 1.6;
+}
+.md-table tr:nth-child(even) td { background: rgba(74,101,132,0.04); }
+.md-table tr:last-child td { border-bottom: none; }
+
+/* Images */
+.md-img {
+  max-width: 100%;
+  border-radius: 6px;
+  margin: 16px 0;
+  display: block;
+}
+
+/* Links in body */
+.md-link {
+  color: var(--denim);
+  text-decoration: underline;
+  text-decoration-color: rgba(74,101,132,0.3);
+  text-underline-offset: 2px;
+}
+.md-link:hover { text-decoration-color: var(--denim); }
+
+/* ─── DOCUMENT FOOTER (prev / next) ────────────────────────────────────────── */
+.doc-footer {
+  border-top: 1px solid var(--border);
+  margin-top: 60px;
+  padding-top: 28px;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+.doc-footer-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-decoration: none;
+  max-width: 45%;
+}
+.doc-footer-nav.next { text-align: right; margin-left: auto; }
+.doc-footer-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--charcoal-muted);
+}
+.doc-footer-title {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--denim);
+  line-height: 1.4;
+}
+.doc-footer-nav:hover .doc-footer-title { opacity: 0.7; }
+
+/* ─── MOBILE ────────────────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .reader-chrome {
+    padding: 10px 16px;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  /* On mobile show only Point → Doc (2 crumbs), hide middle segments */
+  .crumb-mid { display: none; }
+  .reader-surface {
+    padding: 32px 16px 60px;
+  }
+  .doc-display-title {
+    font-size: 26px;
+  }
+  .doc-display-title.technical,
+  .doc-display-title.agent {
+    font-size: 22px;
+  }
+  .register-founding .md-h1 { font-size: 24px; }
+  .register-technical .md-h1,
+  .register-agent .md-h1 { font-size: 22px; }
+  .code-block-body { font-size: 12px; padding: 12px; }
+  .md-table { font-size: 12px; }
+}
+</style>
+</head>
+<body>
+
+<!-- READER CHROME -->
+<div class="reader-chrome" id="reader-chrome">
+  <a class="reader-back" id="reader-back" href="/">← Back</a>
+  <div class="reader-crumb" id="reader-crumb">
+    <span class="crumb-seg crumb-muted">Loading…</span>
+  </div>
+  <div class="reader-meta" id="reader-meta">
+    <span class="file-badge" id="file-badge">MD</span>
+  </div>
+</div>
+
+<!-- READING PROGRESS -->
+<div class="progress-track">
+  <div class="progress-fill" id="progress-fill"></div>
+</div>
+
+<!-- READER SURFACE -->
+<div class="reader-surface">
+  <div class="content-col" id="content-col">
+    <!-- Title block -->
+    <div class="doc-title-block" id="doc-title-block">
+      <div class="reader-loading">Loading document…</div>
+    </div>
+    <!-- Document body -->
+    <div id="doc-body"></div>
+    <!-- Prev / next nav (injected if sibling context available) -->
+    <div id="doc-footer"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js"></script>
+<script>
+'use strict';
+
+// ── URL params ────────────────────────────────────────────────────────────────
+const params   = new URLSearchParams(window.location.search);
+const filePath = params.get('path') || '';          // e.g. kb/01-business/briefs/Foo.md
+const fromParam = params.get('from') || '/';        // e.g. /#sec-business or /agent/piper
+const sectionParam = params.get('section') || '';   // optional: which sibling list to use
+
+const filename = filePath.split('/').pop();
+const fileExt  = filename.includes('.') ? filename.split('.').pop().toUpperCase() : 'MD';
+const parentDir = filePath.split('/').slice(0, -1).join('/');
+
+// ── Register detection ────────────────────────────────────────────────────────
+function detectRegister(path, fn) {
+  const p  = (path || '').toLowerCase();
+  const f  = (fn   || '').toLowerCase();
+
+  // Founding / Protocol
+  if (
+    p.includes('/vault/') ||
+    f.includes('protocol') ||
+    f.includes('mrswilson') ||
+    f.includes('northstar') ||
+    f.includes('north-star') ||
+    f.includes('founding') ||
+    f.includes('doctrine') ||
+    f.includes('pursuit')
+  ) return 'founding';
+
+  // Agent prompt docs
+  if (f.startsWith('prompt-') || f.includes('promptdoc')) return 'agent';
+
+  // Technical / Dev (default)
+  return 'technical';
+}
+
+const register = detectRegister(filePath, filename);
+const isVault  = filePath.toLowerCase().includes('/vault/');
+
+// ── Title cleaning ────────────────────────────────────────────────────────────
+function cleanTitle(fn) {
+  let t = fn.replace(/\.(md|html|pdf|txt)$/i, '');
+  // Strip leading numbering: 00_, 01_, 00_IAI_, etc.
+  t = t.replace(/^\d+_/, '');
+  t = t.replace(/^\d+_/, ''); // second pass for double prefix e.g. 00_IAI_
+  // Strip known org prefixes
+  t = t.replace(/^IAI_/, '').replace(/^iai_/i, '');
+  // Strip version + date suffix: _v1_Apr2026, _v2.2_Apr2026, _v1.0
+  t = t.replace(/_v\d+(\.\d+)*_[A-Za-z]{3,}\d{4}$/i, '');
+  t = t.replace(/_v\d+(\.\d+)*$/i, '');
+  // Strip trailing date: _Apr2026, _April2026
+  t = t.replace(/_[A-Za-z]{3,}\d{4}$/i, '');
+  // Strip Lumen brief prefix patterns: LumenBrief_, DevSpec_, etc.
+  t = t.replace(/^(LumenBrief|DevSpec|DevBrief|UserGuide|Spec)_/i, '');
+  // Replace underscores / hyphens with spaces and clean up
+  t = t.replace(/[_-]+/g, ' ').replace(/\s{2,}/g, ' ').trim();
+  return t;
+}
+
+// ── Breadcrumb from path ──────────────────────────────────────────────────────
+const POINT_MAP = [
+  { prefix: 'kb/00-foundations', label: 'Foundations', id: 'sec-foundations' },
+  { prefix: 'kb/01-business',    label: 'Business',    id: 'sec-business'    },
+  { prefix: 'kb/02-workshop',    label: 'Workshop',    id: 'sec-workshop'    },
+  { prefix: 'kb/03-family',      label: 'Family',      id: 'sec-family'      },
+  { prefix: 'kb/04-ikigai',      label: 'Ikigai',      id: 'sec-ikigai'      },
+  { prefix: 'kb/05-resource',    label: 'Resource',    id: 'sec-resource'    },
+];
+
+function buildBreadcrumb(path) {
+  let point = null;
+  for (const p of POINT_MAP) {
+    if (path.toLowerCase().startsWith(p.prefix)) { point = p; break; }
+  }
+  // Sub-path: directories between point and file
+  const segs = path.split('/');
+  // e.g. ['kb','01-business','briefs','file.md'] — sub is index 2 (after kb + point dir)
+  const subSegs = point ? segs.slice(2, -1) : segs.slice(1, -1); // directories only
+  return { point, subSegs };
+}
+
+// ── Date formatting ───────────────────────────────────────────────────────────
+function formatDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })
+    .replace(',', '');
+}
+
+// ── Escape HTML ───────────────────────────────────────────────────────────────
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+// ── Pretty-print sub-directory name ──────────────────────────────────────────
+function prettyDir(seg) {
+  return seg.replace(/^\d+-/, '').replace(/[_-]/g, ' ')
+    .replace(/\b\w/g, c => c.toUpperCase());
+}
+
+// ── Render Chrome ─────────────────────────────────────────────────────────────
+function renderChrome(displayTitle, lastModified) {
+  const { point, subSegs } = buildBreadcrumb(filePath);
+
+  // Back link
+  const backEl = document.getElementById('reader-back');
+  backEl.href = fromParam || '/';
+
+  // Breadcrumb
+  const crumbEl = document.getElementById('reader-crumb');
+  const crumbParts = [];
+
+  // Base → Point → sub-dirs → current doc
+  crumbParts.push(`<a class="crumb-link" href="/">Base</a>`);
+
+  if (point) {
+    crumbParts.push(`<span class="crumb-sep">/</span>`);
+    const pointHref = `/#${point.id}`;
+    crumbParts.push(`<a class="crumb-link crumb-mid" href="${pointHref}">${point.label}</a>`);
+
+    subSegs.forEach(seg => {
+      crumbParts.push(`<span class="crumb-sep crumb-mid">/</span>`);
+      crumbParts.push(`<span class="crumb-mid crumb-seg">${escapeHtml(prettyDir(seg))}</span>`);
+    });
+  }
+
+  crumbParts.push(`<span class="crumb-sep">/</span>`);
+  crumbParts.push(`<span class="crumb-current crumb-seg">${escapeHtml(displayTitle)}</span>`);
+
+  crumbEl.innerHTML = crumbParts.join('');
+
+  // Meta
+  const metaEl = document.getElementById('reader-meta');
+  const metaItems = [];
+  if (isVault) {
+    metaItems.push(`<span class="vault-badge">Vault</span>`);
+  }
+  metaItems.push(`<span class="file-badge">${fileExt}</span>`);
+  if (lastModified) {
+    metaItems.push(`<span class="reader-date">${escapeHtml(lastModified)}</span>`);
+  }
+  metaEl.innerHTML = metaItems.join('');
+}
+
+// ── Render Title Block ─────────────────────────────────────────────────────────
+function renderTitleBlock(displayTitle, point, lastModified) {
+  const block = document.getElementById('doc-title-block');
+  const titleClass = register === 'founding' ? '' : register;
+  const metaItems = [];
+
+  if (point) metaItems.push(`<span class="doc-meta-item">${point.label}</span>`);
+  if (lastModified) {
+    if (metaItems.length) metaItems.push(`<span class="doc-meta-sep">·</span>`);
+    metaItems.push(`<span class="doc-meta-item">${escapeHtml(lastModified)}</span>`);
+  }
+
+  const meta = metaItems.length
+    ? `<div class="doc-meta-row">${metaItems.join('')}</div>`
+    : '';
+
+  block.innerHTML = `
+    ${isVault || register === 'founding' ? '<div class="founding-rule"></div>' : ''}
+    <div class="doc-display-title ${titleClass}">${escapeHtml(displayTitle)}</div>
+    ${meta}
+  `;
+}
+
+// ── Set page title ────────────────────────────────────────────────────────────
+function setPageTitle(displayTitle) {
+  document.title = `${displayTitle} — Base`;
+}
+
+// ── Progress bar ──────────────────────────────────────────────────────────────
+const progressFill = document.getElementById('progress-fill');
+if (register === 'founding') progressFill.classList.add('protocol');
+
+window.addEventListener('scroll', () => {
+  const scrolled = window.scrollY;
+  const total = document.documentElement.scrollHeight - window.innerHeight;
+  if (total <= 0) { progressFill.style.width = '100%'; return; }
+  const pct = Math.min(100, Math.round((scrolled / total) * 100));
+  progressFill.style.width = pct + '%';
+}, { passive: true });
+
+// ── Set content-col register class ───────────────────────────────────────────
+document.getElementById('content-col').classList.add(`register-${register}`);
+
+// ── marked.js renderer ────────────────────────────────────────────────────────
+const renderer = new marked.Renderer();
+
+renderer.heading = function(text, level) {
+  const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  return `<h${level} class="md-h${level}" id="${id}">${text}</h${level}>\n`;
+};
+
+renderer.paragraph = function(text) {
+  return `<p class="md-body">${text}</p>\n`;
+};
+
+renderer.blockquote = function(quote) {
+  return `<blockquote class="md-blockquote">${quote}</blockquote>\n`;
+};
+
+renderer.code = function(code, language) {
+  const lang = language ? escapeHtml(language) : 'text';
+  return `<div class="md-code-block">
+  <div class="code-block-header"><span class="code-block-lang">${lang}</span></div>
+  <div class="code-block-body">${escapeHtml(code)}</div>
+</div>\n`;
+};
+
+renderer.codespan = function(code) {
+  return `<code class="md-code-inline">${code}</code>`;
+};
+
+renderer.strong = function(text) {
+  return `<strong class="md-strong">${text}</strong>`;
+};
+
+renderer.em = function(text) {
+  return `<em class="md-em">${text}</em>`;
+};
+
+renderer.hr = function() {
+  return `<hr class="md-hr">\n`;
+};
+
+renderer.list = function(body, ordered) {
+  const tag = ordered ? 'ol' : 'ul';
+  const cls = ordered ? 'md-ol' : 'md-ul';
+  return `<${tag} class="${cls}">${body}</${tag}>\n`;
+};
+
+renderer.listitem = function(text) {
+  return `<li>${text}</li>\n`;
+};
+
+renderer.table = function(header, body) {
+  return `<div class="table-wrap"><table class="md-table"><thead>${header}</thead><tbody>${body}</tbody></table></div>\n`;
+};
+
+renderer.tablerow = function(content) {
+  return `<tr>${content}</tr>\n`;
+};
+
+renderer.tablecell = function(content, flags) {
+  const tag = flags.header ? 'th' : 'td';
+  const align = flags.align ? ` style="text-align:${flags.align}"` : '';
+  return `<${tag}${align}>${content}</${tag}>\n`;
+};
+
+renderer.image = function(href, title, text) {
+  // Proxy private KB images; leave absolute URLs alone
+  let src = href;
+  if (href && !href.startsWith('http') && !href.startsWith('//')) {
+    const dir = filePath.split('/').slice(0, -1).join('/');
+    const resolved = href.startsWith('/') ? href.slice(1) : `${dir}/${href}`;
+    src = `/api/raw?path=${encodeURIComponent(resolved)}`;
+  }
+  const alt = escapeHtml(text || '');
+  const t   = title ? ` title="${escapeHtml(title)}"` : '';
+  return `<img class="md-img" src="${src}"${t} alt="${alt}">\n`;
+};
+
+renderer.link = function(href, title, text) {
+  if (!href) return text;
+  // Internal .md links → reader
+  if (!href.startsWith('http') && !href.startsWith('//') && !href.startsWith('#')) {
+    const isMarkdown = href.endsWith('.md');
+    if (isMarkdown) {
+      const dir = filePath.split('/').slice(0, -1).join('/');
+      const resolved = href.startsWith('/') ? href.slice(1) : `${dir}/${href}`;
+      const target = `/read?path=${encodeURIComponent(resolved)}&from=${encodeURIComponent(fromParam)}`;
+      return `<a class="md-link" href="${target}">${text}</a>`;
+    }
+  }
+  const titleAttr = title ? ` title="${escapeHtml(title)}"` : '';
+  const ext = href.startsWith('http') ? ' target="_blank" rel="noopener"' : '';
+  return `<a class="md-link" href="${escapeHtml(href)}"${titleAttr}${ext}>${text}</a>`;
+};
+
+marked.setOptions({
+  renderer,
+  gfm: true,
+  breaks: false,
+  pedantic: false,
+  smartypants: false,
+});
+
+// ── Fetch helpers ─────────────────────────────────────────────────────────────
+async function fetchText(url) {
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  return r.text();
+}
+async function fetchJSON(url) {
+  const r = await fetch(url);
+  if (!r.ok) return null;
+  return r.json();
+}
+
+// ── Prev / Next within section ────────────────────────────────────────────────
+async function renderSiblingNav(displayTitle) {
+  if (!parentDir) return;
+
+  try {
+    const siblings = await fetchJSON(`/api/kb?path=${encodeURIComponent(parentDir)}`);
+    if (!Array.isArray(siblings)) return;
+    const mdFiles = siblings.filter(f => f.type === 'file' && f.name.endsWith('.md'));
+    if (mdFiles.length < 2) return;
+
+    const idx = mdFiles.findIndex(f => f.path === filePath);
+    if (idx < 0) return;
+
+    const prev = idx > 0 ? mdFiles[idx - 1] : null;
+    const next = idx < mdFiles.length - 1 ? mdFiles[idx + 1] : null;
+
+    if (!prev && !next) return;
+
+    const footer = document.getElementById('doc-footer');
+    footer.className = 'doc-footer';
+
+    let html = '';
+    if (prev) {
+      const prevTitle = cleanTitle(prev.name);
+      const prevUrl = `/read?path=${encodeURIComponent(prev.path)}&from=${encodeURIComponent(fromParam)}`;
+      html += `<a class="doc-footer-nav prev" href="${prevUrl}">
+        <span class="doc-footer-label">← Previous</span>
+        <span class="doc-footer-title">${escapeHtml(prevTitle)}</span>
+      </a>`;
+    } else {
+      html += '<span></span>';
+    }
+    if (next) {
+      const nextTitle = cleanTitle(next.name);
+      const nextUrl = `/read?path=${encodeURIComponent(next.path)}&from=${encodeURIComponent(fromParam)}`;
+      html += `<a class="doc-footer-nav next" href="${nextUrl}">
+        <span class="doc-footer-label">Next →</span>
+        <span class="doc-footer-title">${escapeHtml(nextTitle)}</span>
+      </a>`;
+    }
+    footer.innerHTML = html;
+  } catch {
+    // Sibling nav is best-effort
+  }
+}
+
+// ── Main ──────────────────────────────────────────────────────────────────────
+async function main() {
+  if (!filePath) {
+    document.getElementById('doc-title-block').innerHTML =
+      `<div class="reader-error">No document path provided. <a href="/">Return to Base</a>.</div>`;
+    return;
+  }
+
+  const displayTitle = cleanTitle(filename);
+  setPageTitle(displayTitle);
+
+  const { point } = buildBreadcrumb(filePath);
+
+  // Fetch file content and metadata in parallel
+  const [rawText, metaData] = await Promise.all([
+    fetchText(`/api/raw?path=${encodeURIComponent(filePath)}`).catch(() => null),
+    fetchJSON(`/api/filemeta?path=${encodeURIComponent(filePath)}`).catch(() => null),
+  ]);
+
+  const lastModified = metaData && metaData.date ? metaData.date : '';
+
+  // Chrome + title block
+  renderChrome(displayTitle, lastModified);
+  renderTitleBlock(displayTitle, point, lastModified);
+
+  // Document body
+  const bodyEl = document.getElementById('doc-body');
+
+  if (!rawText) {
+    bodyEl.innerHTML = `<div class="reader-error">
+      <p>Could not load this document.</p>
+      <p style="margin-top:12px;"><a href="${fromParam || '/'}">← Return to Base</a></p>
+    </div>`;
+    return;
+  }
+
+  // For .md files, render as markdown
+  if (filename.toLowerCase().endsWith('.md')) {
+    bodyEl.innerHTML = marked.parse(rawText);
+  } else {
+    // For other text files, show raw in a code block
+    bodyEl.innerHTML = `<div class="md-code-block">
+      <div class="code-block-header"><span class="code-block-lang">${fileExt.toLowerCase()}</span></div>
+      <div class="code-block-body">${escapeHtml(rawText)}</div>
+    </div>`;
+  }
+
+  // Prev / Next (best-effort, non-blocking)
+  renderSiblingNav(displayTitle);
+}
+
+main();
+</script>
+</body>
+</html>

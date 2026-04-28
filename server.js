@@ -327,6 +327,32 @@ app.get('/api/agent/:slug', async (req, res) => {
   }
 });
 
+// File last-commit metadata
+app.get('/api/filemeta', async (req, res) => {
+  const filePath = req.query.path;
+  if (!filePath) return res.status(400).json({ error: 'Missing path' });
+  const key = `filemeta:${filePath}`;
+  const cached = cacheGet(key);
+  if (cached) return res.json(cached);
+  try {
+    const url = `https://api.github.com/repos/${KB_REPO}/commits?path=${encodeURIComponent(filePath)}&per_page=1`;
+    const data = await ghFetch(url, true);
+    const commit = Array.isArray(data) && data[0] ? data[0] : null;
+    const iso = commit ? (commit.commit.committer.date || commit.commit.author.date) : null;
+    let date = '';
+    if (iso) {
+      const d = new Date(iso);
+      date = d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' }).replace(',', '');
+    }
+    const result = { date };
+    cacheSet(key, result, TTL_60M);
+    return res.json(result);
+  } catch (err) {
+    console.error('[GET /api/filemeta]', err.message);
+    return res.json({ date: '' });
+  }
+});
+
 // Diagnostic
 app.get('/api/debug', async (_req, res) => {
   const testUrl = `https://api.github.com/repos/${KB_REPO}/contents/kb/00-foundations`;
@@ -343,6 +369,11 @@ app.get('/api/debug', async (_req, res) => {
   } catch (err) {
     return res.json({ patSet: !!GITHUB_PAT, fetchError: err.message });
   }
+});
+
+// In-app document reader
+app.get('/read', (_req, res) => {
+  res.sendFile(path.join(__dirname, 'read.html'));
 });
 
 // Agent constellation page

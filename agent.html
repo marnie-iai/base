@@ -361,7 +361,13 @@ const FILE_ICON = `<svg fill="none" stroke="currentColor" stroke-width="1.8" vie
 
 function renderFileCard(f, featured = false) {
   const ext = fileExt(f.name);
-  return `<a class="file-card${featured ? ' featured' : ''}" href="${f.url}" target="_blank" rel="noopener">
+  const slug = window.location.pathname.split('/').pop();
+  const isMd = ext === 'md';
+  const href = isMd
+    ? `/read?path=${encodeURIComponent(f.path)}&from=${encodeURIComponent('/agent/' + slug)}`
+    : f.url;
+  const target = isMd ? '' : 'target="_blank" rel="noopener"';
+  return `<a class="file-card${featured ? ' featured' : ''}" href="${href}" ${target}>
     <div class="file-card-icon">${FILE_ICON}</div>
     <div class="file-card-body">
       <div class="file-card-name">${cleanName(f.name)}</div>

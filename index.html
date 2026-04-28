@@ -866,24 +866,31 @@ const FILE_ICON = `<svg fill="none" stroke="currentColor" stroke-width="1.8" vie
   <path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/><polyline points="13 2 13 9 20 9"/>
 </svg>`;
 
-function docItemHtml(f) {
+function docItemHtml(f, from) {
   const ext = fileExt(f.name);
-  const url = GH_BLOB + f.path;
-  return `<a class="doc-item" href="${url}" target="_blank" rel="noopener">
+  const isMd = ext === 'md';
+  const url = isMd
+    ? `/read?path=${encodeURIComponent(f.path)}&from=${encodeURIComponent(from || '/')}`
+    : GH_BLOB + f.path;
+  const target = isMd ? '' : 'target="_blank" rel="noopener"';
+  return `<a class="doc-item" href="${url}" ${target}>
     <div class="doc-item-icon">${FILE_ICON}</div>
     <div class="doc-item-name">${cleanName(f.name)}</div>
     <span class="doc-item-badge">${ext.toUpperCase()}</span>
   </a>`;
 }
 
-function renderDocList(files) {
+function renderDocList(files, from) {
   if (!files.length) return '<div class="section-empty">No files found</div>';
-  return '<div class="doc-list">' + files.map(docItemHtml).join('') + '</div>';
+  return '<div class="doc-list">' + files.map(f => docItemHtml(f, from)).join('') + '</div>';
 }
 
-function fileCardHtml(f) {
+function fileCardHtml(f, from) {
   const ext = fileExt(f.name);
-  const linkUrl  = GH_BLOB + f.path;           // click → GitHub blob view
+  const isMd = ext === 'md';
+  const linkUrl  = isMd
+    ? `/read?path=${encodeURIComponent(f.path)}&from=${encodeURIComponent(from || '/')}`
+    : GH_BLOB + f.path;           // click → GitHub blob view or reader
   const thumbUrl = '/api/raw?path=' + encodeURIComponent(f.path); // proxied for img src
   const isImg  = IMG_EXTS.has(ext);
   const isHtml = ext === 'html';
@@ -900,7 +907,8 @@ function fileCardHtml(f) {
     ? `<span class="sf-badge">${sf}</span>`
     : `<span class="file-badge">${ext.toUpperCase()}</span>`;
 
-  return `<a class="file-card" href="${linkUrl}" target="_blank" rel="noopener">
+  const target = isMd ? '' : 'target="_blank" rel="noopener"';
+  return `<a class="file-card" href="${linkUrl}" ${target}>
     ${media}
     <div class="card-body">
       <div class="card-name">${cleanName(f.name)}</div>
@@ -909,15 +917,15 @@ function fileCardHtml(f) {
   </a>`;
 }
 
-function renderGrid(files, container) {
+function renderGrid(files, container, from) {
   if (!files.length) {
     container.innerHTML = '<div class="section-empty">No files match this filter</div>';
     return;
   }
-  container.innerHTML = '<div class="file-grid">' + files.map(fileCardHtml).join('') + '</div>';
+  container.innerHTML = '<div class="file-grid">' + files.map(f => fileCardHtml(f, from)).join('') + '</div>';
 }
 
-function buildFilters(files, grid, btnClass) {
+function buildFilters(files, grid, btnClass, from) {
   const exts = [...new Set(files.map(f => fileExt(f.name)))].filter(Boolean).sort();
   const bar = document.createElement('div');
   bar.className = 'filter-bar';
@@ -928,7 +936,7 @@ function buildFilters(files, grid, btnClass) {
     btn.onclick = () => {
       bar.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      renderGrid(e === 'all' ? files : files.filter(f => fileExt(f.name) === e), grid);
+      renderGrid(e === 'all' ? files : files.filter(f => fileExt(f.name) === e), grid, from);
     };
     bar.appendChild(btn);
   });
@@ -984,7 +992,7 @@ async function loadFoundations() {
 
     // Vault
     html += '<div class="subsection"><div class="subsection-label">Vault</div>';
-    html += renderDocList(vault);
+    html += renderDocList(vault, '/#sec-foundations');
     html += '</div>';
 
     // Filing Standards (static)
@@ -1027,7 +1035,7 @@ async function loadBusiness() {
         btn.classList.add('active');
         active = e;
         const filtered = e === 'ALL' ? allFiles : allFiles.filter(f => f._ent === e);
-        renderGrid(filtered, grid);
+        renderGrid(filtered, grid, '/#sec-business');
       };
       bar.appendChild(btn);
     });
@@ -1035,7 +1043,7 @@ async function loadBusiness() {
     body.innerHTML = '';
     body.appendChild(bar);
     body.appendChild(grid);
-    renderGrid(allFiles, grid);
+    renderGrid(allFiles, grid, '/#sec-business');
   } catch {
     body.innerHTML = '<div class="section-error">Business section unavailable</div>';
   }
@@ -1057,7 +1065,7 @@ async function loadWorkshop() {
       const sub = document.createElement('div');
       sub.className = 'subsection';
       sub.innerHTML = '<div class="subsection-label">AI Style Files</div>'
-        + '<div class="file-grid">' + sfFiles.map(fileCardHtml).join('') + '</div>';
+        + '<div class="file-grid">' + sfFiles.map(f => fileCardHtml(f, '/#sec-workshop')).join('') + '</div>';
       body.appendChild(sub);
     }
 
@@ -1068,12 +1076,12 @@ async function loadWorkshop() {
       label.className = 'subsection-label';
       label.textContent = sfFiles.length ? 'All Files' : 'Files';
       const grid = document.createElement('div');
-      const fb = buildFilters(otherFiles, grid);
+      const fb = buildFilters(otherFiles, grid, null, '/#sec-workshop');
       sub.appendChild(label);
       sub.appendChild(fb);
       sub.appendChild(grid);
       body.appendChild(sub);
-      renderGrid(otherFiles, grid);
+      renderGrid(otherFiles, grid, '/#sec-workshop');
     }
   } catch {
     body.innerHTML = '<div class="section-error">Workshop section unavailable</div>';
@@ -1092,10 +1100,10 @@ async function loadFamily() {
     if (!all.length) { body.innerHTML = '<div class="section-empty">No files found</div>'; return; }
     body.innerHTML = '';
     const grid = document.createElement('div');
-    const fb = buildFilters(all, grid);
+    const fb = buildFilters(all, grid, null, '/#sec-family');
     body.appendChild(fb);
     body.appendChild(grid);
-    renderGrid(all, grid);
+    renderGrid(all, grid, '/#sec-family');
   } catch {
     body.innerHTML = '<div class="section-error">Family section unavailable</div>';
   }
@@ -1118,12 +1126,12 @@ async function loadIkigai() {
 
     // Protocols
     html += '<div class="ik-subsec"><div class="ik-subsec-title">Protocols</div>';
-    html += root.length ? renderDocList(root) : '<div class="section-empty">No protocol documents found</div>';
+    html += root.length ? renderDocList(root, '/#sec-ikigai') : '<div class="section-empty">No protocol documents found</div>';
     html += '</div>';
 
     // Pursuits
     html += '<div class="ik-subsec"><div class="ik-subsec-title">Pursuits</div>';
-    html += pursuits.length ? renderDocList(pursuits) : '<div class="section-empty">No pursuit briefs found</div>';
+    html += pursuits.length ? renderDocList(pursuits, '/#sec-ikigai') : '<div class="section-empty">No pursuit briefs found</div>';
     html += '</div>';
 
     // Intelligence — Pulse / deep navy register
@@ -1133,8 +1141,12 @@ async function loadIkigai() {
     if (topIntel.length) {
       html += '<div class="doc-list">' + topIntel.map(f => {
         const ext = fileExt(f.name);
-        const url = GH_BLOB + f.path;
-        return `<a class="doc-item" href="${url}" target="_blank" rel="noopener">
+        const isMd = ext === 'md';
+        const url = isMd
+          ? `/read?path=${encodeURIComponent(f.path)}&from=${encodeURIComponent('/#sec-ikigai')}`
+          : GH_BLOB + f.path;
+        const target = isMd ? '' : 'target="_blank" rel="noopener"';
+        return `<a class="doc-item" href="${url}" ${target}>
           <div class="doc-item-icon">${FILE_ICON}</div>
           <div class="doc-item-name">${cleanName(f.name)}</div>
           <span class="doc-item-badge">${ext.toUpperCase()}</span>
@@ -1147,7 +1159,7 @@ async function loadIkigai() {
 
     // Gaps
     html += '<div class="ik-subsec"><div class="ik-subsec-title">Gaps</div>';
-    html += gaps.length ? renderDocList(gaps) : '<div class="section-empty">No gap register entries found</div>';
+    html += gaps.length ? renderDocList(gaps, '/#sec-ikigai') : '<div class="section-empty">No gap register entries found</div>';
     html += '</div>';
 
     html += '</div>';
@@ -1165,10 +1177,10 @@ async function loadResource() {
     if (!files.length) { body.innerHTML = '<div class="section-empty">No files found</div>'; return; }
     body.innerHTML = '';
     const grid = document.createElement('div');
-    const fb = buildFilters(files, grid);
+    const fb = buildFilters(files, grid, null, '/#sec-resource');
     body.appendChild(fb);
     body.appendChild(grid);
-    renderGrid(files, grid);
+    renderGrid(files, grid, '/#sec-resource');
   } catch {
     body.innerHTML = '<div class="section-error">Resource section unavailable</div>';
   }
@@ -1311,8 +1323,12 @@ function renderSearchResults(data) {
   }
   results.innerHTML = items.map(item => {
     const ext = fileExt(item.name);
-    const url = GH_BLOB + item.path;
-    return `<a class="search-result" href="${url}" target="_blank" rel="noopener">
+    const isMd = ext === 'md';
+    const url = isMd
+      ? `/read?path=${encodeURIComponent(item.path)}&from=${encodeURIComponent('/?q=' + encodeURIComponent(item.name))}`
+      : GH_BLOB + item.path;
+    const target = isMd ? '' : 'target="_blank" rel="noopener"';
+    return `<a class="search-result" href="${url}" ${target}>
       <div class="search-result-meta">
         <div class="search-result-name">${cleanName(item.name)}</div>
         <div class="search-result-path">${item.path}</div>
