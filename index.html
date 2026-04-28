@@ -3,1694 +3,1230 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Base · Integrated AI Internal Hub</title>
+<title>Base — Integrated AI</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='112' fill='%230E1117'/><circle cx='256' cy='256' r='96' fill='%23D66A35'/></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&family=IBM+Plex+Mono:wght@300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
-
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;600;800&family=IBM+Plex+Mono:wght@300;400;500&family=Zilla+Slab:wght@400;500;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
 <style>
-/* ══════════════════════════════════════════
-   BASE PALETTE
-   Near-black ground — infrastructure register
-   Underneath all six territories
-   ══════════════════════════════════════════ */
+
+/* ── Root tokens ─────────────────────────────────────────────────────────── */
 :root {
-  /* Base ground */
-  --ground:     #0A0E14;
-  --surface:    #111827;
-  --surface-2:  #161D2C;
-  --surface-3:  #1C2538;
-  --border:     rgba(255,255,255,0.07);
-  --border-l:   rgba(255,255,255,0.04);
+  --ground:          #F5F2EC;
+  --surface:         #FFFFFF;
+  --text:            #1C242C;
+  --text-muted:      rgba(28,36,44,0.55);
+  --border:          rgba(28,36,44,0.08);
+  --border-strong:   rgba(28,36,44,0.16);
 
-  /* Base accent — warm slate, infrastructure */
-  --base-a:     #7B8FA8;   /* primary UI chrome */
-  --base-b:     rgba(123,143,168,0.12);
-  --base-rule:  rgba(123,143,168,0.18);
+  --denim:           #4A6584;
+  --cotton-yellow:   #E8C84E;
+  --teal:            #00D4B4;
 
-  /* Text hierarchy */
-  --white:      #E8E9EC;
-  --cream:      #C4CDD8;
-  --muted:      rgba(196,205,216,0.45);
-  --ghost:      rgba(196,205,216,0.2);
+  --business:        #3A5A78;
+  --workshop:        #4A6584;
+  --workshop-sec:    #E8C84E;
+  --family:          #2B52A8;
+  --family-sec:      #E9BC28;
+  --ikigai-mustard:  #C4922A;
+  --ikigai-navy:     #0D1B2A;
+  --ikigai-cobalt:   #4E85C5;
+  --ikigai-warm:     #F6F2EA;
+  --resource:        #1C242C;
+  --resource-sec:    #E8C84E;
 
-  /* Territory colours — surfaced in Base */
-  --corp-orange: #D66A35;
-  --corp-steel:  #3A5A78;
-  --io-lola:     #1A4A3A;
-  --io-acid:     #D4E84A;
-  --idx-teal:    #00A896;
-  --mio-cobalt:  #2B52A8;
-  --mio-kitchen: #E9BC28;
-  --ws-denim:    #4A6584;
-  --ws-cotton:   #E8C84E;
-  --prot-mustard:#C4922A;
+  --font-body:       'Plus Jakarta Sans', sans-serif;
+  --font-mono:       'IBM Plex Mono', monospace;
+  --font-display:    'Zilla Slab', serif;
+  --font-ikigai:     'Playfair Display', serif;
 
-  /* Fonts */
-  --corp: 'Plus Jakarta Sans', sans-serif;
-  --io:   'Syne', sans-serif;
-  --mono: 'IBM Plex Mono', monospace;
+  --radius:          10px;
+  --radius-sm:       6px;
+  --max-w:           1200px;
 }
 
+/* ── Reset ───────────────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; background: var(--ground); }
+a { color: inherit; text-decoration: none; }
+img { display: block; max-width: 100%; }
+button { font: inherit; cursor: pointer; border: none; background: none; }
 
+/* ── Ground + grid texture ────────────────────────────────────────────────── */
 body {
-  font-family: var(--corp);
-  background: var(--ground);
-  color: var(--white);
-  font-size: 13px;
-  line-height: 1.55;
+  font-family: var(--font-body);
   font-weight: 300;
-  -webkit-font-smoothing: antialiased;
-  min-height: 100vh;
-}
-
-/* Fine instrument grid */
-body::before {
-  content: '';
-  position: fixed; inset: 0;
+  color: var(--text);
+  background-color: var(--ground);
   background-image:
-    repeating-linear-gradient(90deg, rgba(123,143,168,0.025) 0, rgba(123,143,168,0.025) 1px, transparent 1px, transparent 64px),
-    repeating-linear-gradient(180deg, rgba(123,143,168,0.02) 0, rgba(123,143,168,0.02) 1px, transparent 1px, transparent 64px);
-  pointer-events: none; z-index: 0;
-}
-
-/* ══════════════════════════════════════════
-   LAYOUT SHELL
-   ══════════════════════════════════════════ */
-.shell {
-  display: flex;
-  flex-direction: column;
+    repeating-linear-gradient(rgba(28,36,44,0.04) 0px, rgba(28,36,44,0.04) 1px, transparent 1px, transparent 80px),
+    repeating-linear-gradient(90deg, rgba(28,36,44,0.04) 0px, rgba(28,36,44,0.04) 1px, transparent 1px, transparent 80px);
   min-height: 100vh;
-  position: relative;
-  z-index: 1;
 }
 
-/* ── TOPBAR ── */
-.topbar {
-  height: 48px;
-  background: rgba(10,14,20,0.96);
+/* ── Site header ──────────────────────────────────────────────────────────── */
+.site-header {
+  background: var(--surface);
   border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  padding: 0 28px;
-  gap: 0;
   position: sticky;
   top: 0;
   z-index: 100;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
 }
-
-/* Wordmark */
-.wordmark {
-  font-family: var(--corp);
-  font-weight: 800;
-  font-size: 14px;
-  letter-spacing: -0.02em;
-  color: var(--white);
-  display: flex;
-  align-items: baseline;
-  gap: 0;
-  margin-right: 32px;
-  flex-shrink: 0;
-}
-
-.wm-base { color: var(--white); }
-.wm-dot  {
-  width: 5px; height: 5px;
-  border-radius: 50%;
-  background: var(--corp-orange);
-  margin: 0 2px 2px;
-  flex-shrink: 0;
-}
-
-/* Tab nav */
-.tab-nav {
-  display: flex;
-  height: 100%;
-  flex: 1;
-  gap: 0;
-}
-
-.tab {
-  height: 100%;
+.header-inner {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: 0 24px;
+  height: 56px;
   display: flex;
   align-items: center;
-  padding: 0 18px;
-  font-family: var(--mono);
-  font-size: 10px;
-  font-weight: 400;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--muted);
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-  transition: color 0.14s, border-color 0.14s;
-  white-space: nowrap;
-  position: relative;
+  justify-content: space-between;
 }
-
-.tab:hover { color: var(--cream); }
-
-.tab.active {
-  color: var(--white);
-  border-bottom-color: var(--corp-orange);
-}
-
-.tab-pip {
-  width: 5px; height: 5px;
-  border-radius: 50%;
-  margin-left: 6px;
-  flex-shrink: 0;
-}
-
-/* Topbar right */
-.topbar-right {
-  margin-left: auto;
+.brand {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+.brand-mark {
+  width: 32px; height: 32px; border-radius: 7px;
+  background: #0E1117;
+  display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
 }
-
-.status-pill {
-  font-family: var(--mono);
-  font-size: 8px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  padding: 3px 9px;
-  border-radius: 2px;
-  display: flex;
-  align-items: center;
-  gap: 5px;
+.brand-dot {
+  width: 12px; height: 12px; border-radius: 50%;
+  background: #D66A35;
 }
-
-.sp-live {
-  background: rgba(26,74,58,0.2);
-  border: 1px solid rgba(212,232,74,0.2);
-  color: var(--io-acid);
-}
-
-.pip-live {
-  width: 5px; height: 5px;
-  border-radius: 50%;
-  background: var(--io-acid);
-  animation: pip 2s ease-in-out infinite;
-}
-
-@keyframes pip { 0%,100%{opacity:1} 50%{opacity:0.2} }
-
-.topbar-date {
-  font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: 0.08em;
-  color: var(--ghost);
-}
-
-/* ══════════════════════════════════════════
-   VIEWS
-   ══════════════════════════════════════════ */
-.view { display: none; flex: 1; }
-.view.active { display: block; }
-
-/* ── VIEW HEADER ── */
-.view-header {
-  padding: 36px 28px 28px;
-  border-bottom: 1px solid var(--border-l);
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 20px;
-  flex-wrap: wrap;
-}
-
-.vh-left {}
-
-.vh-eyebrow {
-  font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--corp-orange);
-  opacity: 0.65;
-  margin-bottom: 8px;
-}
-
-.vh-title {
-  font-family: var(--io);
-  font-weight: 800;
-  font-size: 28px;
-  letter-spacing: -0.02em;
-  color: var(--white);
-  line-height: 1;
-}
-
-.vh-sub {
-  font-family: var(--corp);
+.brand-name {
+  font-family: var(--font-mono);
   font-size: 13px;
-  font-weight: 300;
-  color: var(--muted);
-  margin-top: 6px;
-  max-width: 440px;
-  line-height: 1.5;
-}
-
-.vh-right {
-  font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: 0.1em;
-  color: var(--ghost);
-  text-transform: uppercase;
-  text-align: right;
-}
-
-/* ── SECTION CONTENT ── */
-.view-content { padding: 28px; }
-
-/* ══════════════════════════════════════════
-   SECTION A — PRODUCTS GRID
-   ══════════════════════════════════════════ */
-
-/* Three orientation tiles */
-.products-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  margin-bottom: 32px;
-}
-
-.product-tile {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  overflow: hidden;
-  cursor: pointer;
-  transition: border-color 0.15s, transform 0.12s;
-  position: relative;
-}
-
-.product-tile:hover {
-  transform: translateY(-2px);
-}
-
-.pt-accent-bar {
-  height: 3px;
-  width: 100%;
-}
-
-.pt-body {
-  padding: 20px 22px 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.pt-label {
-  font-family: var(--mono);
-  font-size: 8px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  opacity: 0.5;
-}
-
-.pt-name {
-  font-family: var(--io);
-  font-weight: 800;
-  font-size: 22px;
-  letter-spacing: -0.02em;
-  color: var(--white);
-  line-height: 1;
-}
-
-.pt-name .pt-dot {
-  font-size: 26px;
-  line-height: 1;
-}
-
-.pt-desc {
-  font-family: var(--corp);
-  font-size: 12px;
-  font-weight: 300;
-  color: var(--muted);
-  line-height: 1.5;
-  margin-top: 2px;
-}
-
-.pt-footer {
-  padding: 12px 22px;
-  border-top: 1px solid var(--border-l);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.pt-status {
-  font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.pt-status-dot {
-  width: 5px; height: 5px;
-  border-radius: 50%;
-}
-
-.pt-live-dot { animation: pip 2s infinite; }
-
-.pt-link {
-  font-family: var(--mono);
-  font-size: 8px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  opacity: 0.35;
-  color: var(--cream);
-}
-
-/* Signal chips on tiles */
-.pt-signal {
-  margin-top: 8px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: 0.08em;
-  color: var(--cream);
-  background: rgba(255,255,255,0.05);
-  border: 1px solid var(--border);
-  border-radius: 3px;
-  padding: 3px 9px;
-}
-
-/* ── Layer architecture mini diagram ── */
-.layer-diagram {
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 20px 24px;
-  display: flex;
-  align-items: center;
-  gap: 0;
-  overflow: hidden;
-}
-
-.ld-layer {
-  flex: 1;
-  padding: 14px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  border-right: 1px solid var(--border);
-  position: relative;
-}
-
-.ld-layer:last-child { border-right: none; }
-
-.ld-layer::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: var(--l-color, var(--base-a));
-}
-
-.ld-name {
-  font-family: var(--io);
-  font-weight: 800;
-  font-size: 14px;
-  letter-spacing: -0.01em;
-  color: var(--white);
-}
-
-.ld-sub {
-  font-family: var(--mono);
-  font-size: 8px;
+  font-weight: 500;
   letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--l-color, var(--base-a));
-  opacity: 0.7;
+  color: var(--text);
 }
-
-.ld-desc {
-  font-family: var(--corp);
+.brand-sub {
   font-size: 11px;
   font-weight: 300;
-  color: var(--muted);
-  line-height: 1.45;
-  margin-top: 2px;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+.header-date {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
 }
 
-/* ══════════════════════════════════════════
-   SECTION B — DESIGN REGISTER
-   ══════════════════════════════════════════ */
-
-.design-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
-}
-
-/* Commission card */
-.commission-card {
+/* ── Tools strip ──────────────────────────────────────────────────────────── */
+.tools-strip {
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 7px;
-  overflow: hidden;
-  cursor: pointer;
-  transition: border-color 0.14s, transform 0.12s;
+  border-bottom: 1px solid var(--border);
 }
-
-.commission-card:hover {
-  transform: translateY(-2px);
-  border-color: var(--border-l);
-}
-
-.cc-swatch {
-  height: 5px;
-  width: 100%;
-}
-
-.cc-body {
-  padding: 14px 16px 12px;
+.tools-inner {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: 0 24px;
+  height: 36px;
   display: flex;
-  flex-direction: column;
-  gap: 5px;
+  align-items: center;
 }
-
-.cc-num {
-  font-family: var(--mono);
-  font-size: 8px;
+.tools-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 500;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--text-muted);
+  padding-right: 16px;
+  border-right: 1px solid var(--border);
+  margin-right: 12px;
+  white-space: nowrap;
 }
-
-.cc-name {
-  font-family: var(--corp);
-  font-weight: 600;
-  font-size: 12px;
-  color: var(--white);
-  line-height: 1.3;
-  letter-spacing: -0.01em;
-}
-
-.cc-territory {
-  font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: 0.06em;
-  color: var(--muted);
-  margin-top: 1px;
-}
-
-.cc-status {
-  font-family: var(--mono);
-  font-size: 8px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  padding: 2px 7px;
-  border-radius: 2px;
-  margin-top: 4px;
-  display: inline-block;
-}
-
-.cc-confirmed {
-  background: rgba(61,140,111,0.12);
-  color: #6dccaa;
-  border: 1px solid rgba(61,140,111,0.2);
-}
-
-.cc-parked {
-  background: rgba(123,143,168,0.1);
-  color: var(--base-a);
-  border: 1px solid var(--base-rule);
-}
-
-/* Style guide card — wider */
-.sg-card {
-  grid-column: span 2;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: 7px;
-  padding: 20px 22px;
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  cursor: pointer;
-  transition: border-color 0.14s;
-}
-
-.sg-card:hover { border-color: rgba(214,106,53,0.3); }
-
-.sg-mark {
-  font-family: var(--io);
-  font-weight: 800;
-  font-size: 36px;
-  letter-spacing: -0.04em;
-  color: rgba(255,255,255,0.1);
-  flex-shrink: 0;
-  line-height: 1;
-}
-
-.sg-text {}
-
-.sg-label {
-  font-family: var(--mono);
-  font-size: 8px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--corp-orange);
-  opacity: 0.65;
-  margin-bottom: 4px;
-}
-
-.sg-name {
-  font-family: var(--corp);
-  font-weight: 700;
-  font-size: 16px;
-  letter-spacing: -0.01em;
-  color: var(--white);
-}
-
-.sg-sub {
-  font-family: var(--corp);
-  font-size: 12px;
-  font-weight: 300;
-  color: var(--muted);
-  margin-top: 3px;
-  line-height: 1.4;
-}
-
-/* ══════════════════════════════════════════
-   SECTION C — KNOWLEDGE
-   ══════════════════════════════════════════ */
-
-.knowledge-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
-.knowledge-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 7px;
-  padding: 20px 22px;
-  cursor: pointer;
-  transition: border-color 0.14s, transform 0.12s;
-  position: relative;
-  overflow: hidden;
-}
-
-.knowledge-card:hover { transform: translateY(-2px); }
-
-.kc-accent {
-  position: absolute;
-  left: 0; top: 0; bottom: 0;
-  width: 3px;
-}
-
-.kc-label {
-  font-family: var(--mono);
-  font-size: 8px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 6px;
-  padding-left: 10px;
-}
-
-.kc-name {
-  font-family: var(--corp);
-  font-weight: 700;
-  font-size: 16px;
-  letter-spacing: -0.01em;
-  color: var(--white);
-  padding-left: 10px;
-  margin-bottom: 6px;
-}
-
-.kc-desc {
-  font-family: var(--corp);
-  font-size: 12px;
-  font-weight: 300;
-  color: var(--muted);
-  line-height: 1.55;
-  padding-left: 10px;
-  margin-bottom: 10px;
-}
-
-.kc-items {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  padding-left: 10px;
-}
-
-.kc-item {
-  font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: 0.06em;
-  color: var(--cream);
-  opacity: 0.6;
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 4px 0;
-  border-bottom: 1px solid var(--border-l);
-  cursor: pointer;
-  transition: opacity 0.1s;
-}
-
-.kc-item:last-child { border-bottom: none; }
-.kc-item:hover { opacity: 0.9; }
-
-.kc-item-dot {
-  width: 4px; height: 4px;
-  border-radius: 50%;
-  background: var(--base-a);
-  flex-shrink: 0;
-  opacity: 0.5;
-}
-
-/* ══════════════════════════════════════════
-   SECTION D — WORKSHOP
-   ══════════════════════════════════════════ */
-
-.workshop-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
-/* Style Files featured card */
-.sf-featured {
-  grid-column: span 2;
-  background: var(--surface-2);
-  border: 1px solid rgba(78,101,132,0.3);
-  border-radius: 8px;
-  padding: 22px 24px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-  align-items: center;
-}
-
-.sff-left {}
-
-.sff-eyebrow {
-  font-family: var(--mono);
-  font-size: 8px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--ws-cotton);
-  opacity: 0.7;
-  margin-bottom: 8px;
-}
-
-.sff-title {
-  font-family: var(--io);
-  font-weight: 800;
-  font-size: 22px;
-  letter-spacing: -0.02em;
-  color: var(--white);
-  margin-bottom: 6px;
-}
-
-.sff-desc {
-  font-family: var(--corp);
-  font-size: 12px;
-  font-weight: 300;
-  color: var(--muted);
-  line-height: 1.55;
-}
-
-.sff-right {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-}
-
-.sff-file {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 5px;
-  padding: 10px 14px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  cursor: pointer;
-  transition: border-color 0.12s;
-}
-
-.sff-file:hover { border-color: rgba(78,101,132,0.4); }
-
-.sff-file-name {
-  font-family: var(--corp);
-  font-size: 12px;
-  font-weight: 400;
-  color: var(--white);
-}
-
-.sff-file-meta {
-  font-family: var(--mono);
-  font-size: 8px;
-  letter-spacing: 0.08em;
-  color: var(--muted);
-}
-
-.sff-file-status {
-  font-family: var(--mono);
-  font-size: 8px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  padding: 2px 6px;
-  border-radius: 2px;
-}
-
-.sff-confirmed {
-  background: rgba(58,107,58,0.12);
-  color: #6dccaa;
-  border: 1px solid rgba(58,107,58,0.2);
-}
-
-.sff-pending {
-  background: rgba(139,74,0,0.12);
-  color: #E8A060;
-  border: 1px solid rgba(139,74,0,0.25);
-}
-
-/* Workshop tiles */
-.workshop-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 7px;
-  padding: 20px 22px;
-  cursor: pointer;
-  transition: border-color 0.14s, transform 0.12s;
-}
-
-.workshop-card:hover { transform: translateY(-2px); }
-
-.wc-label {
-  font-family: var(--mono);
-  font-size: 8px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--ws-cotton);
-  opacity: 0.65;
-  margin-bottom: 6px;
-}
-
-.wc-name {
-  font-family: var(--corp);
-  font-weight: 700;
-  font-size: 15px;
-  letter-spacing: -0.01em;
-  color: var(--white);
-  margin-bottom: 6px;
-}
-
-.wc-desc {
-  font-family: var(--corp);
-  font-size: 12px;
-  font-weight: 300;
-  color: var(--muted);
-  line-height: 1.5;
-  margin-bottom: 10px;
-}
-
-.wc-link {
-  font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: 0.1em;
-  color: var(--ws-denim);
-  opacity: 0.7;
-  text-transform: uppercase;
+.tool-link {
   display: flex;
   align-items: center;
   gap: 6px;
+  padding: 0 12px;
+  height: 36px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  transition: color 0.15s;
+  white-space: nowrap;
 }
-
-.wc-link::before {
-  content: '';
-  width: 12px; height: 1px;
-  background: currentColor;
+.tool-link:hover { color: var(--teal); }
+.tool-link.disabled { opacity: 0.4; cursor: default; pointer-events: none; }
+.tool-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--teal);
   flex-shrink: 0;
 }
-
-/* ══════════════════════════════════════════
-   UTILITY
-   ══════════════════════════════════════════ */
-.section-label {
-  font-family: var(--mono);
+.tool-coming {
   font-size: 9px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 14px;
+  color: var(--text-muted);
+  letter-spacing: 0.06em;
+  margin-left: 2px;
+}
+
+/* ── Main layout ──────────────────────────────────────────────────────────── */
+.main-wrap {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: 32px 24px 80px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Search ───────────────────────────────────────────────────────────────── */
+.search-section { margin-bottom: 32px; }
+.search-wrap { position: relative; }
+.search-input {
+  width: 100%;
+  padding: 14px 20px 14px 52px;
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 300;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.search-input::placeholder { color: var(--text-muted); }
+.search-input:focus {
+  border-color: var(--denim);
+  box-shadow: 0 0 0 3px rgba(74,101,132,0.12);
+}
+.search-icon {
+  position: absolute;
+  left: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+.search-status {
+  margin-top: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  min-height: 16px;
+}
+.search-results { margin-top: 8px; display: flex; flex-direction: column; gap: 2px; }
+.search-result {
   display: flex;
   align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  transition: border-color 0.12s;
+}
+.search-result:hover { border-color: var(--denim); }
+.search-result-meta { flex: 1; min-width: 0; }
+.search-result-name {
+  font-size: 13px; font-weight: 600; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.search-result-path {
+  font-family: var(--font-mono); font-size: 10px; color: var(--text-muted);
+  margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.search-no-results {
+  padding: 20px 0; font-size: 13px; color: var(--text-muted); text-align: center;
+}
+
+/* ── Point section shell ──────────────────────────────────────────────────── */
+.point-section {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+.section-header {
+  display: flex;
+  align-items: stretch;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.12s;
+}
+.section-header:hover { background: rgba(28,36,44,0.02); }
+.section-accent { width: 4px; flex-shrink: 0; }
+.section-header-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  gap: 12px;
+}
+.section-titles { display: flex; flex-direction: column; gap: 2px; }
+.section-name {
+  font-family: var(--font-display);
+  font-size: 15px; font-weight: 700; letter-spacing: 0.01em;
+}
+.section-sub {
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--text-muted); letter-spacing: 0.06em;
+}
+.section-chevron {
+  font-size: 11px; color: var(--text-muted);
+  transition: transform 0.2s; flex-shrink: 0;
+}
+.point-section.open .section-chevron { transform: rotate(180deg); }
+.section-body {
+  display: none;
+  border-top: 1px solid var(--border);
+  padding: 20px 20px 24px;
+}
+.point-section.open .section-body { display: block; }
+
+/* ── Filter bar ───────────────────────────────────────────────────────────── */
+.filter-bar {
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 16px;
+}
+.filter-btn {
+  padding: 4px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: 20px;
+  font-family: var(--font-mono); font-size: 10px; font-weight: 500;
+  color: var(--text-muted); cursor: pointer; transition: all 0.12s;
+}
+.filter-btn:hover { border-color: var(--denim); color: var(--denim); }
+.filter-btn.active { background: var(--denim); border-color: var(--denim); color: white; }
+
+/* ── File grid ────────────────────────────────────────────────────────────── */
+.file-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
   gap: 10px;
 }
-
-.section-label::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--border-l);
+.file-card {
+  display: flex; flex-direction: column;
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  overflow: hidden; background: var(--ground);
+  transition: border-color 0.12s, transform 0.12s; cursor: pointer;
+}
+.file-card:hover { border-color: var(--denim); transform: translateY(-1px); }
+.card-thumb-wrap {
+  width: 100%; aspect-ratio: 16/9;
+  overflow: hidden; background: rgba(28,36,44,0.04);
+}
+.card-thumb { width: 100%; height: 100%; object-fit: cover; }
+.card-preview-label {
+  display: flex; align-items: center; justify-content: center; height: 100%;
+  font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); letter-spacing: 0.08em;
+}
+.card-body { padding: 10px 12px 12px; flex: 1; display: flex; flex-direction: column; gap: 6px; }
+.card-name { font-size: 12px; font-weight: 600; color: var(--text); line-height: 1.35; }
+.card-meta { display: flex; align-items: center; gap: 6px; margin-top: auto; }
+.file-badge {
+  font-family: var(--font-mono); font-size: 9px; font-weight: 500;
+  padding: 2px 6px; border-radius: 3px;
+  background: rgba(28,36,44,0.08); color: var(--text-muted);
+  letter-spacing: 0.06em; text-transform: uppercase; flex-shrink: 0;
+}
+.sf-badge {
+  font-family: var(--font-mono); font-size: 9px; font-weight: 500;
+  padding: 2px 6px; border-radius: 3px;
+  background: rgba(74,101,132,0.12); color: var(--workshop); letter-spacing: 0.04em;
 }
 
-.row-gap { margin-bottom: 28px; }
+/* ── Loading / error / empty states ──────────────────────────────────────── */
+.section-loading, .section-error, .section-empty {
+  padding: 24px 0; text-align: center;
+  font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); letter-spacing: 0.04em;
+}
+.section-error { color: rgba(180,60,60,0.7); }
 
-/* Scrollbar */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.18); }
+/* ── Subsection layout ────────────────────────────────────────────────────── */
+.subsection + .subsection { margin-top: 28px; }
+.subsection-label {
+  font-family: var(--font-mono); font-size: 9px; font-weight: 500;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-muted);
+  display: flex; align-items: center; gap: 10px; margin-bottom: 14px;
+}
+.subsection-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+/* ── Agent portrait grid ──────────────────────────────────────────────────── */
+.portrait-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 12px;
+}
+.portrait-card {
+  display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer;
+}
+.portrait-wrap {
+  width: 100%; aspect-ratio: 1; border-radius: 8px;
+  overflow: hidden; position: relative; background: rgba(74,101,132,0.08);
+}
+.portrait-wrap img {
+  width: 100%; height: 100%; object-fit: cover;
+  filter: grayscale(1) contrast(1.05); display: block;
+}
+.portrait-wrap::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(160deg, var(--denim) 0%, var(--cotton-yellow) 100%);
+  mix-blend-mode: multiply; opacity: 0.45; pointer-events: none;
+}
+.portrait-name { font-size: 11px; font-weight: 600; color: var(--text); text-align: center; }
+
+/* ── Doc list (Vault, Ikigai, etc.) ──────────────────────────────────────── */
+.doc-list { display: flex; flex-direction: column; gap: 4px; }
+.doc-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 12px;
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--ground); transition: border-color 0.12s;
+  font-size: 12px; font-weight: 400; color: var(--text);
+}
+.doc-item:hover { border-color: var(--denim); }
+.doc-item-icon {
+  width: 20px; height: 20px; border-radius: 4px;
+  background: rgba(74,101,132,0.1);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.doc-item-icon svg { width: 11px; height: 11px; }
+.doc-item-name { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.doc-item-badge {
+  font-family: var(--font-mono); font-size: 9px;
+  padding: 1px 5px; border-radius: 3px;
+  background: rgba(28,36,44,0.06); color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.06em; flex-shrink: 0;
+}
+
+/* ── Filing standards ─────────────────────────────────────────────────────── */
+.filing-list {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 6px;
+}
+.filing-item {
+  padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--ground); font-size: 12px; color: var(--text-muted);
+}
+
+/* ── Point accent overrides ───────────────────────────────────────────────── */
+.foundations-section .section-accent  { background: var(--denim); }
+.foundations-section .section-name    { color: var(--denim); }
+
+.business-section .section-accent     { background: var(--business); }
+.business-section .section-name       { color: var(--business); }
+.business-section .filter-btn.active  { background: var(--business); border-color: var(--business); }
+.business-section .file-card:hover    { border-color: var(--business); }
+
+.workshop-section .section-accent     { background: var(--workshop); }
+.workshop-section .section-name       { color: var(--workshop); font-family: var(--font-display); }
+.workshop-section .filter-btn.active  { background: var(--workshop); border-color: var(--workshop); }
+.workshop-section .file-card:hover    { border-color: var(--workshop); }
+
+.family-section .section-accent       { background: var(--family); }
+.family-section .section-name         { color: var(--family); }
+.family-section .filter-btn.active    { background: var(--family); border-color: var(--family); }
+.family-section .file-card:hover      { border-color: var(--family); }
+
+.ikigai-section .section-accent       { background: var(--ikigai-mustard); }
+.ikigai-section .section-name         { color: var(--ikigai-mustard); font-family: var(--font-ikigai); }
+
+.resource-section .section-accent     { background: var(--resource); }
+.resource-section .section-name       { color: var(--resource); }
+.resource-section .filter-btn.active  { background: var(--resource); border-color: var(--resource); }
+.resource-section .file-card:hover    { border-color: var(--resource); }
+
+/* ── Ikigai dual-register ─────────────────────────────────────────────────── */
+.ikigai-subsections { display: flex; flex-direction: column; }
+.ik-subsec { padding: 18px 0; border-bottom: 1px solid var(--border); }
+.ik-subsec:last-child { border-bottom: none; padding-bottom: 0; }
+.ik-subsec-title {
+  font-family: var(--font-ikigai); font-size: 13px; font-weight: 700;
+  color: var(--ikigai-mustard); margin-bottom: 12px; letter-spacing: 0.01em;
+}
+/* Pulse / Intelligence block — deep navy */
+.ik-pulse-block {
+  background: var(--ikigai-navy);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin: 0 -20px;
+  border-bottom: none !important;
+}
+.ik-pulse-block .ik-subsec-title { color: var(--ikigai-cobalt); }
+.ik-pulse-block .doc-item {
+  background: rgba(255,255,255,0.04);
+  border-color: rgba(255,255,255,0.08);
+  color: #E8ECF0;
+}
+.ik-pulse-block .doc-item:hover { border-color: var(--ikigai-cobalt); }
+.ik-pulse-block .doc-item-icon { background: rgba(255,255,255,0.06); }
+.ik-pulse-block .doc-item-badge { background: rgba(255,255,255,0.08); color: rgba(232,236,240,0.5); }
+.ik-pulse-label {
+  font-family: var(--font-mono); font-size: 9px;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--ikigai-mustard); margin-bottom: 10px;
+}
+
+/* ── Image Library ────────────────────────────────────────────────────────── */
+.image-section .section-accent { background: rgba(28,36,44,0.3); }
+.image-library-note {
+  font-size: 12px; color: var(--text-muted); margin-bottom: 16px;
+  padding: 10px 14px; background: rgba(28,36,44,0.04);
+  border-radius: var(--radius-sm); line-height: 1.5;
+}
+.masonry-grid { columns: 3; column-gap: 10px; }
+.masonry-item {
+  break-inside: avoid; margin-bottom: 10px; position: relative;
+  border-radius: var(--radius-sm); overflow: hidden;
+  border: 1px solid var(--border); cursor: pointer; transition: border-color 0.12s;
+}
+.masonry-item:hover { border-color: var(--denim); }
+.masonry-item img { width: 100%; display: block; }
+.masonry-hover {
+  position: absolute; inset: 0;
+  background: rgba(28,36,44,0.7);
+  display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-end;
+  padding: 10px; opacity: 0; transition: opacity 0.15s;
+}
+.masonry-item:hover .masonry-hover { opacity: 1; }
+.masonry-fname { font-family: var(--font-mono); font-size: 10px; color: white; line-height: 1.4; word-break: break-all; }
+
+/* ── Responsive ───────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .main-wrap { padding: 20px 16px 60px; }
+  .header-inner, .tools-inner { padding: 0 16px; }
+  .file-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+  .portrait-grid { grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); }
+  .masonry-grid { columns: 2; }
+  .brand-sub { display: none; }
+}
 
 </style>
 </head>
 <body>
 
-<div class="shell">
-
-  <!-- ── TOPBAR ── -->
-  <div class="topbar">
-    <div class="wordmark">
-      <span class="wm-base">BASE</span>
-      <div class="wm-dot"></div>
+<!-- ── Header ─────────────────────────────────────────────────────────────── -->
+<header class="site-header">
+  <div class="header-inner">
+    <div class="brand">
+      <div class="brand-mark"><div class="brand-dot"></div></div>
+      <div>
+        <div class="brand-name">BASE.</div>
+        <div class="brand-sub">Integrated AI · Personal Intranet</div>
+      </div>
     </div>
-
-    <nav class="tab-nav">
-      <div class="tab active" onclick="showView('products')">
-        Products
-        <div class="tab-pip" style="background:var(--corp-orange)"></div>
-      </div>
-      <div class="tab" onclick="showView('design')">
-        Design Register
-        <div class="tab-pip" style="background:var(--io-acid)"></div>
-      </div>
-      <div class="tab" onclick="showView('knowledge')">
-        Knowledge
-        <div class="tab-pip" style="background:var(--corp-steel)"></div>
-      </div>
-      <div class="tab" onclick="showView('workshop')">
-        Workshop
-        <div class="tab-pip" style="background:var(--ws-cotton)"></div>
-      </div>
-      <div class="tab" onclick="showView('partners')">
-        Partners
-        <div class="tab-pip" style="background:var(--muted)"></div>
-      </div>
-    </nav>
-
-    <div class="topbar-right">
-      <div class="status-pill sp-live">
-        <div class="pip-live"></div>
-        IO Alpha · Live
-      </div>
-      <div class="topbar-date" id="base-topbar-date">17 Apr 2026 · W16</div>
-    </div>
+    <div class="header-date" id="header-date"></div>
   </div>
+</header>
 
-  <div class="view active" id="view-products">
-    <div class="view-header">
-      <div class="vh-left">
-        <div class="vh-eyebrow">Section A · Products</div>
-        <div class="vh-title">Products</div>
-        <div class="vh-sub">Mesh.OS operating system and IAI's commercial products. Integrated AI is the company — everything below it.</div>
-      </div>
-      <div class="vh-right">IAI · Mesh.OS · Tools · Consulting</div>
-    </div>
-
-    <div class="view-content">
-
-      <!-- Company header — not a tile -->
-      <div class="section-label">The company</div>
-      <div style="background:var(--surface-2);border:1px solid rgba(214,106,53,0.2);border-left:3px solid var(--corp-orange);border-radius:6px;padding:18px 22px;margin-bottom:28px;display:flex;align-items:center;justify-content:space-between;gap:20px;">
-        <div>
-          <div style="font-family:var(--corp);font-weight:800;font-size:18px;letter-spacing:-0.02em;color:var(--white);margin-bottom:4px">Integrated <span style="color:var(--corp-orange)">AI</span></div>
-          <div style="font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted)">Industrial AI Leadership · Hunter Valley NSW · Head brand</div>
-        </div>
-        <div style="font-family:var(--mono);font-size:9px;letter-spacing:0.1em;color:var(--corp-orange);opacity:0.6;text-transform:uppercase">integratedai.com.au →</div>
-      </div>
-
-      <!-- Mesh.OS operating system -->
-      <div class="section-label">Mesh.OS — the operating system</div>
-
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:28px;">
-
-        <!-- Grid -->
-        <div class="product-tile" style="border-top:3px solid var(--io-acid);">
-          <div class="pt-body">
-            <div class="pt-label">Business interface</div>
-            <div class="pt-name">GRID<span class="pt-dot" style="color:var(--io-acid)">.</span><span style="color:var(--io-acid);font-size:16px;font-weight:400">IO</span></div>
-            <div class="pt-desc">Operational layer. Sprint board, schedule, content plan, priority list. Agents write here. Marnie manages from here.</div>
-            <div class="pt-signal" style="color:var(--io-acid)">
-              <div style="width:5px;height:5px;border-radius:50%;background:var(--io-acid);flex-shrink:0;animation:pip 2s infinite"></div>
-              <span id="base-grid-signal">14 active · 2 gates</span>
-            </div>
-          </div>
-          <div class="pt-footer">
-            <div class="pt-status" style="color:var(--io-acid)">
-              <div class="pt-status-dot pt-live-dot" style="background:var(--io-acid)"></div>
-              Live · Railway
-            </div>
-            <div class="pt-link">grid.integratedai.com.au →</div>
-          </div>
-        </div>
-
-        <!-- Pulse -->
-        <div class="product-tile" style="border-top:3px solid #4A90D9;">
-          <div class="pt-body">
-            <div class="pt-label">IP layer · Integrated Protocol</div>
-            <div class="pt-name" style="color:var(--white)">The <span style="color:#4A90D9">Pulse</span></div>
-            <div class="pt-desc">Agent interaction layer. Piper is the front door. Time-of-day context. State zones, input, decision queue. Navy/cobalt register.</div>
-            <div class="pt-signal" style="color:#4A90D9">
-              <div style="width:5px;height:5px;border-radius:50%;background:#4A90D9;flex-shrink:0;animation:pip 2s infinite"></div>
-              Piper · 4 tasks active · 2 pending
-            </div>
-          </div>
-          <div class="pt-footer">
-            <div class="pt-status" style="color:#4A90D9">
-              <div class="pt-status-dot pt-live-dot" style="background:#4A90D9"></div>
-              Built · Active
-            </div>
-            <div class="pt-link">Pulse identity →</div>
-          </div>
-        </div>
-
-        <!-- Marnie.IO -->
-        <div class="product-tile" style="border-top:3px solid var(--mio-kitchen);">
-          <div class="pt-body">
-            <div class="pt-label">Personal operations · Family point</div>
-            <div class="pt-name">Marnie<span class="pt-dot" style="color:var(--mio-kitchen)">.</span><span style="color:var(--mio-kitchen);font-size:16px;font-weight:400">IO</span></div>
-            <div class="pt-desc">Personal operating interface. Health OS, daily intelligence, Piper tile. Cobalt ground. Family point alongside.</div>
-            <div class="pt-signal" style="color:var(--mio-cobalt)">
-              <div style="width:5px;height:5px;border-radius:50%;background:var(--mio-kitchen);flex-shrink:0"></div>
-              <span id="base-mio-signal">DI W16 · 4 Flag · 5 Watch</span>
-            </div>
-          </div>
-          <div class="pt-footer">
-            <div class="pt-status" style="color:var(--muted)">
-              <div class="pt-status-dot" style="background:var(--muted)"></div>
-              In Build
-            </div>
-            <div class="pt-link">Marnie.IO →</div>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- Products -->
-      <div class="section-label">Products</div>
-
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:28px;">
-
-        <!-- Industrial AI Index -->
-        <div class="product-tile" style="border-top:3px solid var(--idx-teal);">
-          <div class="pt-body">
-            <div class="pt-label">Diagnostic tool</div>
-            <div class="pt-name" style="font-size:18px;line-height:1.15">Industrial<br><span style="color:var(--idx-teal)">AI Index</span></div>
-            <div class="pt-desc">AI readiness diagnostic for manufacturers. 8 minutes. Four pillars. Archetype result. Free to complete. Entry point to CAIO engagement.</div>
-            <div class="pt-signal" style="color:var(--idx-teal)">
-              <div style="width:5px;height:5px;border-radius:50%;background:var(--idx-teal);flex-shrink:0;animation:pip 2s infinite"></div>
-              index.integratedai.com.au
-            </div>
-          </div>
-          <div class="pt-footer">
-            <div class="pt-status" style="color:var(--idx-teal)">
-              <div class="pt-status-dot pt-live-dot" style="background:var(--idx-teal)"></div>
-              Live · Vercel
-            </div>
-            <div class="pt-link">index.integratedai.com.au →</div>
-          </div>
-        </div>
-
-        <!-- Hunter AI Index -->
-        <div class="product-tile" style="border-top:3px solid var(--corp-steel);">
-          <div class="pt-body">
-            <div class="pt-label">Data publication · Annual</div>
-            <div class="pt-name" style="font-size:18px;line-height:1.15">Hunter<br><span style="color:var(--corp-steel)">AI Index</span></div>
-            <div class="pt-desc">Aggregated benchmark report for the Hunter Region. Published annually once sufficient completions. Regional media and HMA value.</div>
-            <div class="pt-signal" style="color:var(--corp-steel)">
-              <div style="width:5px;height:5px;border-radius:50%;background:var(--corp-steel);flex-shrink:0"></div>
-              Requires 30–50 completions
-            </div>
-          </div>
-          <div class="pt-footer">
-            <div class="pt-status" style="color:var(--muted)">
-              <div class="pt-status-dot" style="background:var(--muted)"></div>
-              In Pipeline
-            </div>
-            <div class="pt-link">Hunter region →</div>
-          </div>
-        </div>
-
-        <!-- Field Office -->
-        <div class="product-tile" style="border-top:3px solid var(--corp-orange);opacity:0.85;">
-          <div class="pt-body">
-            <div class="pt-label">Consulting product · Stages + outputs</div>
-            <div class="pt-name" style="font-size:18px;line-height:1.15">Field<br><span style="color:var(--corp-orange)">Office</span></div>
-            <div class="pt-desc">AI readiness consulting engagement. Structured stages, defined outputs, scales with client need. Consumer product name — not yet activated.</div>
-            <div class="pt-signal" style="color:var(--corp-orange);opacity:0.6">
-              <div style="width:5px;height:5px;border-radius:50%;background:var(--corp-orange);flex-shrink:0;opacity:0.5"></div>
-              Holding page
-            </div>
-          </div>
-          <div class="pt-footer">
-            <div class="pt-status" style="color:var(--muted)">
-              <div class="pt-status-dot" style="background:var(--muted)"></div>
-              Not yet activated
-            </div>
-            <div class="pt-link">About →</div>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- Architecture -->
-      <div class="section-label">Architecture</div>
-      <div class="layer-diagram">
-        <div class="ld-layer" style="--l-color: var(--io-acid);">
-          <div class="ld-name">Grid.IO</div>
-          <div class="ld-sub">Operational</div>
-          <div class="ld-desc">Sprint board, schedule, content plan. Business interface.</div>
-        </div>
-        <div class="ld-layer" style="--l-color: #4A90D9;">
-          <div class="ld-name">The Pulse</div>
-          <div class="ld-sub">IP Layer</div>
-          <div class="ld-desc">Agent interaction. Piper front door. Integrated Protocol.</div>
-        </div>
-        <div class="ld-layer" style="--l-color: var(--mio-kitchen);">
-          <div class="ld-name">Marnie.IO</div>
-          <div class="ld-sub">Personal</div>
-          <div class="ld-desc">Health OS, DI, personal operating interface.</div>
-        </div>
-        <div class="ld-layer" style="--l-color: var(--corp-orange); border-right:none;">
-          <div class="ld-name">Mesh.OS</div>
-          <div class="ld-sub">Foundation</div>
-          <div class="ld-desc">The operating system. All three layers sit inside it.</div>
-        </div>
-      </div>
-
-    </div>
+<!-- ── Tools strip ─────────────────────────────────────────────────────────── -->
+<div class="tools-strip">
+  <div class="tools-inner">
+    <div class="tools-label">Tools</div>
+    <a class="tool-link" href="https://grid.integratedai.com.au" target="_blank" rel="noopener">
+      <div class="tool-dot"></div>Grid.IO
+    </a>
+    <a class="tool-link" href="https://marnie-io.vercel.app" target="_blank" rel="noopener">
+      <div class="tool-dot"></div>Mio
+    </a>
+    <span class="tool-link disabled">
+      <div class="tool-dot"></div>DI <span class="tool-coming">coming soon</span>
+    </span>
   </div>
-
-    <div class="view-content">
-
-      <div class="section-label">Operating surfaces</div>
-
-      <div class="products-grid row-gap">
-
-        <!-- IAI tile -->
-        <div class="product-tile" style="border-top: 3px solid var(--corp-orange);">
-          <div class="pt-body">
-            <div class="pt-label">The business</div>
-            <div class="pt-name" style="color:var(--white)">Integrated<br><span style="color:var(--corp-orange)">AI</span></div>
-            <div class="pt-desc">IAI · ICS · TMM · HMA. The business context. Hunter Valley NSW — industrial AI leadership.</div>
-            <div class="pt-signal" style="color:var(--corp-orange)">
-              <div style="width:5px;height:5px;border-radius:50%;background:var(--corp-orange);flex-shrink:0"></div>
-              integratedai.com.au
-            </div>
-          </div>
-          <div class="pt-footer">
-            <div class="pt-status" style="color:var(--corp-orange)">
-              <div class="pt-status-dot pt-live-dot" style="background:var(--corp-orange)"></div>
-              Live · Active
-            </div>
-            <div class="pt-link">integratedai.com.au →</div>
-          </div>
-        </div>
-
-        <!-- Grid.IO tile -->
-        <div class="product-tile" style="border-top: 3px solid var(--io-acid);">
-          <div class="pt-body">
-            <div class="pt-label">Operational layer</div>
-            <div class="pt-name">GRID<span class="pt-dot" style="color:var(--io-acid)">.</span><span style="color:var(--io-acid);font-size:16px;font-weight:400">IO</span></div>
-            <div class="pt-desc">Sprint board, schedule, content plan, priority list. Agents write here. Marnie manages from here.</div>
-            <div class="pt-signal" style="color:var(--io-acid)">
-              <div style="width:5px;height:5px;border-radius:50%;background:var(--io-acid);flex-shrink:0;animation:pip 2s infinite"></div>
-              <span id="base-arch-grid">14 active tasks · 2 gates</span>
-            </div>
-          </div>
-          <div class="pt-footer">
-            <div class="pt-status" style="color:var(--io-acid)">
-              <div class="pt-status-dot pt-live-dot" style="background:var(--io-acid)"></div>
-              Live · Railway
-            </div>
-            <div class="pt-link">grid.integratedai.com.au →</div>
-          </div>
-        </div>
-
-        <!-- Marnie.IO tile -->
-        <div class="product-tile" style="border-top: 3px solid var(--mio-kitchen);">
-          <div class="pt-body">
-            <div class="pt-label">Personal layer</div>
-            <div class="pt-name">Marnie<span class="pt-dot" style="color:var(--mio-kitchen)">.</span><span style="color:var(--mio-kitchen);font-size:16px;font-weight:400">IO</span></div>
-            <div class="pt-desc">Health OS, daily intelligence, Piper tile. Personal operating interface on cobalt ground.</div>
-            <div class="pt-signal" style="color:var(--mio-cobalt)">
-              <div style="width:5px;height:5px;border-radius:50%;background:var(--mio-kitchen);flex-shrink:0"></div>
-              <span id="base-arch-mio">DI · W16 · 4 Flag · 5 Watch</span>
-            </div>
-          </div>
-          <div class="pt-footer">
-            <div class="pt-status" style="color:var(--muted)">
-              <div class="pt-status-dot" style="background:var(--muted)"></div>
-              In Build
-            </div>
-            <div class="pt-link">Marnie.IO →</div>
-          </div>
-        </div>
-
-      </div>
-
-      <div class="section-label">Architecture</div>
-
-      <div class="layer-diagram">
-        <div class="ld-layer" style="--l-color: var(--io-acid);">
-          <div class="ld-name">Grid.IO</div>
-          <div class="ld-sub">Operational</div>
-          <div class="ld-desc">Sprint board, schedule, content plan. Agents write here.</div>
-        </div>
-        <div class="ld-layer" style="--l-color: var(--mio-kitchen);">
-          <div class="ld-name">Marnie.IO</div>
-          <div class="ld-sub">Personal</div>
-          <div class="ld-desc">Health OS, DI, Piper. Personal operating interface.</div>
-        </div>
-        <div class="ld-layer" style="--l-color: var(--corp-orange);">
-          <div class="ld-name">Base</div>
-          <div class="ld-sub">Foundation · Here</div>
-          <div class="ld-desc">Internal hub. Products, design, knowledge, Workshop.</div>
-        </div>
-        <div class="ld-layer" style="--l-color: var(--corp-steel); border-right:none;">
-          <div class="ld-name">IAI</div>
-          <div class="ld-sub">The business</div>
-          <div class="ld-desc">All three layers sit inside IAI. The business context.</div>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- ══════════════════════════════════════
-       VIEW B — DESIGN REGISTER
-       ══════════════════════════════════════ -->
-  <div class="view" id="view-design">
-    <div class="view-header">
-      <div class="vh-left">
-        <div class="vh-eyebrow">Section B · Design</div>
-        <div class="vh-title">Design Register</div>
-        <div class="vh-sub">All identity commissions and the full system style guide. C1 through C13.</div>
-      </div>
-      <div class="vh-right">Lumen · Head of Design · C1–C13</div>
-    </div>
-
-    <div class="view-content">
-
-      <div class="section-label">Reference</div>
-
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px">
-        <div class="sg-card">
-          <div class="sg-mark">SG</div>
-          <div class="sg-text">
-            <div class="sg-label">Full system reference</div>
-            <div class="sg-name">IAI Style Guide v1</div>
-            <div class="sg-sub">Six territory identities · Typography · Palette architecture · 70s industrial warm</div>
-          </div>
-        </div>
-        <div class="sg-card">
-          <div class="sg-mark">AI</div>
-          <div class="sg-text">
-            <div class="sg-label">Style Files · Workshop</div>
-            <div class="sg-name">AI Style Files</div>
-            <div class="sg-sub">Mirror sessions documented · Style File 001 confirmed · Style File 002 confirmed · C5 commission</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="section-label">Commission register · C1–C13</div>
-
-      <div class="design-grid">
-
-        <div class="commission-card">
-          <div class="cc-swatch" style="background:var(--prot-mustard)"></div>
-          <div class="cc-body">
-            <div class="cc-num">C1</div>
-            <div class="cc-name">Mrs Wilson Protocol</div>
-            <div class="cc-territory">Mustard · Charcoal · Paper</div>
-            <div class="cc-status cc-confirmed">Confirmed</div>
-          </div>
-        </div>
-
-        <div class="commission-card">
-          <div class="cc-swatch" style="background:var(--io-lola)"></div>
-          <div class="cc-body">
-            <div class="cc-num">C2</div>
-            <div class="cc-name">Daily Intelligence</div>
-            <div class="cc-territory">Lola's Green · Acid Yellow · Signal system</div>
-            <div class="cc-status cc-confirmed">Confirmed</div>
-          </div>
-        </div>
-
-        <div class="commission-card">
-          <div class="cc-swatch" style="background:rgba(123,143,168,0.4)"></div>
-          <div class="cc-body">
-            <div class="cc-num">C3</div>
-            <div class="cc-name">IP Designation</div>
-            <div class="cc-territory">Parked pending brief revision</div>
-            <div class="cc-status cc-parked">Parked</div>
-          </div>
-        </div>
-
-        <div class="commission-card">
-          <div class="cc-swatch" style="background:var(--ws-denim)"></div>
-          <div class="cc-body">
-            <div class="cc-num">C4</div>
-            <div class="cc-name">Revisionist Workshop</div>
-            <div class="cc-territory">Denim · Cotton · Paper warm</div>
-            <div class="cc-status cc-confirmed">Confirmed</div>
-          </div>
-        </div>
-
-        <div class="commission-card">
-          <div class="cc-swatch" style="background:var(--ws-cotton)"></div>
-          <div class="cc-body">
-            <div class="cc-num">C5</div>
-            <div class="cc-name">AI Style Files</div>
-            <div class="cc-territory">Workshop territory · Libre Baskerville</div>
-            <div class="cc-status cc-confirmed">Confirmed</div>
-          </div>
-        </div>
-
-        <div class="commission-card">
-          <div class="cc-swatch" style="background:var(--mio-cobalt)"></div>
-          <div class="cc-body">
-            <div class="cc-num">C6</div>
-            <div class="cc-name">Marnie.IO</div>
-            <div class="cc-territory">Cobalt · Kitchen Yellow · Ground</div>
-            <div class="cc-status cc-confirmed">Confirmed</div>
-          </div>
-        </div>
-
-        <div class="commission-card">
-          <div class="cc-swatch" style="background:var(--corp-orange)"></div>
-          <div class="cc-body">
-            <div class="cc-num">C7</div>
-            <div class="cc-name">IAI Corporate Refresh</div>
-            <div class="cc-territory">Safety Orange · Steel Blue · Charcoal</div>
-            <div class="cc-status cc-confirmed">Confirmed</div>
-          </div>
-        </div>
-
-        <div class="commission-card">
-          <div class="cc-swatch" style="background:var(--io-lola)"></div>
-          <div class="cc-body">
-            <div class="cc-num">C8</div>
-            <div class="cc-name">Grid.IO Redesign</div>
-            <div class="cc-territory">Lola's Green · Syne · IBM Plex</div>
-            <div class="cc-status cc-confirmed">Confirmed</div>
-          </div>
-        </div>
-
-        <div class="commission-card">
-          <div class="cc-swatch" style="background:var(--ws-denim)"></div>
-          <div class="cc-body">
-            <div class="cc-num">C9</div>
-            <div class="cc-name">Substack Review</div>
-            <div class="cc-territory">Revisionist Workshop · F0EBE0</div>
-            <div class="cc-status cc-confirmed">Confirmed</div>
-          </div>
-        </div>
-
-        <div class="commission-card">
-          <div class="cc-swatch" style="background:var(--io-lola)"></div>
-          <div class="cc-body">
-            <div class="cc-num">C10</div>
-            <div class="cc-name">DI Interface</div>
-            <div class="cc-territory">Dark field · Five elements · Mobile</div>
-            <div class="cc-status cc-confirmed">Confirmed</div>
-          </div>
-        </div>
-
-        <div class="commission-card">
-          <div class="cc-swatch" style="background:var(--mio-cobalt)"></div>
-          <div class="cc-body">
-            <div class="cc-num">C11</div>
-            <div class="cc-name">Piper Tile</div>
-            <div class="cc-territory">Marnie.IO · 390px · One face</div>
-            <div class="cc-status cc-confirmed">Confirmed</div>
-          </div>
-        </div>
-
-        <div class="commission-card">
-          <div class="cc-swatch" style="background:var(--corp-orange)"></div>
-          <div class="cc-body">
-            <div class="cc-num">C12</div>
-            <div class="cc-name">Clear Ground</div>
-            <div class="cc-territory">AI Readiness landing page</div>
-            <div class="cc-status cc-confirmed">Confirmed</div>
-          </div>
-        </div>
-
-        <div class="commission-card" style="border-color:rgba(214,106,53,0.3)">
-          <div class="cc-swatch" style="background:linear-gradient(90deg,#0A0E14 50%,#3A5A78 100%)"></div>
-          <div class="cc-body">
-            <div class="cc-num">C13</div>
-            <div class="cc-name">Base</div>
-            <div class="cc-territory">Foundation layer · This interface</div>
-            <div class="cc-status" style="background:rgba(214,106,53,0.1);color:var(--corp-orange);border:1px solid rgba(214,106,53,0.25)">Active</div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </div>
-
-  <!-- ══════════════════════════════════════
-       VIEW C — KNOWLEDGE
-       ══════════════════════════════════════ -->
-  <div class="view" id="view-knowledge">
-    <div class="view-header">
-      <div class="vh-left">
-        <div class="vh-eyebrow">Section C · Knowledge</div>
-        <div class="vh-title">Knowledge and Reports</div>
-        <div class="vh-sub">Clio's domain surfaced visually. Vault, org chart, key reports — curated, not a file browser.</div>
-      </div>
-      <div class="vh-right">Clio · Head of Knowledge · Maren / Ikigai</div>
-    </div>
-
-    <div class="view-content">
-
-      <div class="section-label">Vault and structure</div>
-
-      <div class="knowledge-grid row-gap">
-
-        <div class="knowledge-card">
-          <div class="kc-accent" style="background:var(--corp-steel)"></div>
-          <div class="kc-label">Foundational documents</div>
-          <div class="kc-name">Vault</div>
-          <div class="kc-desc">IAI's foundational documents. Naming architecture, brand positioning, palette architecture, IO operating principles.</div>
-          <div class="kc-items" id="base-vault-items">
-            <div class="kc-item"><div class="kc-item-dot"></div>IAI Brand Positioning v1</div>
-            <div class="kc-item"><div class="kc-item-dot"></div>IO Naming Architecture v1</div>
-            <div class="kc-item"><div class="kc-item-dot"></div>Palette Architecture v1</div>
-            <div class="kc-item"><div class="kc-item-dot"></div>Agent Roster v2.0</div>
-          </div>
-        </div>
-
-        <div class="knowledge-card">
-          <div class="kc-accent" style="background:var(--corp-steel)"></div>
-          <div class="kc-label" id="base-roster-label">Agent hierarchy</div>
-          <div class="kc-name">Org Chart</div>
-          <div class="kc-desc">Current agent roster across all five verticals. Business, Workshop, Family, Ikigai, Shared Services.</div>
-          <div class="kc-items">
-            <div class="kc-item"><div class="kc-item-dot"></div>Arna Overview</div>
-            <div class="kc-item"><div class="kc-item-dot"></div>Business vertical — Reid</div>
-            <div class="kc-item"><div class="kc-item-dot"></div>Workshop vertical — Sable</div>
-            <div class="kc-item"><div class="kc-item-dot"></div>Family vertical — Neve</div>
-            <div class="kc-item"><div class="kc-item-dot"></div>Ikigai vertical — Maren</div>
-          </div>
-        </div>
-
-        <div class="knowledge-card">
-          <div class="kc-accent" style="background:var(--idx-teal)"></div>
-          <div class="kc-label">Platform intelligence</div>
-          <div class="kc-name">Flint Notes</div>
-          <div class="kc-desc">Flint's weekly platform intelligence. Claude API developments, shipping, deprecations, IAI action items.</div>
-          <div class="kc-items" id="base-flint-items">
-            <div class="kc-item"><div class="kc-item-dot" style="background:var(--idx-teal)"></div>Flint W15 — April 2026</div>
-            <div class="kc-item"><div class="kc-item-dot" style="background:var(--idx-teal)"></div>Haiku 3 deprecation — 19 Apr</div>
-            <div class="kc-item"><div class="kc-item-dot" style="background:var(--idx-teal)"></div>Cowork RBAC — activate</div>
-          </div>
-        </div>
-
-        <div class="knowledge-card">
-          <div class="kc-accent" style="background:var(--muted)"></div>
-          <div class="kc-label">External</div>
-          <div class="kc-name">Help and Support</div>
-          <div class="kc-desc">External references. Not built in Base — links out to relevant support resources.</div>
-          <div class="kc-items">
-            <div class="kc-item"><div class="kc-item-dot"></div>Anthropic docs.claude.com →</div>
-            <div class="kc-item"><div class="kc-item-dot"></div>Claude API reference →</div>
-            <div class="kc-item"><div class="kc-item-dot"></div>Wix support →</div>
-          </div>
-        </div>
-
-      </div>
-
-    </div>
-  </div>
-
-  <!-- ══════════════════════════════════════
-       VIEW D — WORKSHOP
-       ══════════════════════════════════════ -->
-  <div class="view" id="view-workshop">
-    <div class="view-header">
-      <div class="vh-left">
-        <div class="vh-eyebrow">Section D · Workshop</div>
-        <div class="vh-title">Revisionist Workshop</div>
-        <div class="vh-sub">Internal home for the Workshop even though it lives externally at Substack. The two most-accessed assets surfaced here.</div>
-      </div>
-      <div class="vh-right">Sable · Chief of Workshop · Substack</div>
-    </div>
-
-    <div class="view-content">
-
-      <div class="section-label">AI Style Files</div>
-
-      <div class="workshop-grid row-gap">
-
-        <div class="sf-featured">
-          <div class="sff-left">
-            <div class="sff-eyebrow">Mirror · Style documentation</div>
-            <div class="sff-title">AI Style Files</div>
-            <div class="sff-desc">Mirror's session notes documented as editorial style files. Sepia ink-on-paper illustration. Scout signal read. Fit and condition notes. Intelligence update at close.</div>
-          </div>
-          <div class="sff-right">
-            <div class="sff-file">
-              <div>
-                <div class="sff-file-name">Style File 001 — HIF Day One</div>
-                <div class="sff-file-meta">14 Apr 2026 · Scout W13 · Texture contrast</div>
-              </div>
-              <div class="sff-file-status sff-confirmed">Confirmed</div>
-            </div>
-            <div class="sff-file">
-              <div>
-                <div class="sff-file-name">Style File 002 — Military Shirt</div>
-                <div class="sff-file-meta">16 Apr 2026 · Scout W15 · Military silhouette</div>
-              </div>
-              <div class="sff-file-status sff-confirmed">Confirmed</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="workshop-card">
-          <div class="wc-label">Content pipeline</div>
-          <div class="wc-name">Content Plan</div>
-          <div class="wc-desc">Current Workshop content pipeline. Post schedule, drafts in progress, Scout W13 and W15 activations. Operational view available in Grid.IO content tab.</div>
-          <div class="wc-link">Grid content tab (operational view)</div>
-        </div>
-
-        <div class="workshop-card">
-          <div class="wc-label">External publication</div>
-          <div class="wc-name">Revisionist Substack</div>
-          <div class="wc-desc">The external face of the Workshop. F0EBE0 paper warm ground, E8C84E accent, warp-and-weft mark. About and Definitions pages pending Rue rewrite.</div>
-          <div class="wc-link">shoppingthearchive.substack.com →</div>
-        </div>
-
-      </div>
-
-      <div class="section-label">Rotation tracker — Scout W15</div>
-
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:7px;overflow:hidden;">
-        <div style="padding:14px 20px;border-bottom:1px solid var(--border-l);font-family:var(--mono);font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted)">Military shirt rotation — three colourways</div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);">
-          <div style="padding:16px 20px;border-right:1px solid var(--border-l);">
-            <div style="font-family:var(--mono);font-size:8px;letter-spacing:0.12em;text-transform:uppercase;color:#6dccaa;margin-bottom:5px">01 · Active</div>
-            <div style="font-family:var(--corp);font-size:13px;font-weight:500;color:var(--white);margin-bottom:3px">Black [ID 49]</div>
-            <div style="font-family:var(--mono);font-size:9px;color:var(--muted)">Style File 002 · Confirmed</div>
-          </div>
-          <div style="padding:16px 20px;border-right:1px solid var(--border-l);">
-            <div style="font-family:var(--mono);font-size:8px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">02 · To follow</div>
-            <div style="font-family:var(--corp);font-size:13px;font-weight:500;color:var(--muted);margin-bottom:3px">Khaki [ID 48]</div>
-            <div style="font-family:var(--mono);font-size:9px;color:var(--ghost)">Pending activation</div>
-          </div>
-          <div style="padding:16px 20px;">
-            <div style="font-family:var(--mono);font-size:8px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">03 · To follow</div>
-            <div style="font-family:var(--corp);font-size:13px;font-weight:500;color:var(--muted);margin-bottom:3px">Baby Pink [ID 58]</div>
-            <div style="font-family:var(--mono);font-size:9px;color:var(--ghost)">Pending activation</div>
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
 </div>
 
-  <!-- ══════════════════════════════════════
-       VIEW E — PARTNERS
-       ══════════════════════════════════════ -->
-  <div class="view" id="view-partners">
-    <div class="view-header">
-      <div class="vh-left">
-        <div class="vh-eyebrow">Section E · Partners</div>
-        <div class="vh-title">Business Partners</div>
-        <div class="vh-sub">Kick off to partner systems and interfaces. IAI's active business relationships.</div>
-      </div>
-      <div class="vh-right">ICS · TMM · HMA · HIF</div>
+<!-- ── Main ───────────────────────────────────────────────────────────────── -->
+<div class="main-wrap">
+
+  <!-- Search -->
+  <div class="search-section">
+    <div class="search-wrap">
+      <svg class="search-icon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/>
+      </svg>
+      <input type="text" id="kb-search" class="search-input" placeholder="Search knowledge base…" autocomplete="off" spellcheck="false">
     </div>
-
-    <div class="view-content">
-
-      <div class="section-label">Active partners</div>
-
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-
-        <div class="knowledge-card" style="cursor:pointer;">
-          <div class="kc-accent" style="background:#FF6B1A"></div>
-          <div class="kc-label">Integrated Coating Services</div>
-          <div class="kc-name">ICS</div>
-          <div class="kc-desc">Dan Garness. IO Beta instance — the second IO deployment in the world. Active trial engagement.</div>
-          <div class="kc-items">
-            <div class="kc-item"><div class="kc-item-dot" style="background:#FF6B1A"></div>IO Beta instance</div>
-            <div class="kc-item"><div class="kc-item-dot" style="background:#FF6B1A"></div>Cord — Head of ICS (emerging)</div>
-            <div class="kc-item"><div class="kc-item-dot" style="background:#FF6B1A"></div>→ ICS systems</div>
-          </div>
-        </div>
-
-        <div class="knowledge-card" style="cursor:pointer;">
-          <div class="kc-accent" style="background:#00C9C9"></div>
-          <div class="kc-label">The Measured Marketer</div>
-          <div class="kc-name">TMM</div>
-          <div class="kc-desc">Jacqui's business. Hedweld. Tammy manages TMM operations day-to-day. IAI firewall absolute — TMM and IAI never mix.</div>
-          <div class="kc-items">
-            <div class="kc-item"><div class="kc-item-dot" style="background:#00C9C9"></div>Tammy — Head of TMM</div>
-            <div class="kc-item"><div class="kc-item-dot" style="background:#00C9C9"></div>Hedweld engagement active</div>
-            <div class="kc-item"><div class="kc-item-dot" style="background:#00C9C9"></div>→ TMM systems</div>
-          </div>
-        </div>
-
-        <div class="knowledge-card" style="cursor:pointer;">
-          <div class="kc-accent" style="background:#2255F5"></div>
-          <div class="kc-label">Hunter Manufacturing Awards</div>
-          <div class="kc-name">HMA</div>
-          <div class="kc-desc">Marnie is a board director. Wave 4 rollout — HMA board directors and broader network. Hunter Innovation Festival context.</div>
-          <div class="kc-items">
-            <div class="kc-item"><div class="kc-item-dot" style="background:#2255F5"></div>Marnie — board director</div>
-            <div class="kc-item"><div class="kc-item-dot" style="background:#2255F5"></div>Hunter — Head of HMA (planned)</div>
-            <div class="kc-item"><div class="kc-item-dot" style="background:#2255F5"></div>→ HMA systems</div>
-          </div>
-        </div>
-
-        <div class="knowledge-card" style="cursor:pointer;">
-          <div class="kc-accent" style="background:var(--corp-steel)"></div>
-          <div class="kc-label">Hunter Innovation Festival</div>
-          <div class="kc-name">HIF</div>
-          <div class="kc-desc">Festival Director role active. First day confirmed 14 April 2026. Creative office environment.</div>
-          <div class="kc-items">
-            <div class="kc-item"><div class="kc-item-dot"></div>Festival Director — Marnie</div>
-            <div class="kc-item"><div class="kc-item-dot"></div>14 April 2026 · Confirmed</div>
-            <div class="kc-item"><div class="kc-item-dot"></div>→ HIF systems</div>
-          </div>
-        </div>
-
-      </div>
-    </div>
+    <div class="search-status" id="search-status"></div>
+    <div class="search-results" id="search-results"></div>
   </div>
 
+  <!-- ── Foundations ──────────────────────────────────────────────────────── -->
+  <section class="point-section foundations-section open" id="sec-foundations">
+    <div class="section-header" onclick="toggleSection('sec-foundations')">
+      <div class="section-accent"></div>
+      <div class="section-header-content">
+        <div class="section-titles">
+          <span class="section-name">Foundations</span>
+          <span class="section-sub">IAI · All Points</span>
+        </div>
+        <span class="section-chevron">▼</span>
+      </div>
+    </div>
+    <div class="section-body" id="body-foundations">
+      <div class="section-loading">Loading…</div>
+    </div>
+  </section>
+
+  <!-- ── Business ─────────────────────────────────────────────────────────── -->
+  <section class="point-section business-section" id="sec-business">
+    <div class="section-header" onclick="toggleSection('sec-business')">
+      <div class="section-accent"></div>
+      <div class="section-header-content">
+        <div class="section-titles">
+          <span class="section-name">Business</span>
+          <span class="section-sub">IAI · ICS · TMM · HMA · HIF</span>
+        </div>
+        <span class="section-chevron">▼</span>
+      </div>
+    </div>
+    <div class="section-body" id="body-business">
+      <div class="section-loading">Loading…</div>
+    </div>
+  </section>
+
+  <!-- ── Workshop ─────────────────────────────────────────────────────────── -->
+  <section class="point-section workshop-section" id="sec-workshop">
+    <div class="section-header" onclick="toggleSection('sec-workshop')">
+      <div class="section-accent"></div>
+      <div class="section-header-content">
+        <div class="section-titles">
+          <span class="section-name">Workshop</span>
+          <span class="section-sub">AI Style Files · KB</span>
+        </div>
+        <span class="section-chevron">▼</span>
+      </div>
+    </div>
+    <div class="section-body" id="body-workshop">
+      <div class="section-loading">Loading…</div>
+    </div>
+  </section>
+
+  <!-- ── Family ───────────────────────────────────────────────────────────── -->
+  <section class="point-section family-section" id="sec-family">
+    <div class="section-header" onclick="toggleSection('sec-family')">
+      <div class="section-accent"></div>
+      <div class="section-header-content">
+        <div class="section-titles">
+          <span class="section-name">Family</span>
+          <span class="section-sub">Life · Meal Plans</span>
+        </div>
+        <span class="section-chevron">▼</span>
+      </div>
+    </div>
+    <div class="section-body" id="body-family">
+      <div class="section-loading">Loading…</div>
+    </div>
+  </section>
+
+  <!-- ── Operating Protocols (Ikigai) ─────────────────────────────────────── -->
+  <section class="point-section ikigai-section" id="sec-ikigai">
+    <div class="section-header" onclick="toggleSection('sec-ikigai')">
+      <div class="section-accent"></div>
+      <div class="section-header-content">
+        <div class="section-titles">
+          <span class="section-name">Operating Protocols</span>
+          <span class="section-sub">Ikigai Point</span>
+        </div>
+        <span class="section-chevron">▼</span>
+      </div>
+    </div>
+    <div class="section-body" id="body-ikigai">
+      <div class="section-loading">Loading…</div>
+    </div>
+  </section>
+
+  <!-- ── Resource ─────────────────────────────────────────────────────────── -->
+  <section class="point-section resource-section" id="sec-resource">
+    <div class="section-header" onclick="toggleSection('sec-resource')">
+      <div class="section-accent"></div>
+      <div class="section-header-content">
+        <div class="section-titles">
+          <span class="section-name">Resource</span>
+          <span class="section-sub">Shared Services · KB</span>
+        </div>
+        <span class="section-chevron">▼</span>
+      </div>
+    </div>
+    <div class="section-body" id="body-resource">
+      <div class="section-loading">Loading…</div>
+    </div>
+  </section>
+
+  <!-- ── Image Library ────────────────────────────────────────────────────── -->
+  <section class="point-section image-section" id="sec-images">
+    <div class="section-header" onclick="toggleSection('sec-images')">
+      <div class="section-accent"></div>
+      <div class="section-header-content">
+        <div class="section-titles">
+          <span class="section-name">Image Library</span>
+          <span class="section-sub">All Points · PNG · JPG · GIF · WEBP</span>
+        </div>
+        <span class="section-chevron">▼</span>
+      </div>
+    </div>
+    <div class="section-body" id="body-images">
+      <div class="section-loading">Loading…</div>
+    </div>
+  </section>
+
+</div><!-- /main-wrap -->
+
 <script>
-// ── Base live data ────────────────────────────────────────────────────────────
-(function () {
+'use strict';
 
-  // ISO week number
-  function isoWeek(d) {
-    const tmp = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-    tmp.setUTCDate(tmp.getUTCDate() + 4 - (tmp.getUTCDay() || 7));
-    const y1  = new Date(Date.UTC(tmp.getUTCFullYear(), 0, 1));
-    return Math.ceil((((tmp - y1) / 86400000) + 1) / 7);
+// ── Constants ─────────────────────────────────────────────────────────────────
+const RAW_BASE = 'https://raw.githubusercontent.com/marnie-iai/kb/main/';
+const IMG_EXTS = new Set(['png','jpg','jpeg','gif','webp']);
+
+const ALL_KB_PATHS = [
+  'kb/00-foundations/vault',
+  'kb/00-foundations/agent-portraits',
+  'kb/00-foundations/agents',
+  'kb/01-business/iai', 'kb/01-business/ics', 'kb/01-business/tmm',
+  'kb/01-business/hma', 'kb/01-business/hif',
+  'kb/02-workshop',
+  'kb/03-family', 'kb/03-family/meal-plans',
+  'kb/04-shared-services',
+  'kb/05-ikigai', 'kb/05-ikigai/pursuits',
+  'kb/05-ikigai/platform-intelligence', 'kb/05-ikigai/gap-register',
+];
+
+// ── Client-side cache ─────────────────────────────────────────────────────────
+const _kbCache = {};
+
+async function fetchKB(kbPath) {
+  if (_kbCache[kbPath] !== undefined) return _kbCache[kbPath];
+  try {
+    const r = await fetch('/api/kb?path=' + encodeURIComponent(kbPath));
+    if (!r.ok) { _kbCache[kbPath] = []; return []; }
+    const data = await r.json();
+    const files = Array.isArray(data) ? data.filter(f => f.type === 'file') : [];
+    _kbCache[kbPath] = files;
+    return files;
+  } catch { _kbCache[kbPath] = []; return []; }
+}
+
+async function fetchPortraits() {
+  if (_kbCache['__portraits'] !== undefined) return _kbCache['__portraits'];
+  try {
+    const r = await fetch('/api/portraits');
+    if (!r.ok) { _kbCache['__portraits'] = []; return []; }
+    const data = await r.json();
+    const files = Array.isArray(data) ? data.filter(f => f.type === 'file' && /\.(png|jpg)$/i.test(f.name)) : [];
+    _kbCache['__portraits'] = files;
+    return files;
+  } catch { _kbCache['__portraits'] = []; return []; }
+}
+
+// ── Utilities ─────────────────────────────────────────────────────────────────
+function fileExt(name) {
+  const m = name.match(/\.([a-z0-9]+)$/i);
+  return m ? m[1].toLowerCase() : '';
+}
+
+function cleanName(filename) {
+  return filename
+    .replace(/\.[a-z0-9]+$/i, '')
+    .replace(/[-_]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function agentName(filename) {
+  return filename
+    .replace(/_headshot\.(png|jpg)$/i, '')
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, c => c.toUpperCase())
+    .trim();
+}
+
+function sfNumber(filename) {
+  const m = filename.match(/sf[-_]?(\d+)/i);
+  return m ? 'SF-' + m[1] : null;
+}
+
+function isoWeek(d) {
+  const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  t.setUTCDate(t.getUTCDate() + 4 - (t.getUTCDay() || 7));
+  const y = new Date(Date.UTC(t.getUTCFullYear(), 0, 1));
+  return Math.ceil((((t - y) / 86400000) + 1) / 7);
+}
+
+function fmtDate(d) {
+  return d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+// ── Section toggle ─────────────────────────────────────────────────────────────
+const _loaded = {};
+
+function toggleSection(id) {
+  const sec = document.getElementById(id);
+  if (!sec) return;
+  const opening = !sec.classList.contains('open');
+  sec.classList.toggle('open', opening);
+  if (opening && !_loaded[id]) {
+    _loaded[id] = true;
+    loadSection(id);
+  }
+}
+
+function loadSection(id) {
+  const map = {
+    'sec-foundations': loadFoundations,
+    'sec-business':    loadBusiness,
+    'sec-workshop':    loadWorkshop,
+    'sec-family':      loadFamily,
+    'sec-ikigai':      loadIkigai,
+    'sec-resource':    loadResource,
+    'sec-images':      loadImages,
+  };
+  if (map[id]) map[id]();
+}
+
+// ── Render helpers ────────────────────────────────────────────────────────────
+const FILE_ICON = `<svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+  <path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/><polyline points="13 2 13 9 20 9"/>
+</svg>`;
+
+function docItemHtml(f) {
+  const ext = fileExt(f.name);
+  const url = RAW_BASE + f.path;
+  return `<a class="doc-item" href="${url}" target="_blank" rel="noopener">
+    <div class="doc-item-icon">${FILE_ICON}</div>
+    <div class="doc-item-name">${cleanName(f.name)}</div>
+    <span class="doc-item-badge">${ext.toUpperCase()}</span>
+  </a>`;
+}
+
+function renderDocList(files) {
+  if (!files.length) return '<div class="section-empty">No files found</div>';
+  return '<div class="doc-list">' + files.map(docItemHtml).join('') + '</div>';
+}
+
+function fileCardHtml(f) {
+  const ext = fileExt(f.name);
+  const url = RAW_BASE + f.path;
+  const isImg  = IMG_EXTS.has(ext);
+  const isHtml = ext === 'html';
+  const sf = sfNumber(f.name);
+
+  let media = '';
+  if (isImg) {
+    media = `<div class="card-thumb-wrap"><img class="card-thumb" src="${url}" alt="" loading="lazy"></div>`;
+  } else if (isHtml) {
+    media = `<div class="card-thumb-wrap"><div class="card-preview-label">HTML</div></div>`;
   }
 
-  function fmtDate(d) {
-    return d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
+  const badge = sf
+    ? `<span class="sf-badge">${sf}</span>`
+    : `<span class="file-badge">${ext.toUpperCase()}</span>`;
+
+  return `<a class="file-card" href="${url}" target="_blank" rel="noopener">
+    ${media}
+    <div class="card-body">
+      <div class="card-name">${cleanName(f.name)}</div>
+      <div class="card-meta">${badge}</div>
+    </div>
+  </a>`;
+}
+
+function renderGrid(files, container) {
+  if (!files.length) {
+    container.innerHTML = '<div class="section-empty">No files match this filter</div>';
+    return;
   }
+  container.innerHTML = '<div class="file-grid">' + files.map(fileCardHtml).join('') + '</div>';
+}
 
-  // ── Date + week — immediate, client-side ───────────────────────────────────
-  const now  = new Date();
-  const week = isoWeek(now);
-  const wStr = 'W' + week;
+function buildFilters(files, grid, btnClass) {
+  const exts = [...new Set(files.map(f => fileExt(f.name)))].filter(Boolean).sort();
+  const bar = document.createElement('div');
+  bar.className = 'filter-bar';
+  ['all', ...exts].forEach(e => {
+    const btn = document.createElement('button');
+    btn.className = 'filter-btn' + (e === 'all' ? ' active' : '');
+    btn.textContent = e === 'all' ? 'All' : e.toUpperCase();
+    btn.onclick = () => {
+      bar.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderGrid(e === 'all' ? files : files.filter(f => fileExt(f.name) === e), grid);
+    };
+    bar.appendChild(btn);
+  });
+  return bar;
+}
 
-  const topbarDate = document.getElementById('base-topbar-date');
-  if (topbarDate) topbarDate.textContent = fmtDate(now) + ' · ' + wStr;
+// ── Foundations ───────────────────────────────────────────────────────────────
+async function loadFoundations() {
+  const body = document.getElementById('body-foundations');
+  try {
+    const [portraits, vault, agents] = await Promise.all([
+      fetchPortraits(),
+      fetchKB('kb/00-foundations/vault'),
+      fetchKB('kb/00-foundations/agents'),
+    ]);
 
-  const mioSignal = document.getElementById('base-mio-signal');
-  if (mioSignal) mioSignal.textContent = 'DI ' + wStr + ' · 4 Flag · 5 Watch';
-
-  const archMio = document.getElementById('base-arch-mio');
-  if (archMio) archMio.textContent = 'DI · ' + wStr + ' · 4 Flag · 5 Watch';
-
-  // ── Live data fetch ────────────────────────────────────────────────────────
-  fetch('https://api.integratedai.com.au/base/data')
-    .then(function (r) { return r.ok ? r.json() : Promise.reject('non-ok'); })
-    .then(function (data) {
-
-      // Grid counts
-      if (data.grid) {
-        var a = data.grid.active, g = data.grid.gates;
-        var gridSig = document.getElementById('base-grid-signal');
-        if (gridSig) gridSig.textContent = a + ' active · ' + g + ' gates';
-        var archGrid = document.getElementById('base-arch-grid');
-        if (archGrid) archGrid.textContent = a + ' active tasks · ' + g + ' gates';
-      }
-
-      // KB listings
-      if (data.kb) {
-
-        // Vault items
-        var vaultEl = document.getElementById('base-vault-items');
-        if (vaultEl && data.kb.vault && data.kb.vault.length) {
-          vaultEl.innerHTML = data.kb.vault.map(function (f) {
-            return '<div class="kc-item"><div class="kc-item-dot"></div>' + f.name + '</div>';
-          }).join('');
-        }
-
-        // Flint notes
-        var flintEl = document.getElementById('base-flint-items');
-        if (flintEl && data.kb.flint && data.kb.flint.length) {
-          flintEl.innerHTML = data.kb.flint.map(function (f) {
-            return '<div class="kc-item"><div class="kc-item-dot" style="background:var(--idx-teal)"></div>' + f.name + '</div>';
-          }).join('');
-        }
-
-        // Roster version in Org Chart label
-        if (data.kb.rosterVersion) {
-          var rosterEl = document.getElementById('base-roster-label');
-          if (rosterEl) rosterEl.textContent = 'Agent hierarchy · v' + data.kb.rosterVersion;
-        }
-      }
-    })
-    .catch(function () {
-      // Silent fail — static fallback content remains in place
+    // Build agent doc lookup by name key
+    const agentDocs = {};
+    agents.forEach(f => {
+      const key = f.name.replace(/\.[a-z0-9]+$/i,'').toLowerCase().replace(/[-_]/g,' ').trim();
+      agentDocs[key] = RAW_BASE + f.path;
     });
 
-})();
+    let html = '';
 
-function showView(id) {
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  const el = document.getElementById('view-' + id);
-  if (el) el.classList.add('active');
-  event.currentTarget.classList.add('active');
+    // Agent Library
+    html += '<div class="subsection"><div class="subsection-label">Agent Library</div>';
+    if (portraits.length) {
+      html += '<div class="portrait-grid">';
+      portraits.forEach(p => {
+        const name = agentName(p.name);
+        const imgUrl = 'https://raw.githubusercontent.com/marnie-iai/agent-portraits/main/portraits/' + p.name;
+        const docUrl = agentDocs[name.toLowerCase()] || imgUrl;
+        html += `<a class="portrait-card" href="${docUrl}" target="_blank" rel="noopener">
+          <div class="portrait-wrap"><img src="${imgUrl}" alt="${name}" loading="lazy"></div>
+          <div class="portrait-name">${name}</div>
+        </a>`;
+      });
+      html += '</div>';
+    } else {
+      html += '<div class="section-empty">Agent portraits unavailable</div>';
+    }
+    html += '</div>';
+
+    // Vault
+    html += '<div class="subsection"><div class="subsection-label">Vault</div>';
+    html += renderDocList(vault);
+    html += '</div>';
+
+    // Filing Standards (static)
+    const filingItems = [
+      'KB Filing Standard', 'File Naming Standard', 'Instruction Anatomy',
+      'Decision Block', 'Commission Brief Format', 'Output Naming Convention',
+    ];
+    html += '<div class="subsection"><div class="subsection-label">Filing Standards</div>';
+    html += '<div class="filing-list">' + filingItems.map(s => `<div class="filing-item">${s}</div>`).join('') + '</div>';
+    html += '</div>';
+
+    body.innerHTML = html;
+  } catch {
+    body.innerHTML = '<div class="section-error">Foundations unavailable</div>';
+  }
 }
-</script>
 
+// ── Business ──────────────────────────────────────────────────────────────────
+async function loadBusiness() {
+  const body = document.getElementById('body-business');
+  const ents = ['iai','ics','tmm','hma','hif'];
+  try {
+    const results = await Promise.all(ents.map(e => fetchKB('kb/01-business/' + e)));
+    const allFiles = [];
+    ents.forEach((e, i) => results[i].forEach(f => allFiles.push({ ...f, _ent: e.toUpperCase() })));
+
+    if (!allFiles.length) { body.innerHTML = '<div class="section-empty">No files found</div>'; return; }
+
+    let active = 'ALL';
+    const bar = document.createElement('div');
+    bar.className = 'filter-bar';
+    const grid = document.createElement('div');
+
+    ['ALL', ...ents.map(e => e.toUpperCase())].forEach(e => {
+      const btn = document.createElement('button');
+      btn.className = 'filter-btn' + (e === 'ALL' ? ' active' : '');
+      btn.textContent = e;
+      btn.onclick = () => {
+        bar.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        active = e;
+        const filtered = e === 'ALL' ? allFiles : allFiles.filter(f => f._ent === e);
+        renderGrid(filtered, grid);
+      };
+      bar.appendChild(btn);
+    });
+
+    body.innerHTML = '';
+    body.appendChild(bar);
+    body.appendChild(grid);
+    renderGrid(allFiles, grid);
+  } catch {
+    body.innerHTML = '<div class="section-error">Business section unavailable</div>';
+  }
+}
+
+// ── Workshop ──────────────────────────────────────────────────────────────────
+async function loadWorkshop() {
+  const body = document.getElementById('body-workshop');
+  try {
+    const files = await fetchKB('kb/02-workshop');
+    if (!files.length) { body.innerHTML = '<div class="section-empty">No files found</div>'; return; }
+
+    const sfFiles    = files.filter(f => fileExt(f.name) === 'html' && sfNumber(f.name));
+    const otherFiles = files.filter(f => !(fileExt(f.name) === 'html' && sfNumber(f.name)));
+
+    body.innerHTML = '';
+
+    if (sfFiles.length) {
+      const sub = document.createElement('div');
+      sub.className = 'subsection';
+      sub.innerHTML = '<div class="subsection-label">AI Style Files</div>'
+        + '<div class="file-grid">' + sfFiles.map(fileCardHtml).join('') + '</div>';
+      body.appendChild(sub);
+    }
+
+    if (otherFiles.length) {
+      const sub = document.createElement('div');
+      sub.className = 'subsection';
+      const label = document.createElement('div');
+      label.className = 'subsection-label';
+      label.textContent = sfFiles.length ? 'All Files' : 'Files';
+      const grid = document.createElement('div');
+      const fb = buildFilters(otherFiles, grid);
+      sub.appendChild(label);
+      sub.appendChild(fb);
+      sub.appendChild(grid);
+      body.appendChild(sub);
+      renderGrid(otherFiles, grid);
+    }
+  } catch {
+    body.innerHTML = '<div class="section-error">Workshop section unavailable</div>';
+  }
+}
+
+// ── Family ────────────────────────────────────────────────────────────────────
+async function loadFamily() {
+  const body = document.getElementById('body-family');
+  try {
+    const [main, meals] = await Promise.all([
+      fetchKB('kb/03-family'),
+      fetchKB('kb/03-family/meal-plans'),
+    ]);
+    const all = [...main, ...meals];
+    if (!all.length) { body.innerHTML = '<div class="section-empty">No files found</div>'; return; }
+    body.innerHTML = '';
+    const grid = document.createElement('div');
+    const fb = buildFilters(all, grid);
+    body.appendChild(fb);
+    body.appendChild(grid);
+    renderGrid(all, grid);
+  } catch {
+    body.innerHTML = '<div class="section-error">Family section unavailable</div>';
+  }
+}
+
+// ── Operating Protocols ────────────────────────────────────────────────────────
+async function loadIkigai() {
+  const body = document.getElementById('body-ikigai');
+  try {
+    const [root, pursuits, intel, gaps] = await Promise.all([
+      fetchKB('kb/05-ikigai'),
+      fetchKB('kb/05-ikigai/pursuits'),
+      fetchKB('kb/05-ikigai/platform-intelligence'),
+      fetchKB('kb/05-ikigai/gap-register'),
+    ]);
+
+    const topIntel = [...intel].sort((a,b) => b.name.localeCompare(a.name)).slice(0, 3);
+
+    let html = '<div class="ikigai-subsections">';
+
+    // Protocols
+    html += '<div class="ik-subsec"><div class="ik-subsec-title">Protocols</div>';
+    html += root.length ? renderDocList(root) : '<div class="section-empty">No protocol documents found</div>';
+    html += '</div>';
+
+    // Pursuits
+    html += '<div class="ik-subsec"><div class="ik-subsec-title">Pursuits</div>';
+    html += pursuits.length ? renderDocList(pursuits) : '<div class="section-empty">No pursuit briefs found</div>';
+    html += '</div>';
+
+    // Intelligence — Pulse / deep navy register
+    html += '<div class="ik-subsec ik-pulse-block">';
+    html += '<div class="ik-pulse-label">Flint · Platform Intelligence</div>';
+    html += '<div class="ik-subsec-title">Intelligence</div>';
+    if (topIntel.length) {
+      html += '<div class="doc-list">' + topIntel.map(f => {
+        const ext = fileExt(f.name);
+        const url = RAW_BASE + f.path;
+        return `<a class="doc-item" href="${url}" target="_blank" rel="noopener">
+          <div class="doc-item-icon">${FILE_ICON}</div>
+          <div class="doc-item-name">${cleanName(f.name)}</div>
+          <span class="doc-item-badge">${ext.toUpperCase()}</span>
+        </a>`;
+      }).join('') + '</div>';
+    } else {
+      html += '<div class="section-empty" style="color:rgba(232,236,240,0.4)">No intelligence notes found</div>';
+    }
+    html += '</div>';
+
+    // Gaps
+    html += '<div class="ik-subsec"><div class="ik-subsec-title">Gaps</div>';
+    html += gaps.length ? renderDocList(gaps) : '<div class="section-empty">No gap register entries found</div>';
+    html += '</div>';
+
+    html += '</div>';
+    body.innerHTML = html;
+  } catch {
+    body.innerHTML = '<div class="section-error">Operating Protocols unavailable</div>';
+  }
+}
+
+// ── Resource ──────────────────────────────────────────────────────────────────
+async function loadResource() {
+  const body = document.getElementById('body-resource');
+  try {
+    const files = await fetchKB('kb/04-shared-services');
+    if (!files.length) { body.innerHTML = '<div class="section-empty">No files found</div>'; return; }
+    body.innerHTML = '';
+    const grid = document.createElement('div');
+    const fb = buildFilters(files, grid);
+    body.appendChild(fb);
+    body.appendChild(grid);
+    renderGrid(files, grid);
+  } catch {
+    body.innerHTML = '<div class="section-error">Resource section unavailable</div>';
+  }
+}
+
+// ── Image Library ─────────────────────────────────────────────────────────────
+async function loadImages() {
+  const body = document.getElementById('body-images');
+
+  const note = document.createElement('div');
+  note.className = 'image-library-note';
+  note.textContent = 'Image library is being organised. File new images via Clio. Use the filter to navigate by Point.';
+  body.innerHTML = '';
+  body.appendChild(note);
+  const loader = document.createElement('div');
+  loader.className = 'section-loading';
+  loader.textContent = 'Loading images…';
+  body.appendChild(loader);
+
+  const pointLabel = path => {
+    if (path.includes('00-foundations')) return 'Foundations';
+    if (path.includes('01-business'))    return 'Business';
+    if (path.includes('02-workshop'))    return 'Workshop';
+    if (path.includes('03-family'))      return 'Family';
+    if (path.includes('04-shared'))      return 'Resource';
+    if (path.includes('05-ikigai'))      return 'Operating Protocols';
+    return 'Other';
+  };
+
+  try {
+    const all = await Promise.all(ALL_KB_PATHS.map(p => fetchKB(p)));
+    const images = all.flat()
+      .filter(f => IMG_EXTS.has(fileExt(f.name)))
+      .map(f => ({ ...f, _point: pointLabel(f.path) }));
+
+    if (!images.length) { loader.textContent = 'No images found in the knowledge base'; return; }
+
+    body.removeChild(loader);
+    const points = [...new Set(images.map(f => f._point))];
+
+    const bar = document.createElement('div');
+    bar.className = 'filter-bar';
+    const masonry = document.createElement('div');
+    masonry.className = 'masonry-grid';
+
+    let activePoint = 'All';
+    const renderMasonry = () => {
+      const filtered = activePoint === 'All' ? images : images.filter(f => f._point === activePoint);
+      masonry.innerHTML = filtered.map(f => {
+        const url = RAW_BASE + f.path;
+        return `<a class="masonry-item" href="${url}" target="_blank" rel="noopener">
+          <img src="${url}" alt="${f.name}" loading="lazy">
+          <div class="masonry-hover">
+            <div class="masonry-fname">${f.name}</div>
+            <div class="masonry-fname" style="opacity:0.55;margin-top:2px;">${f._point}</div>
+          </div>
+        </a>`;
+      }).join('');
+    };
+
+    ['All', ...points].forEach(pt => {
+      const btn = document.createElement('button');
+      btn.className = 'filter-btn' + (pt === 'All' ? ' active' : '');
+      btn.textContent = pt;
+      btn.onclick = () => {
+        bar.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        activePoint = pt;
+        renderMasonry();
+      };
+      bar.appendChild(btn);
+    });
+
+    body.appendChild(bar);
+    body.appendChild(masonry);
+    renderMasonry();
+  } catch {
+    loader.textContent = 'Image library unavailable';
+  }
+}
+
+// ── Search ────────────────────────────────────────────────────────────────────
+let _searchTimer = null;
+const _searchCache = {};
+
+document.getElementById('kb-search').addEventListener('input', function () {
+  clearTimeout(_searchTimer);
+  const q = this.value.trim();
+  const status  = document.getElementById('search-status');
+  const results = document.getElementById('search-results');
+  if (q.length < 2) { status.textContent = ''; results.innerHTML = ''; return; }
+  status.textContent = 'Searching…';
+  _searchTimer = setTimeout(() => doSearch(q), 400);
+});
+
+async function doSearch(q) {
+  const status  = document.getElementById('search-status');
+  const results = document.getElementById('search-results');
+  if (_searchCache[q]) {
+    renderSearchResults(_searchCache[q]);
+    const n = (_searchCache[q].items || []).length;
+    status.textContent = n + ' result' + (n !== 1 ? 's' : '') + ' (cached)';
+    return;
+  }
+  try {
+    const r = await fetch('/api/search?q=' + encodeURIComponent(q));
+    if (!r.ok) throw new Error('non-ok');
+    const data = await r.json();
+    _searchCache[q] = data;
+    renderSearchResults(data);
+    const n = (data.items || []).length;
+    status.textContent = n ? n + ' result' + (n !== 1 ? 's' : '') : 'No results found';
+  } catch {
+    status.textContent = 'Search unavailable — check connection';
+  }
+}
+
+function renderSearchResults(data) {
+  const results = document.getElementById('search-results');
+  const items = data.items || [];
+  if (!items.length) {
+    results.innerHTML = '<div class="search-no-results">No results found in the knowledge base</div>';
+    return;
+  }
+  results.innerHTML = items.map(item => {
+    const ext = fileExt(item.name);
+    const url = RAW_BASE + item.path;
+    return `<a class="search-result" href="${url}" target="_blank" rel="noopener">
+      <div class="search-result-meta">
+        <div class="search-result-name">${cleanName(item.name)}</div>
+        <div class="search-result-path">${item.path}</div>
+      </div>
+      <span class="file-badge">${ext.toUpperCase()}</span>
+    </a>`;
+  }).join('');
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+(function () {
+  const now = new Date();
+  const el = document.getElementById('header-date');
+  if (el) el.textContent = fmtDate(now) + ' · W' + isoWeek(now);
+
+  // Foundations is open by default — load immediately
+  _loaded['sec-foundations'] = true;
+  loadFoundations();
+})();
+</script>
 </body>
 </html>

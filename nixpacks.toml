@@ -1,5 +1,5 @@
-[phases.setup]
-nixPkgs = ["nginx"]
+[phases.install]
+cmds = ["npm install"]
 
 [start]
-cmd = "nginx -g 'daemon off;' -c /app/nginx.conf"
+cmd = "npm start"
