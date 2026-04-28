@@ -673,7 +673,8 @@ body {
 'use strict';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
-const RAW_BASE = 'https://raw.githubusercontent.com/marnie-iai/kb/main/';
+// Private KB: use blob URL for links (works logged-in), /api/raw for img src
+const GH_BLOB  = 'https://github.com/marnie-iai/kb/blob/main/';
 const IMG_EXTS = new Set(['png','jpg','jpeg','gif','webp']);
 
 const ALL_KB_PATHS = [
@@ -789,7 +790,7 @@ const FILE_ICON = `<svg fill="none" stroke="currentColor" stroke-width="1.8" vie
 
 function docItemHtml(f) {
   const ext = fileExt(f.name);
-  const url = RAW_BASE + f.path;
+  const url = GH_BLOB + f.path;
   return `<a class="doc-item" href="${url}" target="_blank" rel="noopener">
     <div class="doc-item-icon">${FILE_ICON}</div>
     <div class="doc-item-name">${cleanName(f.name)}</div>
@@ -804,14 +805,15 @@ function renderDocList(files) {
 
 function fileCardHtml(f) {
   const ext = fileExt(f.name);
-  const url = RAW_BASE + f.path;
+  const linkUrl  = GH_BLOB + f.path;           // click → GitHub blob view
+  const thumbUrl = '/api/raw?path=' + encodeURIComponent(f.path); // proxied for img src
   const isImg  = IMG_EXTS.has(ext);
   const isHtml = ext === 'html';
   const sf = sfNumber(f.name);
 
   let media = '';
   if (isImg) {
-    media = `<div class="card-thumb-wrap"><img class="card-thumb" src="${url}" alt="" loading="lazy"></div>`;
+    media = `<div class="card-thumb-wrap"><img class="card-thumb" src="${thumbUrl}" alt="" loading="lazy"></div>`;
   } else if (isHtml) {
     media = `<div class="card-thumb-wrap"><div class="card-preview-label">HTML</div></div>`;
   }
@@ -820,7 +822,7 @@ function fileCardHtml(f) {
     ? `<span class="sf-badge">${sf}</span>`
     : `<span class="file-badge">${ext.toUpperCase()}</span>`;
 
-  return `<a class="file-card" href="${url}" target="_blank" rel="noopener">
+  return `<a class="file-card" href="${linkUrl}" target="_blank" rel="noopener">
     ${media}
     <div class="card-body">
       <div class="card-name">${cleanName(f.name)}</div>
@@ -1026,7 +1028,7 @@ async function loadIkigai() {
     if (topIntel.length) {
       html += '<div class="doc-list">' + topIntel.map(f => {
         const ext = fileExt(f.name);
-        const url = RAW_BASE + f.path;
+        const url = GH_BLOB + f.path;
         return `<a class="doc-item" href="${url}" target="_blank" rel="noopener">
           <div class="doc-item-icon">${FILE_ICON}</div>
           <div class="doc-item-name">${cleanName(f.name)}</div>
@@ -1099,16 +1101,17 @@ async function loadImages() {
       fetchPortraits(),
     ]);
 
-    // KB images
+    // KB images — proxied through server since repo is private
     const kbImages = allKb.flat()
       .filter(f => IMG_EXTS.has(fileExt(f.name)))
-      .map(f => ({ ...f, _point: pointLabel(f.path), _rawUrl: RAW_BASE + f.path }));
+      .map(f => ({ ...f, _point: pointLabel(f.path), _rawUrl: '/api/raw?path=' + encodeURIComponent(f.path), _linkUrl: GH_BLOB + f.path }));
 
-    // Agent portrait images from public repo — tagged separately
+    // Agent portrait images from public repo — raw URL works (public repo)
     const portraitImages = portraits.map(p => ({
       ...p,
       _point: 'Agents',
       _rawUrl: PORTRAITS_RAW + p.path,
+      _linkUrl: PORTRAITS_RAW + p.path,
     }));
 
     const images = [...kbImages, ...portraitImages];
@@ -1127,9 +1130,8 @@ async function loadImages() {
     const renderMasonry = () => {
       const filtered = activePoint === 'All' ? images : images.filter(f => f._point === activePoint);
       masonry.innerHTML = filtered.map(f => {
-        const url = f._rawUrl;
-        return `<a class="masonry-item" href="${url}" target="_blank" rel="noopener">
-          <img src="${url}" alt="${f.name}" loading="lazy">
+        return `<a class="masonry-item" href="${f._linkUrl || f._rawUrl}" target="_blank" rel="noopener">
+          <img src="${f._rawUrl}" alt="${f.name}" loading="lazy">
           <div class="masonry-hover">
             <div class="masonry-fname">${f.name}</div>
             <div class="masonry-fname" style="opacity:0.55;margin-top:2px;">${f._point}</div>
@@ -1204,7 +1206,7 @@ function renderSearchResults(data) {
   }
   results.innerHTML = items.map(item => {
     const ext = fileExt(item.name);
-    const url = RAW_BASE + item.path;
+    const url = GH_BLOB + item.path;
     return `<a class="search-result" href="${url}" target="_blank" rel="noopener">
       <div class="search-result-meta">
         <div class="search-result-name">${cleanName(item.name)}</div>

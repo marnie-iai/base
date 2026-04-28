@@ -101,6 +101,27 @@ app.get('/api/portraits', async (req, res) => {
   }
 });
 
+// Raw file proxy — serves private KB files with PAT auth (for image thumbnails etc.)
+app.get('/api/raw', async (req, res) => {
+  const filePath = req.query.path;
+  if (!filePath) return res.status(400).end();
+  try {
+    const url = `https://raw.githubusercontent.com/${KB_REPO}/main/${filePath}`;
+    const headers = { 'User-Agent': 'IAI-Base/3.0' };
+    if (GITHUB_PAT) headers['Authorization'] = `Bearer ${GITHUB_PAT}`;
+    const r = await fetch(url, { headers });
+    if (!r.ok) return res.status(r.status).end();
+    const ct = r.headers.get('content-type') || 'application/octet-stream';
+    res.setHeader('Content-Type', ct);
+    res.setHeader('Cache-Control', 'public, max-age=300');
+    const buf = await r.arrayBuffer();
+    return res.send(Buffer.from(buf));
+  } catch (err) {
+    console.error('[GET /api/raw]', err.message);
+    return res.status(500).end();
+  }
+});
+
 // Diagnostic endpoint — confirms PAT is set and shows GitHub API status
 app.get('/api/debug', async (_req, res) => {
   const testUrl = `https://api.github.com/repos/${KB_REPO}/contents/kb/00-foundations`;
