@@ -6,21 +6,40 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 8080;
 const GITHUB_PAT = process.env.GITHUB_PAT;
-const DASHBOARD_AUTH = process.env.DASHBOARD_AUTH; // Basic-auth password for /dashboards/*
+const SITE_AUTH      = process.env.SITE_AUTH;      // Basic-auth password for entire site
+const DASHBOARD_AUTH = process.env.DASHBOARD_AUTH; // Basic-auth password for /dashboards/* (legacy — SITE_AUTH covers this)
 const KB_REPO = 'marnie-iai/kb';
 const PORTRAITS_REPO = 'marnie-iai/agent-portraits';
 const PORTRAITS_RAW = `https://raw.githubusercontent.com/${PORTRAITS_REPO}/main/portraits/`;
 const ROSTER_FILE = 'kb/00-foundations/00_Agent_Roster_v2_2_Apr2026.md';
 
-// ── Dashboard auth middleware ──────────────────────────────────────────────────
-// Protects /dashboards/* with HTTP Basic Auth.
-// Set DASHBOARD_AUTH env var in Railway to enable. Username is "iai", password is the env var value.
-// If DASHBOARD_AUTH is not set, the route is unprotected (local/dev only — always set it in prod).
-function requireDashboardAuth(req, res, next) {
-  if (!DASHBOARD_AUTH) {
-    console.warn('[dashboards] DASHBOARD_AUTH not set — route is unprotected');
+// ── Site-wide Basic Auth ──────────────────────────────────────────────────────
+// Gates the entire site. Set SITE_AUTH env var in Railway.
+// Username: "iai"  |  Password: value of SITE_AUTH
+// If unset, logs a warning but allows through (dev only — always set in prod).
+function requireSiteAuth(req, res, next) {
+  if (!SITE_AUTH) {
+    console.warn('[site] SITE_AUTH not set — site is unprotected');
     return next();
   }
+  const header = req.headers.authorization || '';
+  if (!header.startsWith('Basic ')) {
+    res.setHeader('WWW-Authenticate', 'Basic realm="Integrated AI Base"');
+    return res.status(401).send('Authentication required');
+  }
+  const decoded = Buffer.from(header.slice(6), 'base64').toString('utf8');
+  const pass = decoded.includes(':') ? decoded.split(':').slice(1).join(':') : decoded;
+  if (pass !== SITE_AUTH) {
+    res.setHeader('WWW-Authenticate', 'Basic realm="Integrated AI Base"');
+    return res.status(401).send('Incorrect credentials');
+  }
+  next();
+}
+
+// ── Dashboard auth middleware ──────────────────────────────────────────────────
+// Kept for per-route granularity if needed. SITE_AUTH already covers /dashboards/*.
+function requireDashboardAuth(req, res, next) {
+  if (!DASHBOARD_AUTH) return next(); // SITE_AUTH is the primary gate
   const header = req.headers.authorization || '';
   if (!header.startsWith('Basic ')) {
     res.setHeader('WWW-Authenticate', 'Basic realm="IAI Dashboards"');
@@ -198,6 +217,9 @@ async function getRoster() {
     return [];
   }
 }
+
+// ── Apply site-wide auth ───────────────────────────────────────────────────────
+app.use(requireSiteAuth);
 
 // ── API Routes ────────────────────────────────────────────────────────────────
 
