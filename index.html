@@ -491,6 +491,49 @@ body {
 .resource-section .filter-btn.active  { background: var(--resource); border-color: var(--resource); }
 .resource-section .file-card:hover    { border-color: var(--resource); }
 
+.dashboards-section .section-accent   { background: var(--teal); }
+.dashboards-section .section-name     { color: var(--teal); }
+
+/* ── Dashboard link list ──────────────────────────────────────────────────── */
+.dashboard-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 0 4px;
+}
+.dashboard-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  transition: background 0.15s;
+  cursor: pointer;
+}
+.dashboard-item:hover { background: rgba(0,212,180,0.06); }
+.dashboard-item-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--teal);
+  flex-shrink: 0;
+}
+.dashboard-item-dot.placeholder { background: rgba(0,212,180,0.35); }
+.dashboard-item-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  flex: 1;
+}
+.dashboard-item.placeholder-item .dashboard-item-name { color: var(--text-muted); }
+.dashboard-item-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-muted);
+  background: rgba(28,36,44,0.06);
+  padding: 2px 7px;
+  border-radius: 20px;
+}
+
 /* ── Ikigai dual-register ─────────────────────────────────────────────────── */
 .ikigai-subsections { display: flex; flex-direction: column; }
 .ik-subsec { padding: 18px 0; border-bottom: 1px solid var(--border); }
@@ -750,6 +793,34 @@ body {
     </div>
     <div class="section-body" id="body-ikigai">
       <div class="section-loading">Loading…</div>
+    </div>
+  </section>
+
+  <!-- ── Dashboards ───────────────────────────────────────────────────────── -->
+  <section class="point-section dashboards-section" id="sec-dashboards">
+    <div class="section-header" onclick="toggleSection('sec-dashboards')">
+      <div class="section-accent"></div>
+      <div class="section-header-content">
+        <div class="section-titles">
+          <span class="section-name">Dashboards</span>
+          <span class="section-sub">Index · Campaigns · Operations</span>
+        </div>
+        <span class="section-chevron">▼</span>
+      </div>
+    </div>
+    <div class="section-body" id="body-dashboards">
+      <div class="dashboard-list">
+        <a class="dashboard-item" href="/dashboards/Index">
+          <div class="dashboard-item-dot"></div>
+          <span class="dashboard-item-name">Industrial AI Index</span>
+          <span class="dashboard-item-badge">live</span>
+        </a>
+        <a class="dashboard-item placeholder-item" href="/dashboards/clear-ground">
+          <div class="dashboard-item-dot placeholder"></div>
+          <span class="dashboard-item-name">Clear Ground Campaign</span>
+          <span class="dashboard-item-badge">pending</span>
+        </a>
+      </div>
     </div>
   </section>
 
