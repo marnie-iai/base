@@ -6,10 +6,34 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 8080;
 const GITHUB_PAT = process.env.GITHUB_PAT;
+const DASHBOARD_AUTH = process.env.DASHBOARD_AUTH; // Basic-auth password for /dashboards/*
 const KB_REPO = 'marnie-iai/kb';
 const PORTRAITS_REPO = 'marnie-iai/agent-portraits';
 const PORTRAITS_RAW = `https://raw.githubusercontent.com/${PORTRAITS_REPO}/main/portraits/`;
 const ROSTER_FILE = 'kb/00-foundations/00_Agent_Roster_v2_2_Apr2026.md';
+
+// ── Dashboard auth middleware ──────────────────────────────────────────────────
+// Protects /dashboards/* with HTTP Basic Auth.
+// Set DASHBOARD_AUTH env var in Railway to enable. Username is "iai", password is the env var value.
+// If DASHBOARD_AUTH is not set, the route is unprotected (local/dev only — always set it in prod).
+function requireDashboardAuth(req, res, next) {
+  if (!DASHBOARD_AUTH) {
+    console.warn('[dashboards] DASHBOARD_AUTH not set — route is unprotected');
+    return next();
+  }
+  const header = req.headers.authorization || '';
+  if (!header.startsWith('Basic ')) {
+    res.setHeader('WWW-Authenticate', 'Basic realm="IAI Dashboards"');
+    return res.status(401).send('Authentication required');
+  }
+  const decoded = Buffer.from(header.slice(6), 'base64').toString('utf8');
+  const pass = decoded.includes(':') ? decoded.split(':').slice(1).join(':') : decoded;
+  if (pass !== DASHBOARD_AUTH) {
+    res.setHeader('WWW-Authenticate', 'Basic realm="IAI Dashboards"');
+    return res.status(401).send('Incorrect credentials');
+  }
+  next();
+}
 
 // ── Cache ─────────────────────────────────────────────────────────────────────
 const cache = new Map();
@@ -390,6 +414,18 @@ app.get('/api/debug', async (_req, res) => {
     search:   { status: searchStatus,   preview: searchPreview,   error: searchErr },
   });
 });
+
+// ── Dashboards ────────────────────────────────────────────────────────────────
+// Index Analytics Dashboard (Vex / Business Point)
+// Source file: dashboards/index-analytics.html
+// Ref: VexDeliverable_IndexAnalyticsDashboard_v6_May2026.html (v5 placeholder — swap when v6 is available)
+// Auth: HTTP Basic, password = DASHBOARD_AUTH env var
+app.get('/dashboards/Index', requireDashboardAuth, (_req, res) => {
+  res.sendFile(path.join(__dirname, 'dashboards', 'index-analytics.html'));
+});
+
+// Static assets within dashboards (if any future dashboards need them)
+app.use('/dashboards', requireDashboardAuth, express.static(path.join(__dirname, 'dashboards')));
 
 // In-app document reader
 app.get('/read', (_req, res) => {

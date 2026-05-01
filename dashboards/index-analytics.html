@@ -1,0 +1,1874 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Industrial AI Index — Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root {
+    --denim: #4A6584;
+    --denim-deep: #2A3F52;
+    --solar: #F0C020;
+    --solar-deep: #C9A010;
+    --warm-ground: #F5F2EC;
+    --iai-navy: #0D1B2A;
+    --olive: #7A8C4A;
+    --signal-warning: #C0392B;
+    --signal-warning-bg: #FDE8E8;
+
+    --arch-reactor: #A87E18;
+    --arch-experimenter: #F0C020;
+    --arch-experimenter-border: #C9A010;
+    --arch-integrator: #4A6584;
+    --arch-optimiser: #7A8C4A;
+    --arch-autonomous: #2A3F52;
+
+    --ink: #0D1B2A;
+    --ink-muted: #4A6584;
+    --rule: rgba(13, 27, 42, 0.12);
+    --rule-strong: rgba(13, 27, 42, 0.24);
+    --paper: #F5F2EC;
+    --card: #FFFFFF;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+
+  /* ============ MASTHEAD ============ */
+  .masthead {
+    background: var(--iai-navy);
+    color: var(--paper);
+    padding: 28px 36px;
+    border-bottom: 4px solid var(--solar);
+  }
+  .masthead-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .masthead h1 {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 700;
+    font-size: 26px;
+    letter-spacing: -0.01em;
+  }
+  .masthead .subtitle {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--solar);
+    margin-top: 4px;
+  }
+  .masthead-meta {
+    display: flex;
+    gap: 32px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .masthead-meta .label {
+    opacity: 0.6;
+    display: block;
+    margin-bottom: 2px;
+  }
+  .masthead-meta .value {
+    color: var(--solar);
+    font-size: 13px;
+  }
+
+  /* ============ THRESHOLD BANNER ============ */
+  .threshold-banner {
+    background: var(--warm-ground);
+    color: var(--ink);
+    padding: 10px 36px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 500;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    border-top: 1px solid var(--rule);
+    border-bottom: 2px solid var(--denim);
+  }
+  .threshold-banner .icon {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background: var(--denim);
+    margin-right: 8px;
+    transform: rotate(45deg);
+  }
+
+  /* ============ FILTER BAR ============ */
+  .filter-bar {
+    background: var(--card);
+    padding: 18px 36px;
+    border-bottom: 1px solid var(--rule);
+    display: flex;
+    gap: 18px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .filter-bar .filter-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-muted);
+    margin-right: 4px;
+  }
+  .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .filter-group label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-muted);
+  }
+  .filter-group select {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    padding: 6px 10px;
+    border: 1px solid var(--rule-strong);
+    background: var(--paper);
+    color: var(--ink);
+    cursor: pointer;
+    min-width: 130px;
+  }
+  .filter-group select:focus {
+    outline: 2px solid var(--solar);
+    outline-offset: -1px;
+  }
+  .reset-btn {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 8px 14px;
+    background: transparent;
+    border: 1px solid var(--rule-strong);
+    color: var(--ink);
+    cursor: pointer;
+    margin-left: auto;
+    align-self: flex-end;
+  }
+  .reset-btn:hover {
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .filter-readout {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-muted);
+    align-self: flex-end;
+    padding-bottom: 6px;
+  }
+  .filter-readout strong { color: var(--ink); }
+
+  /* ============ SECTIONS ============ */
+  .section {
+    padding: 36px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 24px;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .section-number {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--denim);
+  }
+  .section-title {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+  .section-note {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-muted);
+    text-align: right;
+  }
+
+  /* ============ STAT CARDS ============ */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+  }
+  .stat-card {
+    background: var(--card);
+    padding: 20px;
+  }
+  .stat-card.highlight {
+    border-top: 3px solid var(--solar);
+    margin-top: -1px;
+  }
+  .stat-card .label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-muted);
+    margin-bottom: 8px;
+  }
+  .stat-card .value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 32px;
+    font-weight: 500;
+    color: var(--ink);
+    line-height: 1;
+  }
+  .stat-card .value.solar {
+    color: var(--solar);
+  }
+  .stat-card .sub {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-muted);
+    margin-top: 6px;
+  }
+
+  /* ============ CHART CARDS ============ */
+  .chart-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-top: 24px;
+  }
+  .chart-card {
+    background: var(--card);
+    border: 1px solid var(--rule);
+    padding: 20px;
+  }
+  .chart-card.full { grid-column: 1 / -1; }
+  .chart-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-muted);
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .chart-container {
+    position: relative;
+    height: 280px;
+  }
+  .chart-container.tall { height: 360px; }
+
+  .analysis-block {
+    margin-top: 16px;
+    border-top: 1px solid var(--rule);
+  }
+  .analysis-toggle {
+    width: 100%;
+    background: transparent;
+    border: none;
+    padding: 12px 0 0 0;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--denim);
+    cursor: pointer;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .analysis-toggle:hover { color: var(--ink); }
+  .analysis-toggle .chev {
+    display: inline-block;
+    width: 0;
+    height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 5px solid var(--denim);
+    transition: transform 0.15s ease;
+  }
+  .analysis-block.open .analysis-toggle .chev {
+    transform: rotate(180deg);
+  }
+  .analysis-content {
+    display: none;
+    padding: 12px 0 4px 0;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--ink);
+  }
+  .analysis-block.open .analysis-content { display: block; }
+  .analysis-content .heading {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-muted);
+    margin-top: 10px;
+    margin-bottom: 4px;
+  }
+  .analysis-content .heading:first-child { margin-top: 0; }
+  .analysis-content p { margin-bottom: 8px; }
+  .analysis-content p:last-child { margin-bottom: 0; }
+  .analysis-content strong { color: var(--ink); font-weight: 600; }
+
+  /* ============ ARCHETYPE TILES ============ */
+  .archetype-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .archetype-tile {
+    background: var(--card);
+    border: 1px solid var(--rule);
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border-left: 4px solid var(--rule);
+  }
+  .archetype-tile:hover {
+    border-color: var(--ink);
+  }
+  .archetype-tile.selected {
+    background: var(--iai-navy);
+    color: var(--paper);
+  }
+  .archetype-tile.selected .arch-name,
+  .archetype-tile.selected .arch-stat-label,
+  .archetype-tile.selected .arch-meta { color: var(--paper); opacity: 0.8; }
+  .archetype-tile.selected .arch-count { color: var(--solar); }
+  .archetype-tile[data-arch="reactor"] { border-left-color: var(--arch-reactor); }
+  .archetype-tile[data-arch="experimenter"] { border-left-color: var(--arch-experimenter-border); }
+  .archetype-tile[data-arch="integrator"] { border-left-color: var(--arch-integrator); }
+  .archetype-tile[data-arch="optimiser"] { border-left-color: var(--arch-optimiser); }
+  .archetype-tile[data-arch="autonomousLeader"] { border-left-color: var(--arch-autonomous); }
+
+  .arch-name {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .arch-range {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-muted);
+    margin-bottom: 12px;
+  }
+  .arch-count {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 28px;
+    font-weight: 500;
+    line-height: 1;
+  }
+  .arch-stat-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-muted);
+    margin-top: 4px;
+  }
+  .arch-meta {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-muted);
+    margin-top: 12px;
+    padding-top: 8px;
+    border-top: 1px solid var(--rule);
+  }
+  .arch-meta .row { display: flex; justify-content: space-between; margin-bottom: 2px; }
+
+  /* ============ PILLAR ANALYSIS ============ */
+  .pillar-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+  .pillar-card {
+    background: var(--card);
+    border: 1px solid var(--rule);
+    padding: 16px;
+  }
+  .pillar-card .pillar-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--denim);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 4px;
+  }
+  .pillar-card .pillar-name {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    line-height: 1.3;
+  }
+  .pillar-card .pillar-score {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 32px;
+    font-weight: 500;
+    color: var(--ink);
+    line-height: 1;
+  }
+  .pillar-card .pillar-bar {
+    width: 100%;
+    height: 6px;
+    background: var(--rule);
+    margin-top: 8px;
+    margin-bottom: 12px;
+  }
+  .pillar-card .pillar-bar-fill {
+    height: 100%;
+    background: var(--denim);
+    transition: width 0.4s ease;
+  }
+  .pillar-card .pillar-bar-fill.lowest {
+    background: var(--solar);
+  }
+  .pillar-card .pillar-questions {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--rule);
+  }
+  .pillar-card .pillar-questions-header {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-muted);
+    margin-bottom: 8px;
+    opacity: 0.8;
+  }
+  .pillar-card .question-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px dotted var(--rule);
+  }
+  .pillar-card .question-row:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+  .pillar-card .question-row .q-label {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+  }
+  .pillar-card .question-row .q-num {
+    color: var(--denim);
+    font-weight: 500;
+    font-size: 10px;
+    letter-spacing: 0.05em;
+  }
+  .pillar-card .question-row .q-text {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 11px;
+    color: var(--ink-muted);
+    line-height: 1.3;
+  }
+  .pillar-card .question-row .q-score {
+    font-weight: 500;
+    font-size: 13px;
+    color: var(--ink);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  /* ============ DEMOGRAPHIC TABLES ============ */
+  .demo-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  .demo-table {
+    background: var(--card);
+    border: 1px solid var(--rule);
+  }
+  .demo-table-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-muted);
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--rule);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+  }
+  thead th {
+    background: var(--denim);
+    color: var(--paper);
+    font-weight: 500;
+    text-transform: uppercase;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    padding: 10px 12px;
+    text-align: left;
+  }
+  thead th.num { text-align: right; }
+  tbody td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--rule);
+  }
+  tbody td.num { text-align: right; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: var(--paper); }
+
+  /* ============ ALIGNMENT GAP ============ */
+  .gap-callout {
+    background: var(--iai-navy);
+    color: var(--paper);
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+  .gap-callout .label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    opacity: 0.6;
+    margin-bottom: 8px;
+  }
+  .gap-callout .number {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 48px;
+    font-weight: 500;
+    color: var(--solar);
+    line-height: 1;
+  }
+  .gap-callout .descriptor {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    margin-top: 8px;
+  }
+  .gap-callout .caveat {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    opacity: 0.7;
+    margin-top: 12px;
+  }
+
+  /* ============ INDIVIDUAL RESPONSES ============ */
+  .responses-table {
+    background: var(--card);
+    border: 1px solid var(--rule);
+    overflow-x: auto;
+  }
+  .responses-table table { font-size: 11px; }
+  .suppression-note {
+    background: var(--warm-ground);
+    border-left: 2px solid var(--denim);
+    padding: 10px 14px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-muted);
+    margin-bottom: 16px;
+  }
+  .suppression-note.hidden { display: none; }
+  .arch-pill {
+    display: inline-block;
+    padding: 2px 8px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--paper);
+  }
+  .arch-pill.reactor { background: var(--arch-reactor); }
+  .arch-pill.experimenter { background: var(--arch-experimenter); color: var(--ink); }
+  .arch-pill.integrator { background: var(--arch-integrator); }
+  .arch-pill.optimiser { background: var(--arch-optimiser); }
+  .arch-pill.autonomousLeader { background: var(--arch-autonomous); }
+
+  .expandable-row { cursor: pointer; }
+  .expandable-row:hover { background: var(--paper); }
+  .expand-row {
+    background: var(--paper) !important;
+    display: none;
+  }
+  .expand-row.open { display: table-row; }
+  .expand-content {
+    padding: 16px !important;
+  }
+  .question-detail {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+  .question-detail .pillar-block {
+    background: var(--card);
+    border: 1px solid var(--rule);
+    padding: 12px;
+  }
+  .question-detail .pillar-block-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--denim);
+    margin-bottom: 8px;
+  }
+  .question-detail .q-detail {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    margin-bottom: 4px;
+  }
+
+  .gap-positive { color: var(--signal-warning); }
+  .gap-negative { color: var(--olive); }
+  .gap-zero { color: var(--ink-muted); }
+
+  /* ============ FOOTER ============ */
+  .footer {
+    padding: 24px 36px;
+    background: var(--iai-navy);
+    color: var(--paper);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .footer .meta { opacity: 0.6; }
+
+  @media (max-width: 1200px) {
+    .archetype-grid { grid-template-columns: repeat(3, 1fr); }
+    .pillar-grid { grid-template-columns: repeat(2, 1fr); }
+    .chart-row, .demo-grid { grid-template-columns: 1fr; }
+    .question-detail { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ========================== MASTHEAD ========================== -->
+<header class="masthead">
+  <div class="masthead-row">
+    <div>
+      <div class="subtitle">Integrated AI · Internal Analytics</div>
+      <h1>Industrial AI Index — Dashboard</h1>
+    </div>
+    <div class="masthead-meta">
+      <div>
+        <span class="label">Sample</span>
+        <span class="value mono" id="meta-sample">n = 10</span>
+      </div>
+      <div>
+        <span class="label">Last Refresh</span>
+        <span class="value mono" id="meta-refresh">01 May 2026</span>
+      </div>
+      <div>
+        <span class="label">Source</span>
+        <span class="value mono" id="meta-source">FALLBACK · synthetic</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ========================== THRESHOLD BANNER ========================== -->
+<div class="threshold-banner" id="threshold-banner">
+  <span><span class="icon"></span><span id="threshold-message">Internal use only · Sample below 30–50 publication threshold · Findings indicative, not benchmarkable</span></span>
+  <span id="threshold-progress">— / 30 minimum</span>
+</div>
+
+<!-- ========================== FILTER BAR ========================== -->
+<div class="filter-bar" id="filterBar">
+
+  <div class="filter-group">
+    <label>Sector</label>
+    <select id="filter-sector"><option value="">All</option></select>
+  </div>
+  <div class="filter-group">
+    <label>LGA</label>
+    <select id="filter-lga"><option value="">All</option></select>
+  </div>
+  <div class="filter-group">
+    <label>Headcount</label>
+    <select id="filter-headcount"><option value="">All</option></select>
+  </div>
+  <div class="filter-group">
+    <label>Revenue</label>
+    <select id="filter-revenue"><option value="">All</option></select>
+  </div>
+  <div class="filter-group">
+    <label>Archetype</label>
+    <select id="filter-archetype"><option value="">All</option></select>
+  </div>
+
+  <div class="filter-readout">
+    Showing <strong><span id="filtered-n">10</span></strong> of <strong><span id="total-n">10</span></strong>
+  </div>
+  <button class="reset-btn" id="resetBtn">Reset</button>
+</div>
+
+<!-- ========================== SECTION 1 — POPULATION OVERVIEW ========================== -->
+<section class="section">
+  <div class="section-header">
+    <div>
+      <div class="section-number">Section 01</div>
+      <div class="section-title">Population overview</div>
+    </div>
+    <div class="section-note">High-level diagnostic across all responses</div>
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="label">Total Responses</div>
+      <div class="value mono" id="stat-total">10</div>
+      <div class="sub" id="stat-total-sub">Sheet 2 · anonymous</div>
+    </div>
+    <div class="stat-card highlight">
+      <div class="label">Average Score</div>
+      <div class="value mono solar" id="stat-avg-score">—</div>
+      <div class="sub">0 to 100 composite</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Most Common Archetype</div>
+      <div class="value mono" id="stat-mode-arch" style="font-size:18px; padding-top:8px;">—</div>
+      <div class="sub" id="stat-mode-arch-sub">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Weakest Pillar</div>
+      <div class="value mono" id="stat-weakest" style="font-size:14px; padding-top:8px;">—</div>
+      <div class="sub" id="stat-weakest-sub">Most common lowest-scoring</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Avg Alignment Gap</div>
+      <div class="value mono" id="stat-avg-gap">—</div>
+      <div class="sub">Bands · self vs actual</div>
+    </div>
+  </div>
+
+  <div class="chart-row">
+    <div class="chart-card">
+      <div class="chart-title">Score distribution by archetype band</div>
+      <div class="chart-container"><canvas id="chart-distribution"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Completions over time</div>
+      <div class="chart-container"><canvas id="chart-timeseries"></canvas></div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================== SECTION 2 — ARCHETYPE BREAKDOWN ========================== -->
+<section class="section">
+  <div class="section-header">
+    <div>
+      <div class="section-number">Section 02</div>
+      <div class="section-title">Archetype breakdown</div>
+    </div>
+    <div class="section-note">Click an archetype to filter all sections below</div>
+  </div>
+
+  <div class="archetype-grid" id="archetype-grid"></div>
+</section>
+
+<!-- ========================== SECTION 3 — PILLAR ANALYSIS ========================== -->
+<section class="section">
+  <div class="section-header">
+    <div>
+      <div class="section-number">Section 03</div>
+      <div class="section-title">Pillar analysis</div>
+    </div>
+    <div class="section-note">Average scores · question-level drill-down</div>
+  </div>
+
+  <div class="pillar-grid" id="pillar-grid"></div>
+
+  <div class="chart-row">
+    <div class="chart-card">
+      <div class="chart-title">Pillar score distribution (low / mid / high)</div>
+      <div class="chart-container"><canvas id="chart-pillar-dist"></canvas></div>
+      <div class="analysis-block" id="analysis-pillar-dist">
+        <button class="analysis-toggle" type="button">How to read this <span class="chev"></span></button>
+        <div class="analysis-content"></div>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Pillar correlation matrix</div>
+      <div class="chart-container"><canvas id="chart-correlation"></canvas></div>
+      <div class="analysis-block" id="analysis-correlation">
+        <button class="analysis-toggle" type="button">How to read this <span class="chev"></span></button>
+        <div class="analysis-content"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================== SECTION 4 — DEMOGRAPHIC CUTS ========================== -->
+<section class="section">
+  <div class="section-header">
+    <div>
+      <div class="section-number">Section 04</div>
+      <div class="section-title">Demographic cuts</div>
+    </div>
+    <div class="section-note">Slice by sector, LGA, headcount, revenue</div>
+  </div>
+
+  <div class="demo-grid">
+    <div class="demo-table">
+      <div class="demo-table-title">By sector</div>
+      <table id="demo-sector"></table>
+    </div>
+    <div class="demo-table">
+      <div class="demo-table-title">By LGA</div>
+      <table id="demo-lga"></table>
+    </div>
+    <div class="demo-table">
+      <div class="demo-table-title">By headcount</div>
+      <table id="demo-headcount"></table>
+    </div>
+    <div class="demo-table">
+      <div class="demo-table-title">By revenue band</div>
+      <table id="demo-revenue"></table>
+    </div>
+  </div>
+</section>
+
+<!-- ========================== SECTION 5 — ALIGNMENT GAP ========================== -->
+<section class="section">
+  <div class="section-header">
+    <div>
+      <div class="section-number">Section 05</div>
+      <div class="section-title">Alignment gap analysis</div>
+    </div>
+    <div class="section-note">Self-assessment vs calculated archetype</div>
+  </div>
+
+  <div class="gap-callout">
+    <div class="label">Overconfidence index</div>
+    <div class="number mono" id="gap-overconfidence">—</div>
+    <div class="descriptor" id="gap-descriptor">—</div>
+    <div class="caveat">Indicative pattern · sample below publication threshold</div>
+  </div>
+
+  <div class="chart-row">
+    <div class="chart-card">
+      <div class="chart-title">Gap distribution</div>
+      <div class="chart-container"><canvas id="chart-gap-dist"></canvas></div>
+      <div class="analysis-block" id="analysis-gap-dist">
+        <button class="analysis-toggle" type="button">How to read this <span class="chev"></span></button>
+        <div class="analysis-content"></div>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Average gap by archetype</div>
+      <div class="chart-container"><canvas id="chart-gap-by-arch"></canvas></div>
+      <div class="analysis-block" id="analysis-gap-by-arch">
+        <button class="analysis-toggle" type="button">How to read this <span class="chev"></span></button>
+        <div class="analysis-content"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================== SECTION 6 — INDIVIDUAL RESPONSES ========================== -->
+<section class="section">
+  <div class="section-header">
+    <div>
+      <div class="section-number">Section 06</div>
+      <div class="section-title">Individual responses</div>
+    </div>
+    <div class="section-note">Anonymous · click row for question detail</div>
+  </div>
+
+  <div class="suppression-note" id="suppression-note">
+    LGA suppressed below n=30 per cell to prevent re-identification · displays as "Hunter region" until threshold met
+  </div>
+
+  <div class="responses-table">
+    <table id="responses-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Archetype</th>
+          <th class="num">Score</th>
+          <th>Self-ID</th>
+          <th class="num">Gap</th>
+          <th>Sector</th>
+          <th id="lga-header">Region</th>
+          <th>Headcount</th>
+          <th class="num">P1</th>
+          <th class="num">P2</th>
+          <th class="num">P3</th>
+          <th class="num">P4</th>
+        </tr>
+      </thead>
+      <tbody id="responses-body"></tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ========================== FOOTER ========================== -->
+<footer class="footer">
+  <div>VexDeliverable_IndexAnalyticsDashboard_v5_May2026 · Internal use only</div>
+  <div class="meta">Live Sheet 2 fetch · Lumen sign-off complete · token system unified across CSS and JS</div>
+</footer>
+
+<!-- ========================== DATA + LOGIC ========================== -->
+<script>
+// ============================================================================
+// DATA LAYER
+// ============================================================================
+// Synthetic n=10 mirroring Sheet 2 schema exactly.
+// To swap to real data: replace DATA constant with Sheet 2 export, schema is identical.
+// ============================================================================
+
+const ARCHETYPES = {
+  reactor:           { label: "Reactor",           range: "0–20%",   min: 0,  max: 20,  color: "#A87E18" },
+  experimenter:      { label: "Experimenter",      range: "21–40%",  min: 21, max: 40,  color: "#F0C020" },
+  integrator:        { label: "Integrator",        range: "41–60%",  min: 41, max: 60,  color: "#4A6584" },
+  optimiser:         { label: "Optimiser",         range: "61–80%",  min: 61, max: 80,  color: "#7A8C4A" },
+  autonomousLeader:  { label: "Autonomous Leader", range: "81–100%", min: 81, max: 100, color: "#2A3F52" }
+};
+
+const PILLARS = [
+  { key: "pillar1Score", num: "01", name: "Strategic Alignment",        questions: ["q1","q2","q3"] },
+  { key: "pillar2Score", num: "02", name: "Data & Asset Infrastructure", questions: ["q4","q5","q6"] },
+  { key: "pillar3Score", num: "03", name: "Governance & Risk",           questions: ["q7","q8","q9"] },
+  { key: "pillar4Score", num: "04", name: "Frontline & Change Capability", questions: ["q10","q11","q12"] }
+];
+
+// PLACEHOLDER QUESTION TEXT — replace with actual diagnostic wording from index.integratedai.com.au
+// Each question is on a 5-point scale: 0 = lowest, 4 = highest. Five possible responses, max value 4.
+const QUESTIONS = {
+  q1:  "Clear AI strategy connected to business objectives",
+  q2:  "Leadership actively driving AI adoption",
+  q3:  "AI investment decisions tied to measurable outcomes",
+  q4:  "Data assets are accessible and well-governed",
+  q5:  "Technology infrastructure supports AI deployment",
+  q6:  "Data quality is sufficient for reliable AI outputs",
+  q7:  "AI governance policies are in place and active",
+  q8:  "Oversight mechanisms and accountability structures exist",
+  q9:  "AI-related risk is actively managed and reviewed",
+  q10: "Workforce has the capability to work with AI",
+  q11: "Change management is actively supporting adoption",
+  q12: "Frontline staff have confidence and tools to use AI"
+};
+
+// ============================================================================
+// CONFIG — paste published CSV URL here when Sheet 2 is publish-to-web enabled
+// ============================================================================
+// To enable live data:
+//   1. Open the Hunter AI Index — Lead Capture Google Sheet
+//   2. File → Share → Publish to web
+//   3. Choose Sheet 2 · format CSV · click Publish
+//   4. Paste the URL below (it ends in .../pub?gid=XXX&single=true&output=csv)
+// Until SHEET_2_CSV_URL is set, the dashboard runs on the synthetic n=10 fallback
+// and shows a "FALLBACK" indicator in the masthead.
+// ============================================================================
+const SHEET_2_CSV_URL = ""; // <-- paste published CSV URL here
+
+// Synthetic n=10 fallback — mirrors Sheet 2 schema exactly.
+// Used when SHEET_2_CSV_URL is empty or fetch fails.
+const SYNTHETIC_FALLBACK = [
+  { timestamp:"2026-04-02T09:14:00", score:18, archetype:"reactor", selfArchetype:"experimenter", alignmentGapNumber:1, alignmentGapBand:"Moderate Gap", lowestScoringPillar:"pillar3Score", pillar1Score:25, pillar2Score:20, pillar3Score:8, pillar4Score:19, industrySector:"Heavy Manufacturing", LGA:"Cessnock", headcount:"50-99", revenueBand:"$10M-$25M", answer_q1:1, answer_q2:1, answer_q3:1, answer_q4:1, answer_q5:1, answer_q6:0, answer_q7:0, answer_q8:0, answer_q9:1, answer_q10:1, answer_q11:1, answer_q12:0 },
+  { timestamp:"2026-04-04T14:22:00", score:34, archetype:"experimenter", selfArchetype:"integrator", alignmentGapNumber:1, alignmentGapBand:"Moderate Gap", lowestScoringPillar:"pillar3Score", pillar1Score:42, pillar2Score:38, pillar3Score:18, pillar4Score:38, industrySector:"Mining Services", LGA:"Singleton", headcount:"100-249", revenueBand:"$25M-$50M", answer_q1:2, answer_q2:1, answer_q3:2, answer_q4:1, answer_q5:2, answer_q6:1, answer_q7:1, answer_q8:0, answer_q9:1, answer_q10:1, answer_q11:2, answer_q12:1 },
+  { timestamp:"2026-04-07T11:03:00", score:52, archetype:"integrator", selfArchetype:"optimiser", alignmentGapNumber:1, alignmentGapBand:"Moderate Gap", lowestScoringPillar:"pillar4Score", pillar1Score:60, pillar2Score:58, pillar3Score:52, pillar4Score:38, industrySector:"Heavy Manufacturing", LGA:"Newcastle", headcount:"250-499", revenueBand:"$50M-$100M", answer_q1:2, answer_q2:3, answer_q3:2, answer_q4:2, answer_q5:3, answer_q6:2, answer_q7:2, answer_q8:2, answer_q9:2, answer_q10:1, answer_q11:2, answer_q12:1 },
+  { timestamp:"2026-04-10T08:47:00", score:28, archetype:"experimenter", selfArchetype:"optimiser", alignmentGapNumber:2, alignmentGapBand:"Significant Gap", lowestScoringPillar:"pillar2Score", pillar1Score:35, pillar2Score:15, pillar3Score:30, pillar4Score:32, industrySector:"Defence", LGA:"Newcastle", headcount:"100-249", revenueBand:"$25M-$50M", answer_q1:2, answer_q2:1, answer_q3:1, answer_q4:1, answer_q5:0, answer_q6:1, answer_q7:1, answer_q8:1, answer_q9:2, answer_q10:1, answer_q11:1, answer_q12:2 },
+  { timestamp:"2026-04-12T16:55:00", score:45, archetype:"integrator", selfArchetype:"autonomousLeader", alignmentGapNumber:3, alignmentGapBand:"Significant Gap", lowestScoringPillar:"pillar3Score", pillar1Score:55, pillar2Score:50, pillar3Score:32, pillar4Score:43, industrySector:"Energy", LGA:"Lake Macquarie", headcount:"500+", revenueBand:"$100M+", answer_q1:2, answer_q2:3, answer_q3:2, answer_q4:2, answer_q5:2, answer_q6:2, answer_q7:1, answer_q8:1, answer_q9:2, answer_q10:2, answer_q11:2, answer_q12:1 },
+  { timestamp:"2026-04-15T13:18:00", score:67, archetype:"optimiser", selfArchetype:"optimiser", alignmentGapNumber:0, alignmentGapBand:"Aligned", lowestScoringPillar:"pillar4Score", pillar1Score:75, pillar2Score:72, pillar3Score:68, pillar4Score:53, industrySector:"Heavy Manufacturing", LGA:"Maitland", headcount:"100-249", revenueBand:"$50M-$100M", answer_q1:3, answer_q2:3, answer_q3:3, answer_q4:3, answer_q5:3, answer_q6:2, answer_q7:3, answer_q8:2, answer_q9:3, answer_q10:2, answer_q11:2, answer_q12:2 },
+  { timestamp:"2026-04-18T10:32:00", score:22, archetype:"experimenter", selfArchetype:"experimenter", alignmentGapNumber:0, alignmentGapBand:"Aligned", lowestScoringPillar:"pillar1Score", pillar1Score:15, pillar2Score:25, pillar3Score:22, pillar4Score:26, industrySector:"Mining Services", LGA:"Muswellbrook", headcount:"20-49", revenueBand:"$5M-$10M", answer_q1:1, answer_q2:0, answer_q3:1, answer_q4:1, answer_q5:1, answer_q6:1, answer_q7:1, answer_q8:1, answer_q9:1, answer_q10:1, answer_q11:1, answer_q12:1 },
+  { timestamp:"2026-04-21T15:09:00", score:58, archetype:"integrator", selfArchetype:"autonomousLeader", alignmentGapNumber:2, alignmentGapBand:"Significant Gap", lowestScoringPillar:"pillar3Score", pillar1Score:68, pillar2Score:62, pillar3Score:42, pillar4Score:60, industrySector:"Heavy Manufacturing", LGA:"Newcastle", headcount:"250-499", revenueBand:"$50M-$100M", answer_q1:3, answer_q2:3, answer_q3:2, answer_q4:2, answer_q5:3, answer_q6:2, answer_q7:2, answer_q8:1, answer_q9:2, answer_q10:2, answer_q11:3, answer_q12:2 },
+  { timestamp:"2026-04-24T09:41:00", score:14, archetype:"reactor", selfArchetype:"experimenter", alignmentGapNumber:1, alignmentGapBand:"Moderate Gap", lowestScoringPillar:"pillar2Score", pillar1Score:18, pillar2Score:8, pillar3Score:15, pillar4Score:15, industrySector:"Defence", LGA:"Cessnock", headcount:"20-49", revenueBand:"$5M-$10M", answer_q1:1, answer_q2:0, answer_q3:1, answer_q4:0, answer_q5:1, answer_q6:0, answer_q7:1, answer_q8:0, answer_q9:1, answer_q10:1, answer_q11:0, answer_q12:1 },
+  { timestamp:"2026-04-28T17:26:00", score:74, archetype:"optimiser", selfArchetype:"optimiser", alignmentGapNumber:0, alignmentGapBand:"Aligned", lowestScoringPillar:"pillar4Score", pillar1Score:82, pillar2Score:78, pillar3Score:75, pillar4Score:61, industrySector:"Energy", LGA:"Lake Macquarie", headcount:"500+", revenueBand:"$100M+", answer_q1:3, answer_q2:3, answer_q3:3, answer_q4:3, answer_q5:3, answer_q6:3, answer_q7:3, answer_q8:3, answer_q9:3, answer_q10:2, answer_q11:3, answer_q12:2 }
+];
+
+// Live dataset — populated by loadData() on page load. Starts as fallback so first render works.
+let DATA = SYNTHETIC_FALLBACK;
+let DATA_SOURCE = "fallback"; // "live" or "fallback"
+
+
+// ============================================================================
+// DATA LOADING — fetch published Sheet 2 CSV, fall back to synthetic on failure
+// ============================================================================
+
+// Schema fields and their types — drives CSV-to-object conversion.
+// Numeric fields are coerced; everything else stays string.
+const NUMERIC_FIELDS = new Set([
+  "score", "alignmentGapNumber",
+  "pillar1Score", "pillar2Score", "pillar3Score", "pillar4Score",
+  "answer_q1", "answer_q2", "answer_q3", "answer_q4",
+  "answer_q5", "answer_q6", "answer_q7", "answer_q8",
+  "answer_q9", "answer_q10", "answer_q11", "answer_q12"
+]);
+
+// Minimal CSV parser — handles quoted fields, commas inside quotes, escaped quotes.
+// Sheet 2 CSV from Google's publish-to-web is well-formed so this is sufficient.
+function parseCSV(text) {
+  const rows = [];
+  let row = [], field = "", inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQuotes) {
+      if (c === '"' && text[i+1] === '"') { field += '"'; i++; }
+      else if (c === '"') { inQuotes = false; }
+      else { field += c; }
+    } else {
+      if (c === '"') { inQuotes = true; }
+      else if (c === ",") { row.push(field); field = ""; }
+      else if (c === "\n") { row.push(field); rows.push(row); row = []; field = ""; }
+      else if (c === "\r") { /* skip */ }
+      else { field += c; }
+    }
+  }
+  if (field.length || row.length) { row.push(field); rows.push(row); }
+  return rows;
+}
+
+// Convert CSV rows into the typed object shape the dashboard expects.
+function csvRowsToObjects(rows) {
+  if (!rows.length) return [];
+  const headers = rows[0].map(h => h.trim());
+  const objects = [];
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i];
+    if (!row.length || (row.length === 1 && !row[0])) continue; // skip empty rows
+    const obj = {};
+    headers.forEach((h, idx) => {
+      const raw = (row[idx] || "").trim();
+      obj[h] = NUMERIC_FIELDS.has(h) && raw !== "" ? Number(raw) : raw;
+    });
+    objects.push(obj);
+  }
+  return objects;
+}
+
+async function loadData() {
+  if (!SHEET_2_CSV_URL) {
+    DATA = SYNTHETIC_FALLBACK;
+    DATA_SOURCE = "fallback";
+    return;
+  }
+  try {
+    const response = await fetch(SHEET_2_CSV_URL, { cache: "no-store" });
+    if (!response.ok) throw new Error("HTTP " + response.status);
+    const text = await response.text();
+    const rows = parseCSV(text);
+    const objects = csvRowsToObjects(rows);
+    if (!objects.length) throw new Error("Empty or malformed CSV");
+    DATA = objects;
+    DATA_SOURCE = "live";
+  } catch (err) {
+    console.warn("Sheet 2 fetch failed, using synthetic fallback:", err);
+    DATA = SYNTHETIC_FALLBACK;
+    DATA_SOURCE = "fallback";
+  }
+}
+
+function updateSourceIndicator() {
+  const el = document.getElementById("meta-source");
+  if (!el) return;
+  if (DATA_SOURCE === "live") {
+    el.textContent = "LIVE · Sheet 2";
+    el.style.color = "var(--solar)";
+  } else {
+    el.textContent = "FALLBACK · synthetic";
+    el.style.color = "var(--solar)";
+  }
+  // Update refresh timestamp on every successful load
+  const refreshEl = document.getElementById("meta-refresh");
+  if (refreshEl) {
+    const now = new Date();
+    refreshEl.textContent = now.toLocaleDateString("en-AU", { day: "2-digit", month: "short", year: "numeric" });
+  }
+}
+
+
+// ============================================================================
+// STATE
+// ============================================================================
+const state = {
+  filters: { sector: "", lga: "", headcount: "", revenue: "", archetype: "" },
+  selectedArchetype: null,
+  charts: {}
+};
+
+function getFiltered() {
+  return DATA.filter(r => {
+    if (state.filters.sector && r.industrySector !== state.filters.sector) return false;
+    if (state.filters.lga && r.LGA !== state.filters.lga) return false;
+    if (state.filters.headcount && r.headcount !== state.filters.headcount) return false;
+    if (state.filters.revenue && r.revenueBand !== state.filters.revenue) return false;
+    if (state.filters.archetype && r.archetype !== state.filters.archetype) return false;
+    if (state.selectedArchetype && r.archetype !== state.selectedArchetype) return false;
+    return true;
+  });
+}
+
+// ============================================================================
+// HELPERS
+// ============================================================================
+const fmt = {
+  num: (n, d=1) => isFinite(n) ? Number(n).toFixed(d) : "—",
+  int: n => isFinite(n) ? Math.round(n) : "—",
+  pct: n => isFinite(n) ? Math.round(n) + "%" : "—",
+  date: ts => new Date(ts).toLocaleDateString("en-AU", { day: "2-digit", month: "short" })
+};
+
+function avg(arr, key) {
+  const vals = arr.map(r => key ? r[key] : r).filter(v => isFinite(v));
+  return vals.length ? vals.reduce((a,b) => a+b, 0) / vals.length : NaN;
+}
+
+function mode(arr, key) {
+  const counts = {};
+  arr.forEach(r => { const v = key ? r[key] : r; counts[v] = (counts[v]||0) + 1; });
+  let best = null, bestN = 0;
+  Object.entries(counts).forEach(([k,n]) => { if (n > bestN) { best = k; bestN = n; } });
+  return { value: best, count: bestN };
+}
+
+function unique(arr, key) {
+  return [...new Set(arr.map(r => r[key]))].filter(Boolean).sort();
+}
+
+// ============================================================================
+// CHART DEFAULTS + JS-SIDE TOKEN MIRROR
+// ============================================================================
+// CSS custom properties are not directly readable by Chart.js (which takes
+// JS strings). Mirror the design tokens here so chart colours stay in sync
+// with the CSS token system. Single source of truth: the :root block above.
+const CSS = getComputedStyle(document.documentElement);
+const COLOURS = {
+  ink:            CSS.getPropertyValue('--ink').trim()              || "#0D1B2A",
+  denim:          CSS.getPropertyValue('--denim').trim()            || "#4A6584",
+  denimDeep:      CSS.getPropertyValue('--denim-deep').trim()       || "#2A3F52",
+  solar:          CSS.getPropertyValue('--solar').trim()            || "#F0C020",
+  olive:          CSS.getPropertyValue('--olive').trim()            || "#7A8C4A",
+  signalWarning:  CSS.getPropertyValue('--signal-warning').trim()   || "#C0392B"
+};
+
+Chart.defaults.font.family = "'IBM Plex Mono', monospace";
+Chart.defaults.font.size = 11;
+Chart.defaults.color = COLOURS.ink;
+Chart.defaults.borderColor = "rgba(13, 27, 42, 0.12)";
+
+// ============================================================================
+// FILTER BAR INIT
+// ============================================================================
+function populateFilters() {
+  const fields = [
+    { id: "filter-sector", key: "industrySector" },
+    { id: "filter-lga", key: "LGA" },
+    { id: "filter-headcount", key: "headcount" },
+    { id: "filter-revenue", key: "revenueBand" }
+  ];
+  fields.forEach(f => {
+    const sel = document.getElementById(f.id);
+    unique(DATA, f.key).forEach(v => {
+      const opt = document.createElement("option");
+      opt.value = v; opt.textContent = v;
+      sel.appendChild(opt);
+    });
+  });
+  const archSel = document.getElementById("filter-archetype");
+  Object.entries(ARCHETYPES).forEach(([k, v]) => {
+    const opt = document.createElement("option");
+    opt.value = k; opt.textContent = v.label;
+    archSel.appendChild(opt);
+  });
+}
+
+function bindFilterEvents() {
+  const map = { sector: "filter-sector", lga: "filter-lga", headcount: "filter-headcount", revenue: "filter-revenue", archetype: "filter-archetype" };
+  Object.entries(map).forEach(([k, id]) => {
+    document.getElementById(id).addEventListener("change", e => {
+      state.filters[k] = e.target.value;
+      if (k === "archetype") state.selectedArchetype = null;
+      renderAll();
+    });
+  });
+  document.getElementById("resetBtn").addEventListener("click", () => {
+    state.filters = { sector: "", lga: "", headcount: "", revenue: "", archetype: "" };
+    state.selectedArchetype = null;
+    Object.values(map).forEach(id => document.getElementById(id).value = "");
+    renderAll();
+  });
+}
+
+// ============================================================================
+// SECTION 1 — POPULATION OVERVIEW
+// ============================================================================
+function renderSection1() {
+  const data = getFiltered();
+  document.getElementById("stat-total").textContent = data.length;
+  document.getElementById("stat-total-sub").textContent = `Sheet 2 · of ${DATA.length} total`;
+  document.getElementById("filtered-n").textContent = data.length;
+  document.getElementById("total-n").textContent = DATA.length;
+  document.getElementById("meta-sample").textContent = `n = ${data.length}`;
+
+  // Dynamic threshold banner
+  const totalN = DATA.length;
+  const progressEl = document.getElementById("threshold-progress");
+  const messageEl = document.getElementById("threshold-message");
+  if (progressEl && messageEl) {
+    if (totalN < 30) {
+      progressEl.textContent = `${totalN} / 30 minimum`;
+      messageEl.textContent = "Internal use only · Sample below 30–50 publication threshold · Findings indicative, not benchmarkable";
+    } else if (totalN < 50) {
+      progressEl.textContent = `${totalN} / 50 preferred`;
+      messageEl.textContent = "Internal use only · Minimum threshold met · Approaching benchmark publication readiness";
+    } else {
+      progressEl.textContent = `${totalN} responses · benchmark ready`;
+      messageEl.textContent = "Internal use only · Publication threshold met · Findings benchmark-credible at sector level";
+    }
+  }
+
+  document.getElementById("stat-avg-score").textContent = fmt.num(avg(data, "score"), 1);
+
+  if (data.length === 0) {
+    document.getElementById("stat-mode-arch").textContent = "—";
+    document.getElementById("stat-mode-arch-sub").textContent = "no data in filter";
+    document.getElementById("stat-weakest").textContent = "—";
+    document.getElementById("stat-avg-gap").textContent = "—";
+  } else {
+    const m = mode(data, "archetype");
+    document.getElementById("stat-mode-arch").textContent = ARCHETYPES[m.value]?.label || "—";
+    document.getElementById("stat-mode-arch-sub").textContent = `${m.count} of ${data.length}`;
+
+    const wm = mode(data, "lowestScoringPillar");
+    const pillarLookup = PILLARS.find(p => p.key === wm.value);
+    document.getElementById("stat-weakest").textContent = pillarLookup?.name || "—";
+    document.getElementById("stat-weakest-sub").textContent = `${wm.count} of ${data.length} respondents`;
+
+    document.getElementById("stat-avg-gap").textContent = fmt.num(avg(data, "alignmentGapNumber"), 2);
+  }
+
+  // Distribution chart
+  const distCounts = {};
+  Object.keys(ARCHETYPES).forEach(k => distCounts[k] = 0);
+  data.forEach(r => distCounts[r.archetype]++);
+
+  if (state.charts.distribution) state.charts.distribution.destroy();
+  state.charts.distribution = new Chart(document.getElementById("chart-distribution"), {
+    type: "bar",
+    data: {
+      labels: Object.values(ARCHETYPES).map(a => `${a.label}\n${a.range}`),
+      datasets: [{
+        data: Object.keys(ARCHETYPES).map(k => distCounts[k]),
+        backgroundColor: Object.values(ARCHETYPES).map(a => a.color),
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 }, grid: { color: "rgba(13,27,42,0.08)" } },
+        x: { grid: { display: false } }
+      }
+    }
+  });
+
+  // Time series — completions per week
+  const weekly = {};
+  data.forEach(r => {
+    const d = new Date(r.timestamp);
+    const monday = new Date(d);
+    monday.setDate(d.getDate() - d.getDay() + 1);
+    const wk = monday.toISOString().slice(0,10);
+    weekly[wk] = (weekly[wk] || 0) + 1;
+  });
+  const weeks = Object.keys(weekly).sort();
+
+  if (state.charts.timeseries) state.charts.timeseries.destroy();
+  state.charts.timeseries = new Chart(document.getElementById("chart-timeseries"), {
+    type: "bar",
+    data: {
+      labels: weeks.map(w => fmt.date(w + "T00:00:00")),
+      datasets: [{
+        label: "Completions",
+        data: weeks.map(w => weekly[w]),
+        backgroundColor: "#4A6584",
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 }, grid: { color: "rgba(13,27,42,0.08)" } },
+        x: { grid: { display: false } }
+      }
+    }
+  });
+}
+
+// ============================================================================
+// SECTION 2 — ARCHETYPE BREAKDOWN
+// ============================================================================
+function renderSection2() {
+  const data = getFiltered();
+  const grid = document.getElementById("archetype-grid");
+  grid.innerHTML = "";
+
+  Object.entries(ARCHETYPES).forEach(([key, def]) => {
+    const subset = DATA.filter(r => r.archetype === key);
+    const filteredSubset = data.filter(r => r.archetype === key);
+    const count = filteredSubset.length;
+    const totalCount = subset.length;
+    const pct = DATA.length ? Math.round((totalCount / DATA.length) * 100) : 0;
+    const avgScore = avg(subset, "score");
+    const sectorMode = subset.length ? mode(subset, "industrySector") : { value: "—" };
+    const selfMode = subset.length ? mode(subset, "selfArchetype") : { value: "—" };
+    const selfModeLabel = ARCHETYPES[selfMode.value]?.label || "—";
+
+    const tile = document.createElement("div");
+    tile.className = "archetype-tile";
+    tile.dataset.arch = key;
+    if (state.selectedArchetype === key) tile.classList.add("selected");
+
+    tile.innerHTML = `
+      <div class="arch-name">${def.label}</div>
+      <div class="arch-range mono">${def.range}</div>
+      <div class="arch-count">${totalCount}</div>
+      <div class="arch-stat-label">${pct}% of total · avg ${fmt.num(avgScore, 1)}</div>
+      <div class="arch-meta">
+        <div class="row"><span>Top sector</span><span>${sectorMode.value || "—"}</span></div>
+        <div class="row"><span>Self-ID mode</span><span>${selfModeLabel}</span></div>
+      </div>
+    `;
+
+    tile.addEventListener("click", () => {
+      state.selectedArchetype = state.selectedArchetype === key ? null : key;
+      renderAll();
+    });
+
+    grid.appendChild(tile);
+  });
+}
+
+// ============================================================================
+// SECTION 3 — PILLAR ANALYSIS
+// ============================================================================
+function renderSection3() {
+  const data = getFiltered();
+  const grid = document.getElementById("pillar-grid");
+  grid.innerHTML = "";
+
+  // Compute averages first to identify the lowest pillar across the filtered set
+  const pillarAverages = PILLARS.map(p => ({ pillar: p, avg: avg(data, p.key) }));
+  const validAverages = pillarAverages.filter(p => isFinite(p.avg));
+  const lowestPillarKey = validAverages.length
+    ? validAverages.reduce((min, p) => p.avg < min.avg ? p : min).pillar.key
+    : null;
+
+  PILLARS.forEach(p => {
+    const avgScore = avg(data, p.key);
+    const isLowest = p.key === lowestPillarKey;
+    const card = document.createElement("div");
+    card.className = "pillar-card";
+    let questionsHtml = "";
+    p.questions.forEach((q, idx) => {
+      const qKey = "answer_" + q;
+      const qAvg = avg(data, qKey);
+      const qNum = (PILLARS.indexOf(p) * 3) + idx + 1;
+      const qText = QUESTIONS[q] || "";
+      questionsHtml += `<div class="question-row"><span class="q-label"><span class="q-num">Q${qNum}</span><span class="q-text">${qText}</span></span><span class="q-score">${fmt.num(qAvg, 2)}</span></div>`;
+    });
+
+    card.innerHTML = `
+      <div class="pillar-num">Pillar ${p.num}</div>
+      <div class="pillar-name">${p.name}</div>
+      <div class="pillar-score">${fmt.num(avgScore, 1)}</div>
+      <div class="pillar-bar"><div class="pillar-bar-fill${isLowest ? ' lowest' : ''}" style="width:${isFinite(avgScore) ? avgScore : 0}%"></div></div>
+      <div class="pillar-questions">
+        <div class="pillar-questions-header">Question averages · 0–4 scale</div>
+        ${questionsHtml}
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+
+  // Pillar distribution stacked bar
+  const buckets = { low: 0, mid: 0, high: 0 };
+  const distData = PILLARS.map(p => {
+    const b = { low: 0, mid: 0, high: 0 };
+    data.forEach(r => {
+      const v = r[p.key];
+      if (v < 33) b.low++;
+      else if (v < 67) b.mid++;
+      else b.high++;
+    });
+    return b;
+  });
+
+  if (state.charts.pillarDist) state.charts.pillarDist.destroy();
+  state.charts.pillarDist = new Chart(document.getElementById("chart-pillar-dist"), {
+    type: "bar",
+    data: {
+      labels: PILLARS.map(p => p.name.split(" ").slice(0,2).join(" ")),
+      datasets: [
+        { label: "Low (0-32)",  data: distData.map(d => d.low),  backgroundColor: COLOURS.signalWarning, borderWidth: 0 },
+        { label: "Mid (33-66)", data: distData.map(d => d.mid),  backgroundColor: COLOURS.solar,         borderWidth: 0 },
+        { label: "High (67+)",  data: distData.map(d => d.high), backgroundColor: COLOURS.olive,         borderWidth: 0 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: "bottom", labels: { boxWidth: 10, padding: 12 } } },
+      scales: {
+        x: { stacked: true, grid: { display: false } },
+        y: { stacked: true, beginAtZero: true, ticks: { stepSize: 1, precision: 0 }, grid: { color: "rgba(13,27,42,0.08)" } }
+      }
+    }
+  });
+
+  // Correlation matrix as bar chart of pairs
+  const pairs = [];
+  for (let i = 0; i < 4; i++) {
+    for (let j = i+1; j < 4; j++) {
+      const a = data.map(r => r[PILLARS[i].key]);
+      const b = data.map(r => r[PILLARS[j].key]);
+      const n = a.length;
+      const meanA = a.reduce((x,y)=>x+y,0)/n;
+      const meanB = b.reduce((x,y)=>x+y,0)/n;
+      let num = 0, denA = 0, denB = 0;
+      for (let k = 0; k < n; k++) {
+        num += (a[k]-meanA) * (b[k]-meanB);
+        denA += (a[k]-meanA)**2;
+        denB += (b[k]-meanB)**2;
+      }
+      const r = denA && denB ? num / Math.sqrt(denA * denB) : 0;
+      pairs.push({ label: `P${i+1}↔P${j+1}`, value: r });
+    }
+  }
+
+  if (state.charts.correlation) state.charts.correlation.destroy();
+  state.charts.correlation = new Chart(document.getElementById("chart-correlation"), {
+    type: "bar",
+    data: {
+      labels: pairs.map(p => p.label),
+      datasets: [{
+        data: pairs.map(p => p.value),
+        backgroundColor: pairs.map(p => p.value > 0.5 ? COLOURS.ink : p.value > 0 ? COLOURS.denim : COLOURS.signalWarning),
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, indexAxis: "y",
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => `r = ${ctx.parsed.x.toFixed(2)}` } } },
+      scales: {
+        x: { min: -1, max: 1, grid: { color: "rgba(13,27,42,0.08)" }, ticks: { callback: v => v.toFixed(1) } },
+        y: { grid: { display: false } }
+      }
+    }
+  });
+}
+
+// ============================================================================
+// SECTION 4 — DEMOGRAPHIC CUTS
+// ============================================================================
+function renderDemoTable(elId, key) {
+  const data = getFiltered();
+  const groups = {};
+  data.forEach(r => {
+    const k = r[key];
+    if (!groups[k]) groups[k] = { items: [], n: 0 };
+    groups[k].items.push(r);
+    groups[k].n++;
+  });
+
+  const rows = Object.entries(groups).map(([k, g]) => ({
+    name: k,
+    n: g.n,
+    avgScore: avg(g.items, "score"),
+    topArch: mode(g.items, "archetype").value,
+    weakPillar: mode(g.items, "lowestScoringPillar").value
+  })).sort((a,b) => b.avgScore - a.avgScore);
+
+  const table = document.getElementById(elId);
+  let html = `
+    <thead><tr>
+      <th>${ {industrySector:"Sector", LGA:"LGA", headcount:"Headcount", revenueBand:"Revenue"}[key] }</th>
+      <th class="num">N</th>
+      <th class="num">Avg Score</th>
+      <th>Top Archetype</th>
+      <th>Weakest Pillar</th>
+    </tr></thead><tbody>`;
+  if (rows.length === 0) {
+    html += `<tr><td colspan="5" style="text-align:center; color: var(--ink-muted); padding: 20px;">No data in current filter</td></tr>`;
+  } else {
+    rows.forEach(r => {
+      const archLabel = ARCHETYPES[r.topArch]?.label || "—";
+      const pillarLabel = PILLARS.find(p => p.key === r.weakPillar)?.name || "—";
+      html += `<tr>
+        <td>${r.name}</td>
+        <td class="num">${r.n}</td>
+        <td class="num">${fmt.num(r.avgScore, 1)}</td>
+        <td>${archLabel}</td>
+        <td>${pillarLabel}</td>
+      </tr>`;
+    });
+  }
+  html += "</tbody>";
+  table.innerHTML = html;
+}
+
+function renderSection4() {
+  renderDemoTable("demo-sector", "industrySector");
+  renderDemoTable("demo-lga", "LGA");
+  renderDemoTable("demo-headcount", "headcount");
+  renderDemoTable("demo-revenue", "revenueBand");
+}
+
+// ============================================================================
+// SECTION 5 — ALIGNMENT GAP
+// ============================================================================
+function renderSection5() {
+  const data = getFiltered();
+
+  // Overconfidence: positive gap (self > actual). gap is unsigned in source data,
+  // so we infer direction from selfArchetype vs archetype index.
+  const archOrder = ["reactor","experimenter","integrator","optimiser","autonomousLeader"];
+  let over = 0, under = 0, aligned = 0;
+  data.forEach(r => {
+    const selfIdx = archOrder.indexOf(r.selfArchetype);
+    const calcIdx = archOrder.indexOf(r.archetype);
+    if (selfIdx > calcIdx) over++;
+    else if (selfIdx < calcIdx) under++;
+    else aligned++;
+  });
+  const overPct = data.length ? Math.round((over / data.length) * 100) : 0;
+
+  document.getElementById("gap-overconfidence").textContent = data.length ? `${overPct}%` : "—";
+  let descriptor = "—";
+  if (data.length) {
+    if (overPct >= 60) descriptor = "Majority overestimate their AI maturity";
+    else if (overPct >= 40) descriptor = "Substantial overestimation pattern";
+    else if (overPct >= 20) descriptor = "Some overestimation present";
+    else descriptor = "Self-assessment broadly accurate";
+  }
+  document.getElementById("gap-descriptor").textContent = descriptor;
+
+  // Gap distribution
+  if (state.charts.gapDist) state.charts.gapDist.destroy();
+  state.charts.gapDist = new Chart(document.getElementById("chart-gap-dist"), {
+    type: "doughnut",
+    data: {
+      labels: ["Aligned", "Underestimate", "Overestimate"],
+      datasets: [{
+        data: [aligned, under, over],
+        backgroundColor: [COLOURS.olive, COLOURS.denim, COLOURS.signalWarning],
+        borderWidth: 2,
+        borderColor: "#F5F2EC"
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: "right", labels: { boxWidth: 10, padding: 12 } } },
+      cutout: "60%"
+    }
+  });
+
+  // Avg gap by archetype (signed)
+  const byArch = {};
+  archOrder.forEach(k => byArch[k] = []);
+  data.forEach(r => {
+    const selfIdx = archOrder.indexOf(r.selfArchetype);
+    const calcIdx = archOrder.indexOf(r.archetype);
+    byArch[r.archetype].push(selfIdx - calcIdx);
+  });
+
+  if (state.charts.gapByArch) state.charts.gapByArch.destroy();
+  state.charts.gapByArch = new Chart(document.getElementById("chart-gap-by-arch"), {
+    type: "bar",
+    data: {
+      labels: archOrder.map(k => ARCHETYPES[k].label),
+      datasets: [{
+        data: archOrder.map(k => {
+          const arr = byArch[k];
+          return arr.length ? arr.reduce((a,b)=>a+b,0) / arr.length : 0;
+        }),
+        backgroundColor: archOrder.map(k => ARCHETYPES[k].color),
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => `${ctx.parsed.y > 0 ? "+" : ""}${ctx.parsed.y.toFixed(2)} bands` } } },
+      scales: {
+        y: { grid: { color: "rgba(13,27,42,0.08)" }, title: { display: true, text: "Bands (+ overestimate)" } },
+        x: { grid: { display: false } }
+      }
+    }
+  });
+}
+
+// ============================================================================
+// SECTION 6 — INDIVIDUAL RESPONSES
+// ============================================================================
+function renderSection6() {
+  const data = getFiltered();
+  const tbody = document.getElementById("responses-body");
+  tbody.innerHTML = "";
+
+  // Per-cell re-identification check: count responses for each (sector, LGA) combination
+  // across the full dataset (not the filtered view — risk is structural, not view-specific).
+  // If any cell falls below n=30, suppress all LGA values to "Hunter region".
+  const cellCounts = {};
+  DATA.forEach(r => {
+    const key = `${r.industrySector}|${r.LGA}`;
+    cellCounts[key] = (cellCounts[key] || 0) + 1;
+  });
+  const minCellCount = Object.values(cellCounts).reduce((min, n) => Math.min(min, n), Infinity);
+  const suppressLGA = minCellCount < 30;
+
+  // Update Section 6 header column label and suppression note visibility
+  document.getElementById("lga-header").textContent = suppressLGA ? "Region" : "LGA";
+  document.getElementById("suppression-note").classList.toggle("hidden", !suppressLGA);
+
+  if (data.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="12" style="text-align:center; color: var(--ink-muted); padding: 24px;">No responses match current filter</td></tr>`;
+    return;
+  }
+
+  const archOrder = ["reactor","experimenter","integrator","optimiser","autonomousLeader"];
+
+  data.forEach((r, idx) => {
+    const selfIdx = archOrder.indexOf(r.selfArchetype);
+    const calcIdx = archOrder.indexOf(r.archetype);
+    const signedGap = selfIdx - calcIdx;
+    const gapClass = signedGap > 0 ? "gap-positive" : signedGap < 0 ? "gap-negative" : "gap-zero";
+    const gapDisplay = signedGap > 0 ? `+${signedGap}` : signedGap;
+    const lgaDisplay = suppressLGA ? "Hunter region" : r.LGA;
+
+    const row = document.createElement("tr");
+    row.className = "expandable-row";
+    row.dataset.idx = idx;
+    row.innerHTML = `
+      <td>${fmt.date(r.timestamp)}</td>
+      <td><span class="arch-pill ${r.archetype}">${ARCHETYPES[r.archetype].label}</span></td>
+      <td class="num">${r.score}</td>
+      <td>${ARCHETYPES[r.selfArchetype]?.label || "—"}</td>
+      <td class="num ${gapClass}">${gapDisplay}</td>
+      <td>${r.industrySector}</td>
+      <td>${lgaDisplay}</td>
+      <td>${r.headcount}</td>
+      <td class="num">${r.pillar1Score}</td>
+      <td class="num">${r.pillar2Score}</td>
+      <td class="num">${r.pillar3Score}</td>
+      <td class="num">${r.pillar4Score}</td>
+    `;
+
+    const expandRow = document.createElement("tr");
+    expandRow.className = "expand-row";
+    expandRow.id = `expand-${idx}`;
+
+    let blocks = "";
+    PILLARS.forEach((p, pi) => {
+      let qs = "";
+      p.questions.forEach((q, qi) => {
+        const qNum = pi * 3 + qi + 1;
+        qs += `<div class="q-detail"><span>Q${qNum}</span><span>${r["answer_" + q]} / 4</span></div>`;
+      });
+      blocks += `<div class="pillar-block">
+        <div class="pillar-block-title">P${pi+1} · ${p.name.split(" ").slice(0,2).join(" ")}</div>
+        ${qs}
+      </div>`;
+    });
+
+    expandRow.innerHTML = `<td colspan="12" class="expand-content"><div class="question-detail">${blocks}</div></td>`;
+
+    row.addEventListener("click", () => {
+      const target = document.getElementById(`expand-${idx}`);
+      target.classList.toggle("open");
+    });
+
+    tbody.appendChild(row);
+    tbody.appendChild(expandRow);
+  });
+}
+
+// ============================================================================
+// ANALYSIS BLOCKS — "How to read this" interpretation under each chart
+// ============================================================================
+function renderAnalyses() {
+  const data = getFiltered();
+  const n = data.length;
+  const archOrder = ["reactor","experimenter","integrator","optimiser","autonomousLeader"];
+
+  // -- Pillar score distribution --
+  // Compute the dominant band per pillar and find which pillar has the most "Low" responses
+  const pillarBands = PILLARS.map(p => {
+    let low = 0, mid = 0, high = 0;
+    data.forEach(r => {
+      const v = r[p.key];
+      if (v < 33) low++;
+      else if (v < 67) mid++;
+      else high++;
+    });
+    return { pillar: p, low, mid, high };
+  });
+  const mostAtRisk = pillarBands.reduce((max, b) => b.low > max.low ? b : max, pillarBands[0]);
+
+  document.querySelector("#analysis-pillar-dist .analysis-content").innerHTML = `
+    <div class="heading">What this shows</div>
+    <p>Each pillar's responses split into three score bands: <strong>low (0–32)</strong>, <strong>mid (33–66)</strong>, and <strong>high (67+)</strong>. Tall red segments indicate organisations that are at risk on that pillar. Tall olive segments indicate strength.</p>
+    <div class="heading">Current pattern</div>
+    <p>${ n === 0 ? "No data in current filter." : `<strong>${mostAtRisk.pillar.name}</strong> currently has the highest concentration of low-scoring respondents (${mostAtRisk.low} of ${n}). This is the pillar most likely to need foundational support across the cohort.` }</p>
+    <div class="heading">How to use this</div>
+    <p>For thought leadership, the pillar with the largest red segment is the headline finding: "Hunter manufacturers are weakest on [pillar]". For client conversations, this pattern indicates where introductory products will land and where advisory services should focus. For product improvement, a pillar with no high-scoring respondents may signal a question-design problem rather than a real capability gap.</p>
+  `;
+
+  // -- Pillar correlation matrix --
+  document.querySelector("#analysis-correlation .analysis-content").innerHTML = `
+    <div class="heading">What this shows</div>
+    <p>The correlation coefficient (<strong>r</strong>) between each pair of pillars, ranging from -1 to +1. A value near +1 means the two pillars move together (organisations that score high on one tend to score high on the other). A value near 0 means they move independently. A negative value means they move in opposite directions.</p>
+    <div class="heading">How to read the bars</div>
+    <p>Navy bars (r &gt; 0.5) indicate strong positive coupling. Denim bars indicate moderate positive coupling. Red bars indicate negative correlation, which is rare and usually worth investigating.</p>
+    <div class="heading">How to use this</div>
+    <p>Strong correlations between pillars suggest that lifting one will lift the other, which is useful when prioritising client interventions. Weak correlations identify independent capabilities that need separate strategies. The Strategic Alignment ↔ Governance &amp; Risk pair is the most analytically interesting: high coupling supports the argument that AI maturity is a single underlying capability; low coupling supports the argument that maturity is multi-dimensional and must be diagnosed pillar by pillar.</p>
+    <p style="font-size: 11px; color: var(--ink-muted);">Note: correlations from a small sample are unstable. Treat as directional until n≥30.</p>
+  `;
+
+  // -- Gap distribution --
+  let over = 0, under = 0, aligned = 0;
+  data.forEach(r => {
+    const selfIdx = archOrder.indexOf(r.selfArchetype);
+    const calcIdx = archOrder.indexOf(r.archetype);
+    if (selfIdx > calcIdx) over++;
+    else if (selfIdx < calcIdx) under++;
+    else aligned++;
+  });
+  const overPct = n ? Math.round((over / n) * 100) : 0;
+  const alignedPct = n ? Math.round((aligned / n) * 100) : 0;
+  const underPct = n ? Math.round((under / n) * 100) : 0;
+
+  document.querySelector("#analysis-gap-dist .analysis-content").innerHTML = `
+    <div class="heading">What this shows</div>
+    <p>Each respondent placed themselves in an archetype before completing the diagnostic. The chart compares that self-assessment to the calculated archetype based on their answers. Three outcomes: aligned (correct), overestimate (placed themselves higher than the data supports), or underestimate (placed themselves lower).</p>
+    <div class="heading">Current pattern</div>
+    <p>${ n === 0 ? "No data in current filter." : `<strong>${alignedPct}%</strong> aligned, <strong>${overPct}%</strong> overestimated, <strong>${underPct}%</strong> underestimated. Overconfidence is the analytically significant signal — overconfident organisations are more likely to skip foundational steps and fail at implementation.` }</p>
+    <div class="heading">How to use this</div>
+    <p>For thought leadership, an overestimation rate above 50% is a publishable finding. For client conversations, the alignment gap is the entry point: "Most organisations like yours overestimate their AI maturity by one full archetype." For product improvement, a high underestimation rate would indicate the diagnostic is being read as harder than it is, which warrants question-tone review.</p>
+  `;
+
+  // -- Average gap by archetype --
+  const byArch = {};
+  archOrder.forEach(k => byArch[k] = []);
+  data.forEach(r => {
+    const selfIdx = archOrder.indexOf(r.selfArchetype);
+    const calcIdx = archOrder.indexOf(r.archetype);
+    byArch[r.archetype].push(selfIdx - calcIdx);
+  });
+  const archAverages = archOrder.map(k => ({
+    label: ARCHETYPES[k].label,
+    avg: byArch[k].length ? byArch[k].reduce((a,b)=>a+b,0) / byArch[k].length : null,
+    count: byArch[k].length
+  })).filter(a => a.avg !== null);
+  const mostOverArch = archAverages.length ? archAverages.reduce((max, a) => a.avg > max.avg ? a : max) : null;
+
+  document.querySelector("#analysis-gap-by-arch .analysis-content").innerHTML = `
+    <div class="heading">What this shows</div>
+    <p>The average alignment gap broken down by calculated archetype. Bars above zero indicate that archetype tends to overestimate; bars below zero indicate underestimation. Bars near zero indicate accurate self-assessment within that group.</p>
+    <div class="heading">Current pattern</div>
+    <p>${ !mostOverArch ? "No data in current filter." : mostOverArch.avg > 0 ? `<strong>${mostOverArch.label}</strong> shows the largest overestimation pattern (avg +${mostOverArch.avg.toFixed(2)} bands across ${mostOverArch.count} respondents). This is where the gap between self-perception and reality is widest in the cohort.` : `Self-assessment is broadly accurate or underestimated across all archetypes in the current view.` }</p>
+    <div class="heading">How to use this</div>
+    <p>The pattern reveals which maturity stages are most prone to overconfidence — typically the lower archetypes (Reactor, Experimenter) where organisations have started exploring AI without yet understanding what mature adoption requires. This is the most commercially actionable finding: it tells the sales team which client conversations need to start with a recalibration of expectations before any solution can be discussed.</p>
+  `;
+}
+
+function bindAnalysisToggles() {
+  document.querySelectorAll(".analysis-block").forEach(block => {
+    const toggle = block.querySelector(".analysis-toggle");
+    toggle.addEventListener("click", () => {
+      block.classList.toggle("open");
+    });
+  });
+}
+
+// ============================================================================
+// MASTER RENDER
+// ============================================================================
+function renderAll() {
+  renderSection1();
+  renderSection2();
+  renderSection3();
+  renderSection4();
+  renderSection5();
+  renderSection6();
+  renderAnalyses();
+}
+
+// ============================================================================
+// INIT
+// ============================================================================
+document.addEventListener("DOMContentLoaded", async () => {
+  await loadData();
+  updateSourceIndicator();
+  populateFilters();
+  bindFilterEvents();
+  renderAll();
+  bindAnalysisToggles();
+});
+</script>
+
+</body>
+</html>
