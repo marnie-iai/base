@@ -143,7 +143,7 @@ body {
 /* ---- FUNNEL ---- */
 .funnel-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: 1px;
   background: var(--border);
   border: 1px solid var(--border);
@@ -829,7 +829,7 @@ body {
 }
 
 @media (max-width: 900px) {
-  .funnel-grid { grid-template-columns: repeat(4, 1fr); }
+  .funnel-grid { grid-template-columns: repeat(3, 1fr); }
   .site-grid, .arch-grid { grid-template-columns: repeat(2, 1fr); }
   .li-grid, .connections-grid { grid-template-columns: 1fr; }
   .phase2-parked { grid-template-columns: 1fr 1fr; }
@@ -850,7 +850,7 @@ body {
   <div class="header-right">
     <div class="live-badge"><span class="live-dot"></span>Live Data &mdash; Phase 1</div><br>
     INTEGRATED AI &nbsp;|&nbsp; CONFIDENTIAL<br>
-    Built by Vex &mdash; 1 May 2026 &mdash; v1.1 12 May 2026<br>
+    Built by Vex &mdash; 1 May 2026 &mdash; v1.2 12 May 2026<br>
     Refresh cadence: Daily 06:00 AEST
   </div>
 </div>
@@ -898,22 +898,15 @@ body {
   </div>
   <div class="funnel-stage">
     <div class="fs-num">05</div>
-    <div class="fs-label">Anon Completions</div>
+    <div class="fs-label">Diagnostic Completions</div>
     <div class="num-pending" id="s5-anon">&mdash;</div>
     <div class="fs-target">Target: 30 / month</div>
     <div class="fs-rate" id="s5-rate">&mdash;</div>
     <div class="fs-trend"><span class="data-source-tag">Sheets &middot; Sheet 2</span></div>
   </div>
-  <div class="funnel-stage highlight">
-    <div class="fs-num">06</div>
-    <div class="fs-label">Known Completions</div>
-    <div class="num-pending" style="color:var(--white)" id="s6-known">&mdash;</div>
-    <div class="fs-target">Target: 15 / month</div>
-    <div class="fs-rate" id="s6-rate">&mdash;</div>
-    <div class="fs-trend"><span class="data-source-tag" style="background:rgba(240,192,32,0.15);color:var(--solar)">Sheets &middot; Sheet 1</span></div>
-  </div>
+
   <div class="funnel-stage">
-    <div class="fs-num">07</div>
+    <div class="fs-num">06</div>
     <div class="fs-label">Briefing Clicks</div>
     <div class="num-pending" id="s7-brief">&mdash;</div>
     <div class="fs-target">&mdash;</div>
@@ -922,51 +915,9 @@ body {
   </div>
 </div>
 
-<!-- Anon→Known prominent callout -->
-<div class="anon-known-rate">
-  <div>
-    <div class="akr-label">Primary Metric &mdash; Anonymous to Known Conversion Rate</div>
-    <div class="akr-status" id="akr-status">Awaiting data &mdash; Sheet 1 and Sheet 2 required</div>
-  </div>
-  <div class="akr-value" id="akr-value">&mdash;%</div>
-  <div class="akr-note">Target: 50%. Gate 1 floor: 25%. Below 25% indicates a value exchange problem &mdash; report is not earning the email ask. This is the most important single metric on this dashboard.</div>
-</div>
 
-<!-- Gate logic -->
-<div class="section-label">Gate Logic</div>
 
-<div class="gate-grid" style="margin-bottom:2rem;">
-  <div class="gate-card">
-    <div class="gate-header">Gate 1 &mdash; Anonymous to Known Conversion Rate &nbsp;|&nbsp; Target: 50% &nbsp;|&nbsp; Floor: 25%</div>
-    <div class="gate-scenarios">
-      <div class="gate-scenario worst">
-        <span class="gate-badge">&#9873; Below 25%</span>
-        Report isn't compelling enough. People take the score and leave.<br><br>
-        <strong>Levers:</strong> Rewrite score page to tease report. Add sample report page to score screen. Test email ask framing. Check archetype mix &mdash; Reactors convert lower.
-      </div>
-      <div class="gate-scenario best">
-        <span class="gate-badge">&#10003; Above 70%</span>
-        Report earning the ask consistently.<br><br>
-        <strong>Levers:</strong> Confirm report delivery is automated. Check nurture sequence capacity. Flag to Reid: consider second email capture point. Signal to accelerate paid spend.
-      </div>
-    </div>
-  </div>
-  <div class="gate-card">
-    <div class="gate-header">Gate 2 &mdash; Known Completions Volume &nbsp;|&nbsp; Target: 25/month by Month 3 &nbsp;|&nbsp; Floor: 10/month</div>
-    <div class="gate-scenarios">
-      <div class="gate-scenario worst">
-        <span class="gate-badge">&#9873; Below 10/month</span>
-        Not enough warm leads entering the pipeline.<br><br>
-        <strong>Levers:</strong> Activate flex $1,000 into best paid channel early. Accelerate Wave 3 send. Review landing page conversion. Bring forward LinkedIn or Google if Reddit underperforming.
-      </div>
-      <div class="gate-scenario best">
-        <span class="gate-badge">&#10003; Above 50/month</span>
-        More leads than Marnie can follow up personally.<br><br>
-        <strong>Levers:</strong> Pause or reduce paid spend. Ensure nurture sequences are qualifying. Piper to triage &mdash; Integrator and Optimiser first. Flag to Reid: capacity conversation needed.
-      </div>
-    </div>
-  </div>
-</div>
+
 
 <!-- ======= SECTION 2: LINKEDIN PERFORMANCE ======= -->
 <div class="section-label">02 &mdash; Organic LinkedIn Performance</div>
@@ -1119,14 +1070,14 @@ body {
   <tbody id="blog-rows">
     <tr>
       <td colspan="4" style="text-align:center;padding:1.5rem;color:var(--muted);font-size:0.65rem;font-style:italic;">
-        Awaiting Sheet 4 data &mdash; Make scenario to be activated once GA4 custom events confirmed firing.
+        Awaiting GA4 data &mdash; populates automatically once Make scenario (id:5027574) is activated.
       </td>
     </tr>
   </tbody>
 </table>
 
 <!-- ======= SECTION 4: ARCHETYPE DISTRIBUTION ======= -->
-<div class="section-label">04 &mdash; Archetype Distribution (Anonymous Completions)</div>
+<div class="section-label">04 &mdash; Archetype Distribution (Index Completions)</div>
 
 <div class="arch-grid" style="margin-bottom:1px;">
   <div class="arch-card">
@@ -1163,7 +1114,7 @@ body {
 
 <div class="arch-summary">
   <div class="arch-sum-card">
-    <div class="arch-sum-label">Total Anonymous Completions</div>
+    <div class="arch-sum-label">Total Index Completions</div>
     <div class="arch-sum-value" id="arch-total">&mdash;</div>
     <div class="arch-sum-sub">Source: Sheet 2</div>
   </div>
@@ -1180,7 +1131,7 @@ body {
 </div>
 
 <div style="background:var(--ground2);border:1px solid var(--border);border-top:none;padding:0.75rem 1rem;margin-bottom:2rem;font-size:0.62rem;color:var(--muted);line-height:1.6;">
-  <strong style="color:var(--navy);">Note:</strong> This data feeds the Index Report in Phase 3. Even at low completion counts it begins telling the sector story. Publication threshold remains 30 to 50 completions before benchmark data is credible to publish externally.
+  <strong style="color:var(--navy);">Note:</strong> Archetype distribution across all Index completions to date. Publication threshold: 30 completions minimum before benchmark data is credible to publish externally.
 </div>
 
 <!-- ======= SECTION 5: CAMPAIGN TARGETS vs ACTUAL ======= -->
@@ -1197,27 +1148,15 @@ body {
     </tr>
   </thead>
   <tbody>
+
     <tr>
-      <td><span class="metric-name">Known Completions</span></td>
-      <td>150</td>
-      <td>15</td>
-      <td id="tv-known">&mdash;</td>
-      <td id="tv-known-rag"><span class="rag-na">No Data</span></td>
-    </tr>
-    <tr>
-      <td><span class="metric-name">Anonymous Completions</span></td>
+      <td><span class="metric-name">Diagnostic Completions</span></td>
       <td>300</td>
       <td>30</td>
       <td id="tv-anon">&mdash;</td>
       <td id="tv-anon-rag"><span class="rag-na">No Data</span></td>
     </tr>
-    <tr>
-      <td><span class="metric-name">Anon &rarr; Known Rate</span><div style="font-size:0.6rem;color:var(--muted);font-family:var(--mono)">Gate 1 &mdash; floor 25%</div></td>
-      <td>50%</td>
-      <td>50%</td>
-      <td id="tv-akr">&mdash;%</td>
-      <td id="tv-akr-rag"><span class="rag-na">No Data</span></td>
-    </tr>
+
     <tr>
       <td><span class="metric-name">Briefing Clicks</span></td>
       <td>&mdash;</td>
@@ -1302,11 +1241,8 @@ body {
 const CONFIG = {
   SPREADSHEET_ID: '1STLoDFRfWGOMft4EuUma8kcCDVAiLp-T8tDLDjPq7eI',
   API_KEY: 'AIzaSyAqB6g7H2Et83P9FhShQmKoY2BsJrihlxA',
-  MONTH_TARGET_KNOWN: 15,
   MONTH_TARGET_ANON: 30,
   MONTH_TARGET_SESSIONS: 250,
-  AKR_TARGET: 0.50,
-  AKR_FLOOR: 0.25
 };
 
 // ISO week helper
@@ -1399,7 +1335,7 @@ function initWeekNav() {
 
 // --- Section 1: Diagnostic funnel ---
 async function loadFunnel() {
-  const rows = await fetchSheet('Sheet 4', 'A2:U200');
+  const rows = await fetchSheet('GA4 Daily', 'A2:U200');
   if (!rows || rows.length === 0) return;
 
   let totals = Array(21).fill(0);
@@ -1465,31 +1401,13 @@ async function loadCompletions() {
   const known = knownRows ? knownRows.length : null;
   const anon = anonRows ? anonRows.length : null;
 
-  setNum('s5-anon', anon);
-  setNum('s6-known', known, true);
+  setNum('s5-anon', anon); // Diagnostic completions
   setNum('tv-known', known);
-  setNum('tv-anon', anon);
+  setNum('tv-anon', anon); // Diagnostic completions
 
-  document.getElementById('tv-known-rag').innerHTML = ragStatus(known, CONFIG.MONTH_TARGET_KNOWN);
   document.getElementById('tv-anon-rag').innerHTML = ragStatus(anon, CONFIG.MONTH_TARGET_ANON);
 
-  if (known !== null && anon !== null && anon > 0) {
-    const akr = known / anon;
-    document.getElementById('akr-value').textContent = (akr * 100).toFixed(1) + '%';
-    document.getElementById('tv-akr').textContent = (akr * 100).toFixed(1) + '%';
-    document.getElementById('tv-akr-rag').innerHTML = ragPct(akr, CONFIG.AKR_TARGET);
 
-    if (akr < CONFIG.AKR_FLOOR) {
-      document.getElementById('akr-status').textContent = '⚠ Below gate floor — value exchange problem';
-      document.getElementById('akr-status').style.color = 'var(--signal-warning)';
-    } else if (akr >= CONFIG.AKR_TARGET) {
-      document.getElementById('akr-status').textContent = '✓ On target';
-      document.getElementById('akr-status').style.color = 'var(--green)';
-    } else {
-      document.getElementById('akr-status').textContent = 'Below target — watch';
-      document.getElementById('akr-status').style.color = 'var(--amber)';
-    }
-  }
 
   if (anonRows && anonRows.length > 0) {
     loadArchetypes(anonRows, anon);
@@ -1547,7 +1465,7 @@ function loadArchetypes(rows, total) {
 
 // --- Section 2: LinkedIn (Sheet 3) ---
 async function loadLinkedIn() {
-  const rows = await fetchSheet('Sheet3', 'A2:I100');
+  const rows = await fetchSheet('LinkedIn', 'A2:I100');
   if (!rows || rows.length === 0) return;
 
   // Schema: date · postTitle · postUrl · impressions · clicks · ctr · likes · comments · shares

@@ -1131,29 +1131,12 @@ function setTimestamp() {
 
 // ---- Section 1: Completion counter ----
 async function loadCompletions() {
+  // Sheet2 = diagnostic completions (all Index completions, row count = total)
   let count = null;
-
-  // Primary: attempt Base API
-  try {
-    const res = await fetch(`${CONFIG.BASE_URL}/api/completions/count`, {
-      headers: { 'Accept': 'application/json' }
-    });
-    if (res.ok) {
-      const data = await res.json();
-      count = parseInt(data.count || data.total || 0);
-      document.getElementById('lu-index').textContent = 'Live via Base';
-    }
-  } catch (e) {
-    // Base not reachable — fall through to Sheets fallback
-  }
-
-  // Fallback: Sheet 1 row count (known completions)
-  if (count === null) {
-    const rows = await fetchSheet('Sheet 1', 'A2:A1000');
-    if (rows) {
-      count = rows.length;
-      document.getElementById('lu-index').textContent = 'Sheet 1 (daily)';
-    }
+  const compRows = await fetchSheet('Sheet2', 'A2:A1000');
+  if (compRows) {
+    count = compRows.length;
+    document.getElementById('lu-index').textContent = `${count} completions`;
   }
 
   if (count === null) return;
@@ -1189,7 +1172,7 @@ async function loadCompletions() {
 
 // ---- Section 2: LinkedIn (Sheet 3) ----
 async function loadLinkedIn() {
-  const rows = await fetchSheet('Sheet 3', 'A2:I100');
+  const rows = await fetchSheet('LinkedIn', 'A2:I100');
   if (!rows || rows.length === 0) return;
 
   document.getElementById('lu-linkedin').textContent = 'Sheet 3 \u2014 last Wilder write';
@@ -1244,7 +1227,7 @@ async function loadLinkedIn() {
 
 // ---- Section 3: Wave performance (Sheet 5) ----
 async function loadWaves() {
-  const rows = await fetchSheet('Sheet 5', 'A2:E10');
+  const rows = await fetchSheet('Wave Performance', 'A2:E10');
   if (!rows || rows.length === 0) return;
 
   rows.forEach(row => {
@@ -1278,7 +1261,7 @@ async function loadWaves() {
 
 // ---- Section 4: Traffic (Sheet 4) ----
 async function loadTraffic() {
-  const rows = await fetchSheet('Sheet 4', 'A2:U200');
+  const rows = await fetchSheet('GA4 Daily', 'A2:U200');
   if (!rows || rows.length === 0) return;
 
   let totals = Array(21).fill(0);
@@ -1304,8 +1287,8 @@ async function loadTraffic() {
     setBar('bar-direct-t', 'pct-direct-t', srcDirect / srcTotal);
   }
 
-  // Conversion rate
-  const compRows = await fetchSheet('Sheet 1', 'A2:A1000');
+  // Conversion rate — sessions → diagnostic completions (Sheet2)
+  const compRows = await fetchSheet('Sheet2', 'A2:A1000');
   const comp = compRows ? compRows.length : 0;
   if (sessions > 0 && comp > 0) {
     const rate = comp / sessions;
@@ -1362,7 +1345,7 @@ function buildWeeklyTable() {
 }
 
 async function loadWeeklyData() {
-  const rows = await fetchSheet('Sheet 6', 'A2:D20');
+  const rows = await fetchSheet('Weekly Summary', 'A2:D20');
   if (!rows || rows.length === 0) return;
 
   rows.forEach(row => {
