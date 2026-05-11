@@ -507,6 +507,9 @@ app.get('/dashboards/clear-ground', requireDashboardAuth, (_req, res) => {
 app.get('/dashboards/clear-ground-metrics', requireDashboardAuth, (_req, res) => {
   res.sendFile(path.join(__dirname, 'dashboards', 'clear-ground-metrics.html'));
 });
+app.get('/dashboards/iai-website', requireDashboardAuth, (_req, res) => {
+  res.sendFile(path.join(__dirname, 'dashboards', 'iai-website.html'));
+});
 
 // Static assets within dashboards (if any future dashboards need them)
 app.use('/dashboards', requireDashboardAuth, express.static(path.join(__dirname, 'dashboards')));

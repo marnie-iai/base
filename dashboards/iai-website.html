@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Integrated AI — Website Analytics</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --denim: #4A6584;
+  --solar: #F0C020;
+  --ground: #F5F2EC;
+  --ground2: #EDE9E0;
+  --navy: #0D1B2A;
+  --olive: #7A8C4A;
+  --ink: #1C1A16;
+  --muted: #7A7060;
+  --border: #D8D2C4;
+  --white: #FDFBF8;
+  --green: #2E7D5A;
+  --green-bg: #E8F5EF;
+  --amber: #B45309;
+  --amber-bg: #FEF3E2;
+  --signal-warning: #C0392B;
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'Plus Jakarta Sans', sans-serif;
+}
+
+body {
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--mono);
+  min-height: 100vh;
+  padding: 2rem;
+}
+
+/* HEADER */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid var(--navy);
+}
+
+.header-left p.eyebrow {
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--denim);
+  margin-bottom: 0.3rem;
+}
+
+.header-left h1 {
+  font-family: var(--sans);
+  font-size: 2.2rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--navy);
+}
+
+.header-left .sub {
+  font-size: 0.65rem;
+  color: var(--muted);
+  margin-top: 0.4rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.header-right {
+  text-align: right;
+  font-size: 0.65rem;
+  color: var(--muted);
+  letter-spacing: 0.05em;
+  line-height: 1.8;
+}
+
+.live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: var(--navy);
+  color: var(--solar);
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.6rem;
+  margin-bottom: 0.4rem;
+}
+
+.live-dot {
+  width: 6px; height: 6px;
+  background: var(--solar);
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* STATUS BAR */
+.status-bar {
+  background: var(--ground2);
+  border: 1px solid var(--border);
+  padding: 0.55rem 1rem;
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.62rem;
+  color: var(--muted);
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.sb-item { display: flex; gap: 0.4rem; align-items: center; }
+.sb-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--border); }
+.sb-dot.live { background: var(--olive); }
+.sb-dot.pending { background: var(--amber); }
+.sb-value { color: var(--ink); font-weight: 500; }
+
+/* SECTION LABEL */
+.section-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* HEADLINE STATS */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: var(--white);
+  padding: 1.25rem 1.1rem;
+}
+
+.stat-card.accent {
+  background: var(--navy);
+}
+
+.stat-label {
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.5rem;
+}
+.stat-card.accent .stat-label { color: rgba(255,255,255,0.45); }
+
+.stat-value {
+  font-family: var(--sans);
+  font-size: 2.4rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--navy);
+}
+.stat-card.accent .stat-value { color: var(--solar); }
+
+.stat-sub {
+  font-size: 0.6rem;
+  color: var(--muted);
+  margin-top: 0.3rem;
+}
+.stat-card.accent .stat-sub { color: rgba(255,255,255,0.4); }
+
+.stat-pending {
+  font-family: var(--sans);
+  font-size: 2.4rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--muted);
+}
+
+/* CHART */
+.chart-wrap {
+  background: var(--white);
+  border: 1px solid var(--border);
+  padding: 1.25rem 1.1rem;
+  margin-bottom: 2rem;
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 1rem;
+}
+
+.chart-title {
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.chart-meta {
+  font-size: 0.58rem;
+  color: var(--muted);
+}
+
+#sessions-chart {
+  width: 100%;
+  height: 120px;
+  display: block;
+}
+
+.chart-pending {
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  color: var(--muted);
+  font-style: italic;
+  font-family: var(--sans);
+  border: 1px dashed var(--border);
+}
+
+/* SOURCES */
+.sources-wrap {
+  background: var(--white);
+  border: 1px solid var(--border);
+  padding: 1.25rem 1.1rem;
+  margin-bottom: 2rem;
+}
+
+.src-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+.src-row:last-child { margin-bottom: 0; }
+
+.src-name {
+  font-size: 0.65rem;
+  color: var(--ink);
+  font-family: var(--sans);
+  width: 130px;
+  flex-shrink: 0;
+}
+
+.src-bar-wrap {
+  flex: 1;
+  height: 6px;
+  background: var(--ground2);
+  position: relative;
+}
+
+.src-bar-fill {
+  height: 100%;
+  background: var(--denim);
+  transition: width 0.8s ease;
+}
+.src-bar-fill.olive { background: var(--olive); }
+.src-bar-fill.solar { background: var(--solar); }
+.src-bar-fill.muted { background: var(--muted); }
+
+.src-count {
+  font-size: 0.65rem;
+  color: var(--navy);
+  font-weight: 600;
+  width: 40px;
+  text-align: right;
+}
+
+.src-pct {
+  font-size: 0.6rem;
+  color: var(--muted);
+  width: 36px;
+  text-align: right;
+}
+
+/* TOP PAGES */
+.pages-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  margin-bottom: 2rem;
+}
+
+.page-card {
+  background: var(--white);
+  padding: 1.25rem 1.1rem;
+}
+
+.page-card.highlight { background: var(--denim); }
+
+.page-label {
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.4rem;
+}
+.page-card.highlight .page-label { color: rgba(255,255,255,0.5); }
+
+.page-path {
+  font-size: 0.62rem;
+  color: var(--denim);
+  margin-bottom: 0.6rem;
+  font-family: var(--mono);
+}
+.page-card.highlight .page-path { color: var(--solar); }
+
+.page-value {
+  font-family: var(--sans);
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--navy);
+}
+.page-card.highlight .page-value { color: var(--white); }
+
+.page-sub {
+  font-size: 0.6rem;
+  color: var(--muted);
+  margin-top: 0.25rem;
+}
+.page-card.highlight .page-sub { color: rgba(255,255,255,0.4); }
+
+/* FUNNEL */
+.funnel-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  margin-bottom: 0.5rem;
+}
+
+.funnel-stage {
+  background: var(--white);
+  padding: 1.1rem 0.9rem;
+}
+
+.funnel-stage.hl {
+  background: var(--navy);
+}
+
+.fn {
+  font-size: 0.55rem;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  margin-bottom: 0.5rem;
+}
+.funnel-stage.hl .fn { color: rgba(255,255,255,0.35); }
+
+.fl {
+  font-size: 0.6rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--denim);
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  line-height: 1.3;
+  font-family: var(--sans);
+}
+.funnel-stage.hl .fl { color: var(--solar); }
+
+.fv {
+  font-family: var(--sans);
+  font-size: 1.9rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--navy);
+}
+.funnel-stage.hl .fv { color: var(--white); }
+.fv.pending { color: var(--muted); }
+
+.fdrop {
+  font-size: 0.6rem;
+  color: var(--muted);
+  margin-top: 0.4rem;
+  padding-top: 0.4rem;
+  border-top: 1px solid var(--border);
+}
+.funnel-stage.hl .fdrop { border-top-color: rgba(255,255,255,0.12); }
+
+/* FOOTER */
+.dash-footer {
+  font-size: 0.6rem;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  display: flex;
+  justify-content: space-between;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  margin-top: 2rem;
+}
+
+/* PENDING NOTICE */
+.pending-notice {
+  background: var(--amber-bg);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--amber);
+  padding: 0.6rem 1rem;
+  font-size: 0.62rem;
+  color: var(--amber);
+  font-family: var(--sans);
+  margin-bottom: 1rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 900px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .pages-grid { grid-template-columns: 1fr; }
+  .funnel-grid { grid-template-columns: repeat(3, 1fr); }
+  body { padding: 1rem; }
+  .header { flex-direction: column; gap: 1rem; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <p class="eyebrow">Integrated AI</p>
+    <h1>Website Analytics</h1>
+    <p class="sub">integratedai.com.au &nbsp;|&nbsp; Daily via GA4 &nbsp;|&nbsp; Internal</p>
+  </div>
+  <div class="header-right">
+    <div class="live-badge"><span class="live-dot"></span>Live &mdash; GA4 Daily</div><br>
+    NOT FOR DISTRIBUTION<br>
+    Built by Vex &nbsp;|&nbsp; 12 May 2026 &mdash; v1.0<br>
+    Refresh cadence: Daily 06:41 AEST
+  </div>
+</div>
+
+<div class="status-bar">
+  <div class="sb-item">
+    <span class="sb-dot live"></span>
+    <span>GA4 data:</span>
+    <span class="sb-value" id="sb-last-date">Loading&hellip;</span>
+  </div>
+  <div class="sb-item">
+    <span class="sb-dot live"></span>
+    <span>Days of data:</span>
+    <span class="sb-value" id="sb-days">&mdash;</span>
+  </div>
+  <div class="sb-item">
+    <span class="sb-dot pending"></span>
+    <span>Diagnostic events:</span>
+    <span class="sb-value">Pending GA4 DebugView confirm</span>
+  </div>
+  <div class="sb-item">
+    <span>Page loaded:</span>
+    <span class="sb-value" id="sb-ts">&mdash;</span>
+  </div>
+</div>
+
+<!-- ======= 01 HEADLINE NUMBERS ======= -->
+<div class="section-label">01 &mdash; Headline numbers (month to date)</div>
+
+<div class="stats-grid">
+  <div class="stat-card accent">
+    <div class="stat-label">Total sessions</div>
+    <div id="h-sessions" class="stat-pending">&mdash;</div>
+    <div class="stat-sub">integratedai.com.au MTD</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Yesterday</div>
+    <div id="h-yesterday" class="stat-pending">&mdash;</div>
+    <div class="stat-sub">Sessions</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Index page</div>
+    <div id="h-index" class="stat-pending">&mdash;</div>
+    <div class="stat-sub">Sessions MTD</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Insights &amp; blog</div>
+    <div id="h-insights" class="stat-pending">&mdash;</div>
+    <div class="stat-sub">Sessions MTD</div>
+  </div>
+</div>
+
+<!-- ======= 02 SESSIONS OVER TIME ======= -->
+<div class="section-label">02 &mdash; Sessions over time</div>
+
+<div class="chart-wrap">
+  <div class="chart-header">
+    <span class="chart-title">Daily sessions</span>
+    <span class="chart-meta" id="chart-range">&mdash;</span>
+  </div>
+  <div id="chart-container">
+    <div class="chart-pending">Awaiting data &mdash; builds from tonight&rsquo;s Make run</div>
+  </div>
+</div>
+
+<!-- ======= 03 TRAFFIC SOURCES ======= -->
+<div class="section-label">03 &mdash; Traffic sources (month to date)</div>
+
+<div class="sources-wrap">
+  <div class="src-row">
+    <div class="src-name">Organic search</div>
+    <div class="src-bar-wrap"><div class="src-bar-fill" id="bar-organic" style="width:0%"></div></div>
+    <div class="src-count" id="cnt-organic">&mdash;</div>
+    <div class="src-pct" id="pct-organic">&mdash;</div>
+  </div>
+  <div class="src-row">
+    <div class="src-name">Direct</div>
+    <div class="src-bar-wrap"><div class="src-bar-fill solar" id="bar-direct" style="width:0%"></div></div>
+    <div class="src-count" id="cnt-direct">&mdash;</div>
+    <div class="src-pct" id="pct-direct">&mdash;</div>
+  </div>
+  <div class="src-row">
+    <div class="src-name">Social (LinkedIn)</div>
+    <div class="src-bar-wrap"><div class="src-bar-fill olive" id="bar-social" style="width:0%"></div></div>
+    <div class="src-count" id="cnt-social">&mdash;</div>
+    <div class="src-pct" id="pct-social">&mdash;</div>
+  </div>
+  <div class="src-row">
+    <div class="src-name">Other</div>
+    <div class="src-bar-wrap"><div class="src-bar-fill muted" id="bar-other" style="width:0%"></div></div>
+    <div class="src-count" id="cnt-other">&mdash;</div>
+    <div class="src-pct" id="pct-other">&mdash;</div>
+  </div>
+</div>
+
+<!-- ======= 04 TOP PAGES ======= -->
+<div class="section-label">04 &mdash; Top pages</div>
+
+<div class="pages-grid">
+  <div class="page-card highlight">
+    <div class="page-label">Hunter AI Index</div>
+    <div class="page-path">/index</div>
+    <div id="p-index" class="page-value" style="color:var(--white)">&mdash;</div>
+    <div class="page-sub">Sessions MTD</div>
+  </div>
+  <div class="page-card">
+    <div class="page-label">Insights &amp; blog</div>
+    <div class="page-path">/insights + /blog</div>
+    <div id="p-insights" class="page-value">&mdash;</div>
+    <div class="page-sub">Sessions MTD</div>
+  </div>
+  <div class="page-card">
+    <div class="page-label">Blog avg. time on page</div>
+    <div class="page-path">/blog</div>
+    <div id="p-blog-time" class="page-value">&mdash;</div>
+    <div class="page-sub" id="p-blog-sub">minutes &mdash; awaiting data</div>
+  </div>
+</div>
+
+<!-- ======= 05 DIAGNOSTIC FUNNEL ======= -->
+<div class="section-label">05 &mdash; Diagnostic funnel (cumulative)</div>
+
+<div class="pending-notice">
+  GA4 custom events pending DebugView confirmation. Funnel populates automatically once Make scenario activates and events fire.
+</div>
+
+<div class="funnel-grid">
+  <div class="funnel-stage">
+    <div class="fn">01</div>
+    <div class="fl">Diagnostic starts</div>
+    <div id="f-start" class="fv pending">&mdash;</div>
+    <div class="fdrop" id="fd-start">&mdash;</div>
+  </div>
+  <div class="funnel-stage">
+    <div class="fn">02</div>
+    <div class="fl">Page 1 complete</div>
+    <div id="f-p1" class="fv pending">&mdash;</div>
+    <div class="fdrop" id="fd-p1">&mdash;</div>
+  </div>
+  <div class="funnel-stage hl">
+    <div class="fn">03</div>
+    <div class="fl">Diagnostic complete</div>
+    <div id="f-complete" class="fv pending" style="color:var(--white)">&mdash;</div>
+    <div class="fdrop" id="fd-complete">&mdash;</div>
+  </div>
+  <div class="funnel-stage">
+    <div class="fn">04</div>
+    <div class="fl">Results view</div>
+    <div id="f-results" class="fv pending">&mdash;</div>
+    <div class="fdrop" id="fd-results">&mdash;</div>
+  </div>
+  <div class="funnel-stage">
+    <div class="fn">05</div>
+    <div class="fl">Briefing click</div>
+    <div id="f-brief" class="fv pending">&mdash;</div>
+    <div class="fdrop">Sales intent signal</div>
+  </div>
+</div>
+
+<div style="background:var(--ground2);border:1px solid var(--border);border-top:none;padding:0.6rem 1rem;margin-bottom:2rem;font-size:0.6rem;color:var(--muted);font-family:var(--sans);">
+  Cumulative totals since Make activation. Drop-off % shown below each stage.
+</div>
+
+<!-- FOOTER -->
+<div class="dash-footer">
+  <span>IAI WEBSITE ANALYTICS &nbsp;|&nbsp; INTEGRATED AI &nbsp;|&nbsp; INTERNAL ONLY &nbsp;|&nbsp; VEX v1.0 &mdash; 12 MAY 2026</span>
+  <span>GA4: G-S7SCLTB393 &nbsp;|&nbsp; Daily pull via Make scenario 5027574</span>
+</div>
+
+<script>
+const CONFIG = {
+  SPREADSHEET_ID: '1STLoDFRfWGOMft4EuUma8kcCDVAiLp-T8tDLDjPq7eI',
+  API_KEY: 'AIzaSyAqB6g7H2Et83P9FhShQmKoY2BsJrihlxA',
+};
+
+function fmt(n) {
+  if (n === null || n === undefined || isNaN(n)) return '\u2014';
+  return Math.round(n).toLocaleString('en-AU');
+}
+
+function fmtMins(secs) {
+  if (!secs || isNaN(secs)) return '\u2014';
+  const m = Math.floor(secs / 60);
+  const s = Math.round(secs % 60);
+  return m > 0 ? `${m}m ${s}s` : `${s}s`;
+}
+
+function pct(a, b) {
+  if (!b || b === 0) return '\u2014%';
+  return Math.round((a / b) * 100) + '%';
+}
+
+function dropPct(curr, prev) {
+  if (!prev || prev === 0 || !curr) return '\u2014';
+  const drop = Math.round(((prev - curr) / prev) * 100);
+  return drop > 0 ? `\u2193 ${drop}% drop-off` : 'No drop-off';
+}
+
+async function fetchSheet(name, range) {
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SPREADSHEET_ID}/values/${encodeURIComponent(name + '!' + range)}?key=${CONFIG.API_KEY}`;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.values || [];
+  } catch(e) {
+    return null;
+  }
+}
+
+function setLive(id, val, accent) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = fmt(val);
+  el.className = accent ? 'stat-value' : 'stat-value';
+  if (val !== null && !isNaN(val)) {
+    el.style.color = accent ? 'var(--solar)' : 'var(--navy)';
+    el.style.fontFamily = 'var(--sans)';
+    el.style.fontSize = '2.4rem';
+    el.style.fontWeight = '700';
+  }
+}
+
+async function init() {
+  // Timestamp
+  const now = new Date();
+  document.getElementById('sb-ts').textContent = now.toLocaleString('en-AU', {
+    day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
+    timeZone: 'Australia/Sydney'
+  }) + ' AEST';
+
+  const rows = await fetchSheet('GA4 Daily', 'A2:U200');
+  if (!rows || rows.length === 0) return;
+
+  // Filter out all-zero rows
+  const dataRows = rows.filter(r => r.slice(1).some(v => parseFloat(v) > 0));
+
+  // Status bar
+  const lastRow = rows[rows.length - 1];
+  document.getElementById('sb-last-date').textContent = lastRow[0] || '\u2014';
+  document.getElementById('sb-days').textContent = dataRows.length > 0 ? dataRows.length : rows.length;
+
+  // Totals
+  const totals = Array(21).fill(0);
+  rows.forEach(r => {
+    for (let i = 1; i <= 20; i++) totals[i] += parseFloat(r[i] || 0);
+  });
+
+  // Yesterday = last row
+  const yest = parseFloat(lastRow[1] || 0);
+
+  // Headline stats
+  setLive('h-sessions', totals[1], true);
+  document.getElementById('h-sessions').style.color = 'var(--solar)';
+
+  const yestEl = document.getElementById('h-yesterday');
+  yestEl.textContent = fmt(yest);
+  yestEl.style.color = 'var(--navy)';
+  yestEl.style.fontFamily = 'var(--sans)';
+  yestEl.style.fontSize = '2.4rem';
+  yestEl.style.fontWeight = '700';
+
+  const idxEl = document.getElementById('h-index');
+  idxEl.textContent = fmt(totals[2]);
+  idxEl.style.color = 'var(--navy)';
+  idxEl.style.fontFamily = 'var(--sans)';
+  idxEl.style.fontSize = '2.4rem';
+  idxEl.style.fontWeight = '700';
+
+  const insTotal = totals[3] + totals[8];
+  const insEl = document.getElementById('h-insights');
+  insEl.textContent = fmt(insTotal);
+  insEl.style.color = 'var(--navy)';
+  insEl.style.fontFamily = 'var(--sans)';
+  insEl.style.fontSize = '2.4rem';
+  insEl.style.fontWeight = '700';
+
+  // Page cards
+  document.getElementById('p-index').textContent = fmt(totals[2]);
+  document.getElementById('p-insights').textContent = fmt(insTotal);
+
+  const avgBlogTime = rows.reduce((a, r) => a + parseFloat(r[9] || 0), 0) / rows.length;
+  document.getElementById('p-blog-time').textContent = fmtMins(avgBlogTime);
+  document.getElementById('p-blog-sub').textContent = 'avg time on page';
+
+  // Traffic sources
+  const srcTotal = totals[4] + totals[5] + totals[6] + totals[7];
+  if (srcTotal > 0) {
+    const sources = [
+      ['bar-organic', 'cnt-organic', 'pct-organic', totals[4]],
+      ['bar-direct',  'cnt-direct',  'pct-direct',  totals[5]],
+      ['bar-social',  'cnt-social',  'pct-social',  totals[6]],
+      ['bar-other',   'cnt-other',   'pct-other',   totals[7]],
+    ];
+    const max = Math.max(...sources.map(s => s[3]));
+    sources.forEach(([barId, cntId, pctId, val]) => {
+      const bar = document.getElementById(barId);
+      const cnt = document.getElementById(cntId);
+      const p = document.getElementById(pctId);
+      if (bar) bar.style.width = max > 0 ? Math.round((val / max) * 100) + '%' : '0%';
+      if (cnt) cnt.textContent = fmt(val);
+      if (p) p.textContent = pct(val, srcTotal);
+    });
+  }
+
+  // Sessions chart — only render if we have data rows
+  if (dataRows.length > 0) {
+    const container = document.getElementById('chart-container');
+    const last30 = rows.slice(-30);
+    const vals = last30.map(r => parseFloat(r[1] || 0));
+    const maxVal = Math.max(...vals, 1);
+    const chartH = 120;
+    const barW = Math.floor(680 / last30.length) - 2;
+
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('width', '100%');
+    svg.setAttribute('height', chartH);
+    svg.setAttribute('viewBox', `0 0 680 ${chartH}`);
+
+    last30.forEach((r, i) => {
+      const val = parseFloat(r[1] || 0);
+      const barH = Math.max(val > 0 ? Math.round((val / maxVal) * (chartH - 20)) : 2, val > 0 ? 3 : 1);
+      const x = i * (barW + 2);
+      const y = chartH - barH;
+
+      const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      rect.setAttribute('x', x);
+      rect.setAttribute('y', y);
+      rect.setAttribute('width', barW);
+      rect.setAttribute('height', barH);
+      rect.setAttribute('fill', val > 0 ? '#4A6584' : '#D8D2C4');
+
+      const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+      title.textContent = `${r[0]}: ${fmt(val)} sessions`;
+      rect.appendChild(title);
+      svg.appendChild(rect);
+    });
+
+    container.innerHTML = '';
+    container.appendChild(svg);
+
+    const first = last30[0]?.[0] || '';
+    const last = last30[last30.length - 1]?.[0] || '';
+    document.getElementById('chart-range').textContent = first && last ? `${first} \u2014 ${last}` : '';
+  }
+
+  // Diagnostic funnel — cumulative totals
+  // Cols: 10=start, 11=p1, 15=p5complete, 18=results, 19=briefing
+  const fStart = totals[10];
+  const fP1 = totals[11];
+  const fComplete = totals[15];
+  const fResults = totals[18];
+  const fBrief = totals[19];
+
+  if (fStart > 0) {
+    const funnel = [
+      ['f-start',    'fd-start',    fStart,    null],
+      ['f-p1',       'fd-p1',       fP1,       fStart],
+      ['f-complete', 'fd-complete', fComplete, fP1],
+      ['f-results',  'fd-results',  fResults,  fComplete],
+      ['f-brief',    null,          fBrief,    fResults],
+    ];
+    funnel.forEach(([valId, dropId, val, prev]) => {
+      const el = document.getElementById(valId);
+      if (el) {
+        el.textContent = fmt(val);
+        el.classList.remove('pending');
+      }
+      if (dropId) {
+        const drop = document.getElementById(dropId);
+        if (drop) drop.textContent = prev ? dropPct(val, prev) : '\u2014';
+      }
+    });
+    document.querySelector('.pending-notice').style.display = 'none';
+  }
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
