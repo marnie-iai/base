@@ -1,0 +1,1637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clear Ground — Campaign Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --denim: #4A6584;
+  --solar: #F0C020;
+  --ground: #F5F2EC;
+  --ground2: #EDE9E0;
+  --navy: #0D1B2A;
+  --olive: #7A8C4A;
+  --ink: #1C1A16;
+  --muted: #7A7060;
+  --border: #D8D2C4;
+  --white: #FDFBF8;
+  --green: #2E7D5A;
+  --green-bg: #E8F5EF;
+  --amber: #B45309;
+  --amber-bg: #FEF3E2;
+  --signal-warning: #C0392B;
+  --signal-warning-bg: #FDE8E8;
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'Plus Jakarta Sans', sans-serif;
+}
+
+body {
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--mono);
+  min-height: 100vh;
+  padding: 2rem;
+}
+
+/* ---- HEADER ---- */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid var(--navy);
+}
+
+.dash-campaign-label {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--denim);
+  margin-bottom: 0.3rem;
+}
+
+.header-left h1 {
+  font-family: var(--sans);
+  font-size: 2.2rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--navy);
+}
+
+.header-left p {
+  font-size: 0.7rem;
+  color: var(--muted);
+  margin-top: 0.4rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.header-right {
+  text-align: right;
+  font-size: 0.65rem;
+  color: var(--muted);
+  letter-spacing: 0.05em;
+  line-height: 1.7;
+}
+
+.header-right .live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: var(--navy);
+  color: var(--solar);
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.5rem;
+  margin-bottom: 0.4rem;
+}
+
+.live-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--solar);
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* ---- GATE FLAG ---- */
+.gate-flag {
+  background: var(--navy);
+  color: var(--white);
+  padding: 0.75rem 1rem;
+  font-size: 0.65rem;
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  letter-spacing: 0.03em;
+}
+.gate-flag strong { color: var(--solar); }
+
+/* ---- SECTION LABEL ---- */
+.section-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--mono);
+}
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ---- FUNNEL ---- */
+.funnel-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  margin-bottom: 0.5rem;
+}
+
+.funnel-stage {
+  background: var(--white);
+  padding: 1.1rem 0.9rem;
+  position: relative;
+}
+
+.funnel-stage.highlight {
+  background: var(--navy);
+  color: var(--white);
+}
+
+.fs-num {
+  font-size: 0.55rem;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  margin-bottom: 0.6rem;
+}
+.funnel-stage.highlight .fs-num { color: rgba(255,255,255,0.4); }
+
+.fs-label {
+  font-size: 0.62rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--denim);
+  margin-bottom: 0.6rem;
+  font-weight: 600;
+  line-height: 1.3;
+  font-family: var(--sans);
+}
+.funnel-stage.highlight .fs-label { color: var(--solar); }
+
+.fs-actual {
+  font-family: var(--sans);
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--navy);
+}
+.funnel-stage.highlight .fs-actual { color: var(--white); }
+
+.fs-target {
+  font-size: 0.6rem;
+  color: var(--muted);
+  margin-top: 0.2rem;
+}
+.funnel-stage.highlight .fs-target { color: rgba(255,255,255,0.5); }
+
+.fs-rate {
+  font-size: 0.62rem;
+  color: var(--solar);
+  margin-top: 0.6rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--border);
+  font-weight: 600;
+}
+.funnel-stage.highlight .fs-rate {
+  color: var(--solar);
+  border-top-color: rgba(255,255,255,0.15);
+}
+
+.fs-trend { font-size: 0.58rem; margin-top: 0.2rem; }
+.trend-up { color: var(--green); }
+.trend-down { color: var(--signal-warning); }
+.trend-flat { color: var(--muted); }
+
+/* Anon→Known conversion prominence */
+.anon-known-rate {
+  background: var(--navy);
+  padding: 0.75rem 1rem;
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.akr-label {
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.55);
+  font-family: var(--mono);
+}
+.akr-value {
+  font-family: var(--sans);
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--solar);
+}
+.akr-status { font-size: 0.65rem; color: rgba(255,255,255,0.5); }
+.akr-note {
+  font-size: 0.6rem;
+  color: rgba(255,255,255,0.45);
+  max-width: 280px;
+  line-height: 1.5;
+}
+
+/* Gate indicators */
+.gate-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  margin-bottom: 2rem;
+}
+
+.gate-card {
+  background: var(--white);
+  padding: 1.1rem;
+}
+
+.gate-header {
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.75rem;
+  font-family: var(--mono);
+}
+
+.gate-scenarios {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--border);
+}
+
+.gate-scenario {
+  padding: 0.75rem;
+  font-size: 0.7rem;
+  font-family: var(--sans);
+  line-height: 1.5;
+  color: var(--ink);
+}
+
+.gate-scenario.worst { background: var(--signal-warning-bg); }
+.gate-scenario.best { background: var(--green-bg); }
+
+.gate-badge {
+  font-size: 0.55rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+  display: block;
+}
+.worst .gate-badge { color: var(--signal-warning); }
+.best .gate-badge { color: var(--green); }
+
+/* ---- WEEK NAV ---- */
+.week-nav {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-bottom: none;
+  padding: 0.5rem 0.75rem;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.week-nav-label {
+  font-size: 0.55rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-right: 0.5rem;
+  flex-shrink: 0;
+}
+
+.week-tab {
+  font-size: 0.58rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.25rem 0.6rem;
+  background: var(--white);
+  color: var(--muted);
+  border: none;
+  cursor: pointer;
+  font-family: var(--mono);
+  transition: background 0.15s, color 0.15s;
+}
+
+.week-tab:hover {
+  background: var(--ground2);
+  color: var(--ink);
+}
+
+.week-tab.active {
+  background: var(--navy);
+  color: var(--solar);
+}
+
+/* ---- LINKEDIN ---- */
+.li-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  margin-bottom: 1px;
+}
+
+.li-card {
+  background: var(--white);
+  padding: 1.1rem;
+}
+
+.li-label {
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.4rem;
+}
+
+.li-value {
+  font-family: var(--sans);
+  font-size: 1.8rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--navy);
+}
+
+.li-sub {
+  font-size: 0.6rem;
+  color: var(--muted);
+  margin-top: 0.2rem;
+}
+
+.li-post-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.68rem;
+  margin-bottom: 2rem;
+}
+
+.li-post-table th {
+  background: var(--denim);
+  color: var(--white);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.58rem;
+}
+
+.li-post-table td {
+  padding: 0.65rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--white);
+  vertical-align: middle;
+}
+
+.li-post-table tr:hover td { background: var(--ground2); }
+.li-post-table tr.hidden { display: none; }
+
+.post-badge {
+  font-size: 0.55rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.15rem 0.35rem;
+  font-weight: 600;
+}
+.badge-best { background: var(--green-bg); color: var(--green); }
+.badge-worst { background: var(--signal-warning-bg); color: var(--signal-warning); }
+
+.data-source-tag {
+  font-size: 0.58rem;
+  color: var(--olive);
+  padding: 0.15rem 0.4rem;
+  background: rgba(122,140,74,0.1);
+  display: inline-block;
+  margin-top: 0.25rem;
+}
+
+/* ---- WEBSITE PERFORMANCE ---- */
+.site-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  margin-bottom: 1px;
+}
+
+.site-card {
+  background: var(--white);
+  padding: 1.1rem;
+}
+
+.site-card.accent {
+  background: var(--denim);
+  color: var(--white);
+}
+
+.sc-label {
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.4rem;
+}
+
+.site-card.accent .sc-label { color: rgba(255,255,255,0.5); }
+
+.sc-value {
+  font-family: var(--sans);
+  font-size: 1.9rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--navy);
+}
+.site-card.accent .sc-value { color: var(--solar); }
+
+.sc-sub {
+  font-size: 0.6rem;
+  color: var(--muted);
+  margin-top: 0.2rem;
+}
+.site-card.accent .sc-sub { color: rgba(255,255,255,0.5); }
+
+.source-bars {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-top: none;
+  padding: 1rem 1.1rem;
+  margin-bottom: 1px;
+}
+
+.source-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.6rem;
+}
+
+.source-row:last-child { margin-bottom: 0; }
+
+.source-name {
+  font-size: 0.62rem;
+  color: var(--ink);
+  width: 110px;
+  flex-shrink: 0;
+}
+
+.source-bar-wrap {
+  flex: 1;
+  height: 6px;
+  background: var(--ground2);
+  position: relative;
+}
+
+.source-bar-fill {
+  height: 100%;
+  background: var(--denim);
+}
+
+.source-bar-fill.olive { background: var(--olive); }
+.source-bar-fill.solar { background: var(--solar); }
+.source-bar-fill.muted { background: var(--muted); }
+
+.source-pct {
+  font-size: 0.62rem;
+  color: var(--muted);
+  width: 36px;
+  text-align: right;
+}
+
+.blog-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.68rem;
+  margin-bottom: 2rem;
+}
+
+.blog-table th {
+  background: var(--denim);
+  color: var(--white);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.blog-table td {
+  padding: 0.65rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--white);
+}
+
+.blog-table tr:hover td { background: var(--ground2); }
+
+/* ---- ARCHETYPE DISTRIBUTION ---- */
+.arch-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  margin-bottom: 1px;
+}
+
+.arch-card {
+  background: var(--white);
+  padding: 1.1rem;
+  text-align: center;
+}
+
+.arch-name {
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--denim);
+  font-weight: 600;
+  font-family: var(--sans);
+  margin-bottom: 0.5rem;
+}
+
+.arch-count {
+  font-family: var(--sans);
+  font-size: 2.2rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--navy);
+}
+
+.arch-pct {
+  font-size: 0.62rem;
+  color: var(--muted);
+  margin-top: 0.25rem;
+}
+
+.arch-bar {
+  height: 3px;
+  background: var(--denim);
+  margin-top: 0.75rem;
+  transition: width 0.3s;
+}
+
+.arch-summary {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-top: none;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background-color: var(--border);
+  margin-bottom: 2rem;
+}
+
+.arch-sum-card {
+  background: var(--white);
+  padding: 0.9rem 1.1rem;
+}
+
+.arch-sum-label {
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.3rem;
+}
+
+.arch-sum-value {
+  font-family: var(--sans);
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.arch-sum-sub {
+  font-size: 0.6rem;
+  color: var(--muted);
+  margin-top: 0.15rem;
+}
+
+/* ---- TARGETS vs ACTUAL ---- */
+.targets-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.7rem;
+  margin-bottom: 2rem;
+}
+
+.targets-table th {
+  background: var(--denim);
+  color: var(--white);
+  padding: 0.6rem 0.75rem;
+  text-align: left;
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.targets-table td {
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--white);
+  vertical-align: middle;
+}
+
+.targets-table tr:hover td { background: var(--ground2); }
+
+.metric-name {
+  font-weight: 600;
+  color: var(--navy);
+  font-family: var(--sans);
+  display: block;
+  font-size: 0.72rem;
+}
+
+.rag-green {
+  display: inline-block;
+  background: var(--green-bg);
+  color: var(--green);
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.5rem;
+  font-weight: 600;
+}
+
+.rag-amber {
+  display: inline-block;
+  background: var(--amber-bg);
+  color: var(--amber);
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.5rem;
+  font-weight: 600;
+}
+
+.rag-red {
+  display: inline-block;
+  background: var(--signal-warning-bg);
+  color: var(--signal-warning);
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.5rem;
+  font-weight: 600;
+}
+
+.rag-na {
+  display: inline-block;
+  background: var(--ground2);
+  color: var(--muted);
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.5rem;
+}
+
+/* ---- PHASE 2 PARKED ---- */
+.phase2-parked {
+  background: var(--ground2);
+  border: 1px dashed var(--border);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+}
+
+.p2-item-label {
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.3rem;
+}
+
+.p2-item-value {
+  font-size: 0.72rem;
+  color: var(--denim);
+  line-height: 1.4;
+  font-family: var(--sans);
+}
+
+/* ---- DATA CONNECTIONS ---- */
+.connections-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  margin-bottom: 2rem;
+}
+
+.conn-card {
+  background: var(--white);
+  padding: 1.1rem;
+}
+
+.conn-source {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--navy);
+  margin-bottom: 0.25rem;
+  font-family: var(--sans);
+}
+
+.conn-detail {
+  font-size: 0.65rem;
+  font-family: var(--sans);
+  color: var(--muted);
+  line-height: 1.5;
+  margin-bottom: 0.5rem;
+}
+
+.conn-status {
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.conn-live { color: var(--green); }
+.conn-pending { color: var(--amber); }
+.conn-flag { color: var(--signal-warning); }
+
+/* ---- FOOTER ---- */
+.dash-footer {
+  font-size: 0.6rem;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  display: flex;
+  justify-content: space-between;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  margin-top: 2rem;
+}
+
+/* ---- PLACEHOLDER ---- */
+.placeholder {
+  font-style: italic;
+  color: var(--muted);
+  font-size: 0.68rem;
+}
+
+.data-pending {
+  font-size: 0.6rem;
+  background: var(--amber-bg);
+  color: var(--amber);
+  padding: 0.15rem 0.4rem;
+  display: inline-block;
+  margin-top: 0.2rem;
+}
+
+/* Number display */
+.num-live {
+  font-family: var(--sans);
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--navy);
+  line-height: 1;
+}
+
+.num-pending {
+  font-family: var(--sans);
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--muted);
+  line-height: 1;
+}
+
+/* Overflow wrapper for wide tables */
+.table-scroll {
+  overflow-x: auto;
+  min-width: 900px;
+}
+
+@media (max-width: 900px) {
+  .funnel-grid { grid-template-columns: repeat(4, 1fr); }
+  .site-grid, .arch-grid { grid-template-columns: repeat(2, 1fr); }
+  .li-grid, .connections-grid { grid-template-columns: 1fr; }
+  .phase2-parked { grid-template-columns: 1fr 1fr; }
+  body { padding: 1rem; }
+  .header { flex-direction: column; gap: 1rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <p class="dash-campaign-label">Clear Ground</p>
+    <h1>Campaign Dashboard</h1>
+    <p>Phase 1 &mdash; April to September 2026</p>
+  </div>
+  <div class="header-right">
+    <div class="live-badge"><span class="live-dot"></span>Live Data &mdash; Phase 1</div><br>
+    INTEGRATED AI &nbsp;|&nbsp; CONFIDENTIAL<br>
+    Built by Vex &mdash; 1 May 2026 &mdash; v1.1 12 May 2026<br>
+    Refresh cadence: Daily 06:00 AEST
+  </div>
+</div>
+
+<div class="gate-flag">
+  <strong>&#9873; GATE NOTE</strong>
+  Reid review required before distribution. Phase 1 only. Phase 2 (paid channels) parked pending Dan Garness spend confirmation.
+</div>
+
+<!-- ======= SECTION 1: DIAGNOSTIC FUNNEL ======= -->
+<div class="section-label">01 &mdash; Diagnostic Funnel</div>
+
+<div class="funnel-grid">
+  <div class="funnel-stage">
+    <div class="fs-num">01</div>
+    <div class="fs-label">Site Visits</div>
+    <div class="num-pending" id="s1-visits">&mdash;</div>
+    <div class="fs-target">Target: 250 / month</div>
+    <div class="fs-rate" id="s1-rate">&mdash;</div>
+    <div class="fs-trend"><span class="data-source-tag">GA4 &middot; Sheet 4</span></div>
+  </div>
+  <div class="funnel-stage">
+    <div class="fs-num">02</div>
+    <div class="fs-label">Diagnostic Starts</div>
+    <div class="num-pending" id="s2-starts">&mdash;</div>
+    <div class="fs-target">Target: 20% visit&rarr;start</div>
+    <div class="fs-rate" id="s2-rate">&mdash;</div>
+    <div class="fs-trend"><span class="data-source-tag">GA4 &middot; Sheet 4</span></div>
+  </div>
+  <div class="funnel-stage">
+    <div class="fs-num">03</div>
+    <div class="fs-label">Page 1 Complete</div>
+    <div class="num-pending" id="s3-p1">&mdash;</div>
+    <div class="fs-target">&mdash;</div>
+    <div class="fs-rate" id="s3-rate">&mdash;</div>
+    <div class="fs-trend"><span class="data-source-tag">GA4 &middot; Sheet 4</span></div>
+  </div>
+  <div class="funnel-stage">
+    <div class="fs-num">04</div>
+    <div class="fs-label">Diagnostic Complete</div>
+    <div class="num-pending" id="s4-comp">&mdash;</div>
+    <div class="fs-target">Target: 60% start&rarr;complete</div>
+    <div class="fs-rate" id="s4-rate">&mdash;</div>
+    <div class="fs-trend"><span class="data-source-tag">GA4 &middot; Sheet 4</span></div>
+  </div>
+  <div class="funnel-stage">
+    <div class="fs-num">05</div>
+    <div class="fs-label">Anon Completions</div>
+    <div class="num-pending" id="s5-anon">&mdash;</div>
+    <div class="fs-target">Target: 30 / month</div>
+    <div class="fs-rate" id="s5-rate">&mdash;</div>
+    <div class="fs-trend"><span class="data-source-tag">Sheets &middot; Sheet 2</span></div>
+  </div>
+  <div class="funnel-stage highlight">
+    <div class="fs-num">06</div>
+    <div class="fs-label">Known Completions</div>
+    <div class="num-pending" style="color:var(--white)" id="s6-known">&mdash;</div>
+    <div class="fs-target">Target: 15 / month</div>
+    <div class="fs-rate" id="s6-rate">&mdash;</div>
+    <div class="fs-trend"><span class="data-source-tag" style="background:rgba(240,192,32,0.15);color:var(--solar)">Sheets &middot; Sheet 1</span></div>
+  </div>
+  <div class="funnel-stage">
+    <div class="fs-num">07</div>
+    <div class="fs-label">Briefing Clicks</div>
+    <div class="num-pending" id="s7-brief">&mdash;</div>
+    <div class="fs-target">&mdash;</div>
+    <div class="fs-rate">Sales intent signal</div>
+    <div class="fs-trend"><span class="data-source-tag">GA4 &middot; Sheet 4</span></div>
+  </div>
+</div>
+
+<!-- Anon→Known prominent callout -->
+<div class="anon-known-rate">
+  <div>
+    <div class="akr-label">Primary Metric &mdash; Anonymous to Known Conversion Rate</div>
+    <div class="akr-status" id="akr-status">Awaiting data &mdash; Sheet 1 and Sheet 2 required</div>
+  </div>
+  <div class="akr-value" id="akr-value">&mdash;%</div>
+  <div class="akr-note">Target: 50%. Gate 1 floor: 25%. Below 25% indicates a value exchange problem &mdash; report is not earning the email ask. This is the most important single metric on this dashboard.</div>
+</div>
+
+<!-- Gate logic -->
+<div class="section-label">Gate Logic</div>
+
+<div class="gate-grid" style="margin-bottom:2rem;">
+  <div class="gate-card">
+    <div class="gate-header">Gate 1 &mdash; Anonymous to Known Conversion Rate &nbsp;|&nbsp; Target: 50% &nbsp;|&nbsp; Floor: 25%</div>
+    <div class="gate-scenarios">
+      <div class="gate-scenario worst">
+        <span class="gate-badge">&#9873; Below 25%</span>
+        Report isn't compelling enough. People take the score and leave.<br><br>
+        <strong>Levers:</strong> Rewrite score page to tease report. Add sample report page to score screen. Test email ask framing. Check archetype mix &mdash; Reactors convert lower.
+      </div>
+      <div class="gate-scenario best">
+        <span class="gate-badge">&#10003; Above 70%</span>
+        Report earning the ask consistently.<br><br>
+        <strong>Levers:</strong> Confirm report delivery is automated. Check nurture sequence capacity. Flag to Reid: consider second email capture point. Signal to accelerate paid spend.
+      </div>
+    </div>
+  </div>
+  <div class="gate-card">
+    <div class="gate-header">Gate 2 &mdash; Known Completions Volume &nbsp;|&nbsp; Target: 25/month by Month 3 &nbsp;|&nbsp; Floor: 10/month</div>
+    <div class="gate-scenarios">
+      <div class="gate-scenario worst">
+        <span class="gate-badge">&#9873; Below 10/month</span>
+        Not enough warm leads entering the pipeline.<br><br>
+        <strong>Levers:</strong> Activate flex $1,000 into best paid channel early. Accelerate Wave 3 send. Review landing page conversion. Bring forward LinkedIn or Google if Reddit underperforming.
+      </div>
+      <div class="gate-scenario best">
+        <span class="gate-badge">&#10003; Above 50/month</span>
+        More leads than Marnie can follow up personally.<br><br>
+        <strong>Levers:</strong> Pause or reduce paid spend. Ensure nurture sequences are qualifying. Piper to triage &mdash; Integrator and Optimiser first. Flag to Reid: capacity conversation needed.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======= SECTION 2: LINKEDIN PERFORMANCE ======= -->
+<div class="section-label">02 &mdash; Organic LinkedIn Performance</div>
+
+<div class="li-grid" style="margin-bottom:1px;">
+  <div class="li-card">
+    <div class="li-label">Posts This Month</div>
+    <div class="num-pending" id="li-posts">&mdash;</div>
+    <div class="li-sub">Target: 8 (2x/week)</div>
+    <div class="data-source-tag">Sheet 3 &middot; via Wilder</div>
+  </div>
+  <div class="li-card">
+    <div class="li-label">Total Impressions</div>
+    <div class="num-pending" id="li-impressions">&mdash;</div>
+    <div class="li-sub">Sum, month to date</div>
+    <div class="data-source-tag">Sheet 3 &middot; via Wilder</div>
+  </div>
+  <div class="li-card">
+    <div class="li-label">Clicks to Index</div>
+    <div class="num-pending" id="li-clicks">&mdash;</div>
+    <div class="li-sub">UTM: linkedin / organic</div>
+    <div class="data-source-tag">Sheet 3 &middot; via Wilder</div>
+  </div>
+  <div class="li-card">
+    <div class="li-label">Average CTR</div>
+    <div class="num-pending" id="li-ctr">&mdash;%</div>
+    <div class="li-sub">Clicks / impressions</div>
+    <div class="data-source-tag">Sheet 3 &middot; calc</div>
+  </div>
+  <div class="li-card" style="background:var(--green-bg);">
+    <div class="li-label" style="color:var(--green);">Best Post</div>
+    <div id="li-best-title" class="placeholder" style="font-size:0.72rem;color:var(--navy);font-family:var(--sans);font-weight:600;margin-bottom:0.25rem;">Awaiting Sheet 3 data</div>
+    <div id="li-best-stats" class="li-sub">&mdash; impressions &middot; &mdash; clicks</div>
+    <div class="data-source-tag" style="background:rgba(46,125,90,0.1);color:var(--green)">Sheet 3 &middot; via Wilder</div>
+  </div>
+  <div class="li-card">
+    <div class="li-label" style="color:var(--signal-warning);">Lowest Reach Post</div>
+    <div id="li-worst-title" class="placeholder" style="font-size:0.72rem;color:var(--navy);font-family:var(--sans);font-weight:600;margin-bottom:0.25rem;">Awaiting Sheet 3 data</div>
+    <div id="li-worst-stats" class="li-sub">&mdash; impressions</div>
+    <div class="data-source-tag" style="background:rgba(192,57,43,0.1);color:var(--signal-warning)">Sheet 3 &middot; via Wilder</div>
+  </div>
+</div>
+
+<div style="background:var(--ground2);border:1px solid var(--border);border-top:none;padding:0.75rem 1rem;margin-bottom:0.5rem;font-size:0.62rem;color:var(--muted);line-height:1.6;">
+  <strong style="color:var(--navy);">Data path:</strong> Marnie downloads LinkedIn Creator Analytics monthly (30 seconds). File dropped to designated Google Drive folder. Wilder parses and writes to Sheet 3 in Hunter AI Index Lead Capture. This dashboard reads Sheet 3. Marnie is not in the data loop after the monthly download.
+</div>
+
+<!-- Week nav for LinkedIn post table -->
+<div class="week-nav" id="li-week-nav">
+  <span class="week-nav-label">Filter by week:</span>
+  <button class="week-tab active" data-week="all" data-table="li">All</button>
+  <button class="week-tab" data-week="2026-W20" data-table="li">W20</button>
+  <button class="week-tab" data-week="2026-W21" data-table="li">W21</button>
+  <button class="week-tab" data-week="2026-W22" data-table="li">W22</button>
+  <button class="week-tab" data-week="2026-W23" data-table="li">W23</button>
+  <button class="week-tab" data-week="2026-W24" data-table="li">W24</button>
+  <button class="week-tab" data-week="2026-W25" data-table="li">W25</button>
+  <button class="week-tab" data-week="2026-W26" data-table="li">W26</button>
+  <button class="week-tab" data-week="2026-W27" data-table="li">W27</button>
+</div>
+
+<!-- Post detail table -->
+<div style="overflow-x:auto;">
+<table class="li-post-table" style="margin-bottom:2rem;min-width:900px;">
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>Post</th>
+      <th>Impressions</th>
+      <th>Clicks</th>
+      <th>CTR</th>
+      <th>Likes</th>
+      <th>Comments</th>
+      <th>Shares</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody id="li-post-rows">
+    <tr>
+      <td colspan="9" style="text-align:center;padding:1.5rem;color:var(--muted);font-size:0.65rem;font-style:italic;">
+        Sheet 3 not yet populated. Wilder to write first data after Marnie's May LinkedIn export.
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<!-- ======= SECTION 3: WEBSITE PERFORMANCE ======= -->
+<div class="section-label">03 &mdash; Website Performance</div>
+
+<div class="site-grid" style="margin-bottom:1px;">
+  <div class="site-card accent">
+    <div class="sc-label">Total Sessions</div>
+    <div class="sc-value" id="site-sessions">&mdash;</div>
+    <div class="sc-sub">integratedai.com.au &nbsp;&middot;&nbsp; this month</div>
+  </div>
+  <div class="site-card">
+    <div class="sc-label">Index Landing Sessions</div>
+    <div class="num-pending" id="site-index">&mdash;</div>
+    <div class="sc-sub">index.integratedai.com.au</div>
+    <div class="data-source-tag">GA4 &middot; Sheet 4</div>
+  </div>
+  <div class="site-card">
+    <div class="sc-label">Insights Sessions</div>
+    <div class="num-pending" id="site-insights">&mdash;</div>
+    <div class="sc-sub">integratedai.com.au/insights</div>
+    <div class="data-source-tag">GA4 &middot; Sheet 4</div>
+  </div>
+  <div class="site-card">
+    <div class="sc-label">Blog Avg. Time on Page</div>
+    <div class="num-pending" id="site-blog-time">&mdash;</div>
+    <div class="sc-sub">minutes &middot; all articles</div>
+    <div class="data-source-tag">GA4 &middot; Sheet 4</div>
+  </div>
+</div>
+
+<div class="source-bars" style="margin-bottom:1px;">
+  <div style="font-size:0.6rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:0.75rem;">Traffic Sources &mdash; Month to Date</div>
+  <div class="source-row">
+    <div class="source-name">Organic Search</div>
+    <div class="source-bar-wrap"><div class="source-bar-fill" id="bar-organic" style="width:0%"></div></div>
+    <div class="source-pct" id="pct-organic">&mdash;%</div>
+  </div>
+  <div class="source-row">
+    <div class="source-name">LinkedIn Organic</div>
+    <div class="source-bar-wrap"><div class="source-bar-fill olive" id="bar-linkedin" style="width:0%"></div></div>
+    <div class="source-pct" id="pct-linkedin">&mdash;%</div>
+  </div>
+  <div class="source-row">
+    <div class="source-name">Direct</div>
+    <div class="source-bar-wrap"><div class="source-bar-fill solar" id="bar-direct" style="width:0%"></div></div>
+    <div class="source-pct" id="pct-direct">&mdash;%</div>
+  </div>
+  <div class="source-row">
+    <div class="source-name">Other</div>
+    <div class="source-bar-wrap"><div class="source-bar-fill muted" id="bar-other" style="width:0%"></div></div>
+    <div class="source-pct" id="pct-other">&mdash;%</div>
+  </div>
+</div>
+
+<table class="blog-table" style="margin-bottom:2rem;">
+  <thead>
+    <tr>
+      <th>Article</th>
+      <th>Sessions</th>
+      <th>Avg. Time on Page</th>
+      <th>Top Exit?</th>
+    </tr>
+  </thead>
+  <tbody id="blog-rows">
+    <tr>
+      <td colspan="4" style="text-align:center;padding:1.5rem;color:var(--muted);font-size:0.65rem;font-style:italic;">
+        Awaiting Sheet 4 data &mdash; Make scenario to be activated once GA4 custom events confirmed firing.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- ======= SECTION 4: ARCHETYPE DISTRIBUTION ======= -->
+<div class="section-label">04 &mdash; Archetype Distribution (Anonymous Completions)</div>
+
+<div class="arch-grid" style="margin-bottom:1px;">
+  <div class="arch-card">
+    <div class="arch-name">Reactor</div>
+    <div class="num-pending" id="arch-reactor">&mdash;</div>
+    <div class="arch-pct" id="arch-reactor-pct">&mdash;%</div>
+    <div class="arch-bar" id="arch-reactor-bar" style="width:0%;"></div>
+  </div>
+  <div class="arch-card">
+    <div class="arch-name">Experimenter</div>
+    <div class="num-pending" id="arch-experimenter">&mdash;</div>
+    <div class="arch-pct" id="arch-experimenter-pct">&mdash;%</div>
+    <div class="arch-bar" id="arch-experimenter-bar" style="width:0%;"></div>
+  </div>
+  <div class="arch-card">
+    <div class="arch-name">Integrator</div>
+    <div class="num-pending" id="arch-integrator">&mdash;</div>
+    <div class="arch-pct" id="arch-integrator-pct">&mdash;%</div>
+    <div class="arch-bar" id="arch-integrator-bar" style="width:0%;"></div>
+  </div>
+  <div class="arch-card">
+    <div class="arch-name">Optimiser</div>
+    <div class="num-pending" id="arch-optimiser">&mdash;</div>
+    <div class="arch-pct" id="arch-optimiser-pct">&mdash;%</div>
+    <div class="arch-bar" id="arch-optimiser-bar" style="width:0%;"></div>
+  </div>
+  <div class="arch-card">
+    <div class="arch-name">Autonomous Leader</div>
+    <div class="num-pending" id="arch-auto">&mdash;</div>
+    <div class="arch-pct" id="arch-auto-pct">&mdash;%</div>
+    <div class="arch-bar" id="arch-auto-bar" style="width:0%;"></div>
+  </div>
+</div>
+
+<div class="arch-summary">
+  <div class="arch-sum-card">
+    <div class="arch-sum-label">Total Anonymous Completions</div>
+    <div class="arch-sum-value" id="arch-total">&mdash;</div>
+    <div class="arch-sum-sub">Source: Sheet 2</div>
+  </div>
+  <div class="arch-sum-card">
+    <div class="arch-sum-label">Average Score</div>
+    <div class="arch-sum-value" id="arch-avg-score">&mdash;%</div>
+    <div class="arch-sum-sub">Composite, all completions</div>
+  </div>
+  <div class="arch-sum-card">
+    <div class="arch-sum-label">Most Common Weak Pillar</div>
+    <div class="arch-sum-value" id="arch-weak-pillar">&mdash;</div>
+    <div class="arch-sum-sub">Lowest avg. score across respondents</div>
+  </div>
+</div>
+
+<div style="background:var(--ground2);border:1px solid var(--border);border-top:none;padding:0.75rem 1rem;margin-bottom:2rem;font-size:0.62rem;color:var(--muted);line-height:1.6;">
+  <strong style="color:var(--navy);">Note:</strong> This data feeds the Index Report in Phase 3. Even at low completion counts it begins telling the sector story. Publication threshold remains 30 to 50 completions before benchmark data is credible to publish externally.
+</div>
+
+<!-- ======= SECTION 5: CAMPAIGN TARGETS vs ACTUAL ======= -->
+<div class="section-label">05 &mdash; Campaign Targets vs Actual</div>
+
+<table class="targets-table">
+  <thead>
+    <tr>
+      <th>Metric</th>
+      <th>6-Month Target</th>
+      <th>Month 1 Target</th>
+      <th>Actual to Date</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><span class="metric-name">Known Completions</span></td>
+      <td>150</td>
+      <td>15</td>
+      <td id="tv-known">&mdash;</td>
+      <td id="tv-known-rag"><span class="rag-na">No Data</span></td>
+    </tr>
+    <tr>
+      <td><span class="metric-name">Anonymous Completions</span></td>
+      <td>300</td>
+      <td>30</td>
+      <td id="tv-anon">&mdash;</td>
+      <td id="tv-anon-rag"><span class="rag-na">No Data</span></td>
+    </tr>
+    <tr>
+      <td><span class="metric-name">Anon &rarr; Known Rate</span><div style="font-size:0.6rem;color:var(--muted);font-family:var(--mono)">Gate 1 &mdash; floor 25%</div></td>
+      <td>50%</td>
+      <td>50%</td>
+      <td id="tv-akr">&mdash;%</td>
+      <td id="tv-akr-rag"><span class="rag-na">No Data</span></td>
+    </tr>
+    <tr>
+      <td><span class="metric-name">Briefing Clicks</span></td>
+      <td>&mdash;</td>
+      <td>&mdash;</td>
+      <td id="tv-brief">&mdash;</td>
+      <td><span class="rag-na">No Target</span></td>
+    </tr>
+    <tr>
+      <td><span class="metric-name">Site Sessions</span></td>
+      <td>2,500</td>
+      <td>250</td>
+      <td id="tv-sessions">&mdash;</td>
+      <td id="tv-sessions-rag"><span class="rag-na">No Data</span></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- ======= PHASE 2 PARKED ======= -->
+<div class="section-label">Phase 2 &mdash; Parked (Paid Channels)</div>
+
+<div class="phase2-parked">
+  <div>
+    <div class="p2-item-label">Trigger</div>
+    <div class="p2-item-value">Dan Garness paid spend conversation confirmed</div>
+  </div>
+  <div>
+    <div class="p2-item-label">Channels to Add</div>
+    <div class="p2-item-value">Reddit Ads, Google Search Ads, LinkedIn Ads</div>
+  </div>
+  <div>
+    <div class="p2-item-label">Additional Metrics</div>
+    <div class="p2-item-value">Budget vs actual per channel &middot; CPL by channel &middot; CPL vs $80 threshold flag &middot; 30-day review gate logic</div>
+  </div>
+  <div>
+    <div class="p2-item-label">Build Notes</div>
+    <div class="p2-item-value">UTM tracking per paid channel already in GA4. Sheet 4 schema includes diagnostic funnel events ready for Index Phase 2 inheritance. No rebuild required &mdash; extend from this structure.</div>
+  </div>
+</div>
+
+<!-- ======= DATA CONNECTIONS ======= -->
+<div class="section-label">Data Connections &mdash; Status</div>
+
+<div class="connections-grid">
+  <div class="conn-card">
+    <div class="conn-source">GA4 &mdash; G-S7SCLTB393</div>
+    <div class="conn-detail">Make scenario &middot; daily pull 06:00 AEST &middot; writes to Sheet 4 in Hunter AI Index Lead Capture. Site traffic, channel attribution, blog performance, diagnostic funnel events.</div>
+    <div class="conn-status conn-pending">&#9873; Pending &mdash; GA4 custom events must be verified firing in DebugView before Make scenario activation.</div>
+  </div>
+  <div class="conn-card">
+    <div class="conn-source">Google Sheets &mdash; Hunter AI Index Lead Capture</div>
+    <div class="conn-detail">Sheet 1: Known completions &middot; Sheet 2: Anonymous completions + archetype data &middot; Sheet 3: LinkedIn post performance (Wilder) &middot; Sheet 4: GA4 daily summary (Make)</div>
+    <div class="conn-status conn-pending">&#9873; Sheet 3 and Sheet 4 pending population. Sheet 1 and Sheet 2 ready to read when data exists.</div>
+  </div>
+  <div class="conn-card">
+    <div class="conn-source">LinkedIn Organic &mdash; Sheet 3</div>
+    <div class="conn-detail">Marnie downloads LinkedIn Creator Analytics monthly (30 seconds). File to Google Drive. Wilder parses and writes to Sheet 3. Dashboard reads Sheet 3. Schema: date &middot; postTitle &middot; postUrl &middot; impressions &middot; clicks &middot; ctr &middot; likes &middot; comments &middot; shares</div>
+    <div class="conn-status conn-pending">&#9873; Pending &mdash; Sheet 3 not yet created. Morgan briefing Wilder on standing task.</div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="dash-footer">
+  <span>CLEAR GROUND CAMPAIGN &nbsp;|&nbsp; INTEGRATED AI &nbsp;|&nbsp; APRIL&ndash;SEPTEMBER 2026 &nbsp;|&nbsp; VEX DELIVERABLE v1.1 MAY 2026</span>
+  <span>Phase 1 only &nbsp;|&nbsp; Phase 2 parked &mdash; awaiting Dan Garness paid spend confirmation</span>
+</div>
+
+<script>
+// ================================================================
+// DATA LAYER — reads from Google Sheets API
+// All reads are via the Sheets API using the spreadsheet ID
+// and sheet/range references confirmed in the Reid brief.
+//
+// SPREADSHEET: Hunter AI Index Lead Capture
+//   Sheet 1 — Known completions
+//   Sheet 2 — Anonymous completions + archetype data
+//   Sheet 3 — LinkedIn post performance (Wilder writes)
+//   Sheet 4 — GA4 daily summary (Make writes)
+//
+// API KEY: injected at deployment.
+// ================================================================
+
+const CONFIG = {
+  SPREADSHEET_ID: '1STLoDFRfWGOMft4EuUma8kcCDVAiLp-T8tDLDjPq7eI',
+  API_KEY: 'AIzaSyAqB6g7H2Et83P9FhShQmKoY2BsJrihlxA',
+  MONTH_TARGET_KNOWN: 15,
+  MONTH_TARGET_ANON: 30,
+  MONTH_TARGET_SESSIONS: 250,
+  AKR_TARGET: 0.50,
+  AKR_FLOOR: 0.25
+};
+
+// ISO week helper
+function getISOWeek(dateStr) {
+  const d = new Date(dateStr);
+  if (isNaN(d)) return null;
+  const jan4 = new Date(d.getFullYear(), 0, 4);
+  const dayOfYear = Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 86400000);
+  const weekNum = Math.ceil((dayOfYear + jan4.getDay()) / 7);
+  return `${d.getFullYear()}-W${String(weekNum).padStart(2, '0')}`;
+}
+
+// --- Utility ---
+function fmt(n) {
+  if (n === null || n === undefined || isNaN(n)) return '—';
+  return n.toLocaleString('en-AU');
+}
+
+function fmtPct(n) {
+  if (n === null || n === undefined || isNaN(n)) return '—%';
+  return (n * 100).toFixed(1) + '%';
+}
+
+function ragStatus(actual, target) {
+  if (actual === null || actual === undefined || isNaN(actual)) return '<span class="rag-na">No Data</span>';
+  const ratio = actual / target;
+  if (ratio >= 1.0) return '<span class="rag-green">On Track</span>';
+  if (ratio >= 0.8) return '<span class="rag-amber">Watch</span>';
+  return '<span class="rag-red">Below Target</span>';
+}
+
+function ragPct(actual, target) {
+  if (actual === null || isNaN(actual)) return '<span class="rag-na">No Data</span>';
+  if (actual >= target) return '<span class="rag-green">On Track</span>';
+  if (actual >= target * 0.8) return '<span class="rag-amber">Watch</span>';
+  return '<span class="rag-red">Below Target</span>';
+}
+
+// --- Sheets fetch ---
+async function fetchSheet(sheetName, range) {
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SPREADSHEET_ID}/values/${encodeURIComponent(sheetName + '!' + range)}?key=${CONFIG.API_KEY}`;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.values || [];
+  } catch (e) {
+    console.warn(`Sheet fetch failed: ${sheetName}!${range}`, e);
+    return null;
+  }
+}
+
+// --- Week nav click handler ---
+// Wires all .week-tab buttons to filter their target table rows.
+// data-week="all" shows all rows.
+// data-week="2026-W20" etc. shows only rows whose date column
+// falls within that ISO week. The date is in column 0 of each row.
+// Row visibility is toggled via .hidden class (display:none in CSS).
+//
+// This handler is attached once on DOMContentLoaded and works for
+// any table whose rows have a data-week attribute set during render.
+// For the LinkedIn table (id="li-post-rows"), rows are tagged on
+// loadLinkedIn() completion.
+
+function initWeekNav() {
+  document.querySelectorAll('.week-tab').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const selectedWeek = this.dataset.week;
+      const tableId = this.dataset.table;
+
+      // Update active state on tabs in the same nav group
+      const navGroup = this.closest('.week-nav');
+      navGroup.querySelectorAll('.week-tab').forEach(t => t.classList.remove('active'));
+      this.classList.add('active');
+
+      // Filter rows in the target table
+      const tbody = document.getElementById(tableId + '-post-rows');
+      if (!tbody) return;
+      const rows = tbody.querySelectorAll('tr[data-week]');
+      rows.forEach(row => {
+        if (selectedWeek === 'all' || row.dataset.week === selectedWeek) {
+          row.classList.remove('hidden');
+        } else {
+          row.classList.add('hidden');
+        }
+      });
+    });
+  });
+}
+
+// --- Section 1: Diagnostic funnel ---
+async function loadFunnel() {
+  const rows = await fetchSheet('Sheet 4', 'A2:U200');
+  if (!rows || rows.length === 0) return;
+
+  let totals = Array(21).fill(0);
+  rows.forEach(row => {
+    for (let i = 1; i <= 20; i++) {
+      totals[i] += parseInt(row[i] || 0);
+    }
+  });
+
+  const visits = totals[1] + totals[2];
+  const starts = totals[10];
+  const p1 = totals[11];
+  const completions = totals[15];
+  const briefClicks = totals[19];
+
+  setNum('s1-visits', visits);
+  setNum('s2-starts', starts);
+  setNum('s3-p1', p1);
+  setNum('s4-comp', completions);
+  setNum('s7-brief', briefClicks);
+
+  if (visits > 0 && starts > 0) {
+    document.getElementById('s2-rate').textContent = fmtPct(starts / visits) + ' visit→start';
+  }
+  if (starts > 0 && completions > 0) {
+    document.getElementById('s4-rate').textContent = fmtPct(completions / starts) + ' start→complete';
+  }
+
+  // Traffic sources
+  const srcOrganic = totals[4];
+  const srcDirect = totals[5];
+  const srcLinkedin = totals[6];
+  const srcOther = totals[7];
+  const srcTotal = srcOrganic + srcDirect + srcLinkedin + srcOther;
+  if (srcTotal > 0) {
+    setBar('bar-organic', 'pct-organic', srcOrganic / srcTotal);
+    setBar('bar-linkedin', 'pct-linkedin', srcLinkedin / srcTotal);
+    setBar('bar-direct', 'pct-direct', srcDirect / srcTotal);
+    setBar('bar-other', 'pct-other', srcOther / srcTotal);
+  }
+
+  // Site metrics
+  setNum('site-sessions', totals[1]);
+  setNum('site-index', totals[2]);
+  setNum('site-insights', totals[3]);
+
+  const blogTime = rows.length > 0
+    ? (rows.reduce((a, r) => a + parseFloat(r[9] || 0), 0) / rows.length).toFixed(1)
+    : null;
+  if (blogTime) document.getElementById('site-blog-time').textContent = blogTime + ' min';
+
+  // Targets vs actual
+  setNum('tv-sessions', totals[1]);
+  document.getElementById('tv-sessions-rag').innerHTML = ragStatus(totals[1], CONFIG.MONTH_TARGET_SESSIONS);
+  setNum('tv-brief', briefClicks);
+}
+
+// --- Section 1 continued: Sheets 1 and 2 ---
+async function loadCompletions() {
+  const knownRows = await fetchSheet('Sheet1', 'A2:Z1000');
+  const anonRows = await fetchSheet('Sheet2', 'A2:Z1000');
+
+  const known = knownRows ? knownRows.length : null;
+  const anon = anonRows ? anonRows.length : null;
+
+  setNum('s5-anon', anon);
+  setNum('s6-known', known, true);
+  setNum('tv-known', known);
+  setNum('tv-anon', anon);
+
+  document.getElementById('tv-known-rag').innerHTML = ragStatus(known, CONFIG.MONTH_TARGET_KNOWN);
+  document.getElementById('tv-anon-rag').innerHTML = ragStatus(anon, CONFIG.MONTH_TARGET_ANON);
+
+  if (known !== null && anon !== null && anon > 0) {
+    const akr = known / anon;
+    document.getElementById('akr-value').textContent = (akr * 100).toFixed(1) + '%';
+    document.getElementById('tv-akr').textContent = (akr * 100).toFixed(1) + '%';
+    document.getElementById('tv-akr-rag').innerHTML = ragPct(akr, CONFIG.AKR_TARGET);
+
+    if (akr < CONFIG.AKR_FLOOR) {
+      document.getElementById('akr-status').textContent = '⚠ Below gate floor — value exchange problem';
+      document.getElementById('akr-status').style.color = 'var(--signal-warning)';
+    } else if (akr >= CONFIG.AKR_TARGET) {
+      document.getElementById('akr-status').textContent = '✓ On target';
+      document.getElementById('akr-status').style.color = 'var(--green)';
+    } else {
+      document.getElementById('akr-status').textContent = 'Below target — watch';
+      document.getElementById('akr-status').style.color = 'var(--amber)';
+    }
+  }
+
+  if (anonRows && anonRows.length > 0) {
+    loadArchetypes(anonRows, anon);
+  }
+}
+
+function loadArchetypes(rows, total) {
+  const ARCH_COL = 6;
+  const SCORE_COL = 4;
+  const P1_COL = 7;
+  const P2_COL = 8;
+  const P3_COL = 9;
+  const P4_COL = 10;
+
+  const counts = { Reactor: 0, Experimenter: 0, Integrator: 0, Optimiser: 0, 'Autonomous Leader': 0 };
+  let scoreSum = 0, scoreCount = 0;
+  let pillarSums = [0, 0, 0, 0], pillarCount = 0;
+
+  rows.forEach(row => {
+    const arch = row[ARCH_COL] || '';
+    if (counts.hasOwnProperty(arch)) counts[arch]++;
+    const score = parseFloat(row[SCORE_COL]);
+    if (!isNaN(score)) { scoreSum += score; scoreCount++; }
+    const p = [parseFloat(row[P1_COL]), parseFloat(row[P2_COL]), parseFloat(row[P3_COL]), parseFloat(row[P4_COL])];
+    if (p.every(v => !isNaN(v))) {
+      p.forEach((v, i) => pillarSums[i] += v);
+      pillarCount++;
+    }
+  });
+
+  const archKeys = ['Reactor', 'Experimenter', 'Integrator', 'Optimiser', 'Autonomous Leader'];
+  const domIds = ['reactor', 'experimenter', 'integrator', 'optimiser', 'auto'];
+  const maxCount = Math.max(...Object.values(counts), 1);
+
+  archKeys.forEach((key, i) => {
+    const c = counts[key];
+    const id = domIds[i];
+    document.getElementById(`arch-${id}`).textContent = c;
+    document.getElementById(`arch-${id}`).className = c > 0 ? 'num-live' : 'num-pending';
+    document.getElementById(`arch-${id}-pct`).textContent = total ? ((c / total) * 100).toFixed(0) + '%' : '—%';
+    document.getElementById(`arch-${id}-bar`).style.width = ((c / maxCount) * 100) + '%';
+  });
+
+  document.getElementById('arch-total').textContent = total || '—';
+  if (scoreCount > 0) {
+    document.getElementById('arch-avg-score').textContent = (scoreSum / scoreCount * 100).toFixed(1) + '%';
+  }
+  if (pillarCount > 0) {
+    const pillarNames = ['Strategic Alignment', 'Data Infrastructure', 'Governance & Risk', 'Frontline Capability'];
+    const pillarAvgs = pillarSums.map(s => s / pillarCount);
+    const weakIdx = pillarAvgs.indexOf(Math.min(...pillarAvgs));
+    document.getElementById('arch-weak-pillar').textContent = pillarNames[weakIdx];
+  }
+}
+
+// --- Section 2: LinkedIn (Sheet 3) ---
+async function loadLinkedIn() {
+  const rows = await fetchSheet('Sheet3', 'A2:I100');
+  if (!rows || rows.length === 0) return;
+
+  // Schema: date · postTitle · postUrl · impressions · clicks · ctr · likes · comments · shares
+  let totalImpressions = 0, totalClicks = 0;
+  let bestRow = null, worstRow = null;
+
+  rows.forEach(row => {
+    const imp = parseInt(row[3] || 0);
+    const clicks = parseInt(row[4] || 0);
+    totalImpressions += imp;
+    totalClicks += clicks;
+    if (!bestRow || imp > parseInt(bestRow[3] || 0)) bestRow = row;
+    if (!worstRow || imp < parseInt(worstRow[3] || 0)) worstRow = row;
+  });
+
+  setNum('li-posts', rows.length);
+  setNum('li-impressions', totalImpressions);
+  setNum('li-clicks', totalClicks);
+  if (totalImpressions > 0) {
+    document.getElementById('li-ctr').textContent = ((totalClicks / totalImpressions) * 100).toFixed(2) + '%';
+  }
+  if (bestRow) {
+    document.getElementById('li-best-title').textContent = bestRow[1] || '—';
+    document.getElementById('li-best-stats').textContent = fmt(parseInt(bestRow[3])) + ' impressions · ' + fmt(parseInt(bestRow[4])) + ' clicks';
+  }
+  if (worstRow) {
+    document.getElementById('li-worst-title').textContent = worstRow[1] || '—';
+    document.getElementById('li-worst-stats').textContent = fmt(parseInt(worstRow[3])) + ' impressions';
+  }
+
+  // Populate post table — tag each row with its ISO week for nav filtering
+  const tbody = document.getElementById('li-post-rows');
+  tbody.innerHTML = '';
+  const sorted = [...rows].sort((a, b) => new Date(b[0]) - new Date(a[0]));
+  sorted.forEach(row => {
+    const isBest = row === bestRow;
+    const isWorst = row === worstRow;
+    const isoWeek = getISOWeek(row[0]) || 'unknown';
+    const tr = document.createElement('tr');
+    tr.dataset.week = isoWeek;
+    tr.innerHTML = `
+      <td>${row[0] || '—'}</td>
+      <td><a href="${row[2] || '#'}" target="_blank" style="color:var(--denim);text-decoration:none;">${row[1] || '—'}</a></td>
+      <td><strong>${fmt(parseInt(row[3]))}</strong></td>
+      <td>${fmt(parseInt(row[4]))}</td>
+      <td>${row[5] || '—'}</td>
+      <td>${row[6] || '—'}</td>
+      <td>${row[7] || '—'}</td>
+      <td>${row[8] || '—'}</td>
+      <td>${isBest ? '<span class="post-badge badge-best">Best</span>' : isWorst ? '<span class="post-badge badge-worst">Lowest</span>' : ''}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// --- Helpers ---
+function setNum(id, val, highlight) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (val === null || val === undefined || isNaN(val)) return;
+  el.textContent = fmt(val);
+  el.className = 'num-live';
+  el.style.color = highlight ? 'var(--white)' : 'var(--navy)';
+}
+
+function setBar(barId, pctId, ratio) {
+  const bar = document.getElementById(barId);
+  const pct = document.getElementById(pctId);
+  if (bar) bar.style.width = (ratio * 100) + '%';
+  if (pct) pct.textContent = (ratio * 100).toFixed(0) + '%';
+}
+
+// --- Init ---
+async function init() {
+  initWeekNav();
+  await Promise.all([
+    loadFunnel(),
+    loadCompletions(),
+    loadLinkedIn()
+  ]);
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+
+</body>
+</html>

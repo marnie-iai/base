@@ -729,7 +729,7 @@ body {
 <div class="main-wrap">
 
   <!-- ── Business ─────────────────────────────────────────────────────────── -->
-  <section class="point-section business-section open" id="sec-business">
+  <section class="point-section business-section" id="sec-business">
     <div class="section-header" onclick="toggleSection('sec-business')">
       <div class="section-accent"></div>
       <div class="section-header-content">
@@ -1503,10 +1503,6 @@ function renderSearchResults(data) {
   const now = new Date();
   const el = document.getElementById('header-date');
   if (el) el.textContent = fmtDate(now) + ' · W' + isoWeek(now);
-
-  // Business is first and open by default
-  _loaded['sec-business'] = true;
-  loadBusiness();
 
   // Preload Foundations in background (Agent Library roster fetch)
   _loaded['sec-foundations'] = true;
