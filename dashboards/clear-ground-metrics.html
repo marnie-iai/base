@@ -770,7 +770,7 @@ body {
     <div class="live-badge"><span class="live-dot"></span>Live &mdash; Index + GA4</div><br>
     INTEGRATED AI &nbsp;|&nbsp; NOT FOR DISTRIBUTION<br>
     Companion to: ClearGround_CampaignMap_v2_May2026.html<br>
-    Built by Vex &nbsp;|&nbsp; 10 May 2026 &mdash; v1.1 12 May 2026
+    Built by Vex &nbsp;|&nbsp; 10 May 2026 &mdash; v1.2 12 May 2026
   </div>
 </div>
 
@@ -846,7 +846,7 @@ body {
   <div class="breakdown-panel">
     <div class="breakdown-title">By Sector</div>
     <div id="sector-rows">
-      <div class="placeholder-row">Awaiting sector data from Base</div>
+      <div class="placeholder-row">Awaiting env vars &mdash; SHEETS_API_KEY and SHEETS_SPREADSHEET_ID needed in Railway before endpoint returns data.</div>
     </div>
     <div class="data-source-tag">Base &mdash; index.integratedai.com.au</div>
   </div>
@@ -873,6 +873,7 @@ body {
       <div class="br-count" id="src-wave4-n">&mdash;</div>
     </div>
     <div class="data-source-tag">GA4 &mdash; UTM attribution</div>
+    <div style="font-size:0.6rem;color:var(--muted);font-family:var(--sans);margin-top:0.5rem;font-style:italic;">Populates when Make/GA4 scenario activates</div>
   </div>
 </div>
 
@@ -884,7 +885,7 @@ body {
     <tr>
       <th>Date</th>
       <th>Week</th>
-      <th>Type</th>
+      <th>Post</th>
       <th>Impressions</th>
       <th>Eng. Rate</th>
       <th>Comments</th>
@@ -926,9 +927,9 @@ body {
     <tr>
       <td>
         <span class="wave-name">Wave 3</span>
-        <span class="wave-status">Sent &mdash; May 2026</span>
+        <span class="wave-status">Scheduled &mdash; 13 May 2026</span>
       </td>
-      <td>87</td>
+      <td>77</td>
       <td id="w3-opens">&mdash;</td>
       <td id="w3-open-rate" class="open-rate">&mdash;</td>
       <td id="w3-clicks">&mdash;</td>
@@ -958,6 +959,9 @@ body {
 
 <!-- ======= SECTION 4: TRAFFIC ======= -->
 <div class="section-label">04 &mdash; Traffic to Clear Ground Landing Page</div>
+<div style="background:var(--amber-bg);border:1px solid var(--border);border-left:3px solid var(--amber);padding:0.6rem 1rem;margin-bottom:1rem;font-size:0.62rem;color:var(--amber);font-family:var(--sans);line-height:1.5;">
+  <strong>GA4 data pending.</strong> Make scenario id:5027574 built and ready &mdash; activates once Dev confirms GA4 custom events firing in DebugView. Traffic data populates automatically on first daily run (06:00 AEST).
+</div>
 
 <div class="traffic-grid" style="margin-bottom:1px;">
   <div class="tc accent">
@@ -1051,7 +1055,7 @@ body {
 <script>
 // ================================================================
 // CLEAR GROUND CAMPAIGN METRICS BOARD
-// Vex — Data Analyst Integer | 10 May 2026 | v1.1 12 May 2026
+// Vex — Data Analyst Integer | 10 May 2026 | v1.2 12 May 2026
 //
 // DATA SOURCES:
 //   Base (Index): https://base.integratedai.com.au/dashboards/Index
@@ -1130,6 +1134,32 @@ function setTimestamp() {
 }
 
 // ---- Section 1: Completion counter ----
+async function loadSectors() {
+  try {
+    const res = await fetch(`${CONFIG.BASE_URL}/api/public/completions/summary`);
+    if (!res.ok) return;
+    const data = await res.json();
+
+    const container = document.getElementById('sector-rows');
+    if (!data.sectors || Object.keys(data.sectors).length === 0) return;
+
+    const total = data.total || 1;
+    const sorted = Object.entries(data.sectors).sort((a, b) => b[1] - a[1]);
+    const max = sorted[0][1];
+
+    const colours = ['', 'olive', 'solar', 'denim2', 'muted'];
+    container.innerHTML = sorted.map(([sector, count], i) => `
+      <div class="breakdown-row">
+        <div class="br-name">${sector}</div>
+        <div class="br-bar-wrap"><div class="br-bar-fill ${colours[i] || 'muted'}" style="width:${Math.round((count/max)*100)}%"></div></div>
+        <div class="br-count">${count}</div>
+      </div>
+    `).join('');
+  } catch(e) {
+    // Endpoint not yet live — leave pending message in place
+  }
+}
+
 async function loadCompletions() {
   // Sheet2 = diagnostic completions (all Index completions, row count = total)
   let count = null;
@@ -1183,37 +1213,53 @@ async function loadLinkedIn() {
   const sorted = [...rows].sort((a, b) => new Date(b[0]) - new Date(a[0]));
 
   sorted.forEach(row => {
-    const date = row[0] || '\u2014';
-    const title = row[1] || '\u2014';
+    const rawDate = row[0] || '';
+    const title = row[1] || '';
     const url = row[2] || '#';
     const impressions = parseInt(row[3] || 0);
     const engRate = parseFloat(row[4] || 0);
     const comments = parseInt(row[5] || 0);
     const saves = parseInt(row[6] || 0);
     const follows = parseInt(row[7] || 0);
-    const type = row[8] || 'observational';
 
-    const d = new Date(date);
-    const campaignStart = new Date('2026-05-10');
-    const weekNum = Math.floor((d - campaignStart) / (7 * 24 * 60 * 60 * 1000)) + 20;
-    const weekLabel = weekNum >= 20 && weekNum <= 27 ? `W${weekNum}` : '\u2014';
+    // Filter: skip zero-impression rows and old low-reach personal posts
+    if (impressions < 5) return;
 
-    const typeMap = {
-      'observational': ['Observational', 'type-obs'],
-      'content': ['Content', 'type-content'],
-      'carousel': ['Carousel', 'type-carousel'],
-    };
-    const [typeLabel, typeCls] = typeMap[type.toLowerCase()] || ['\u2014', ''];
+    // Normalise date: MM/DD/YYYY and M/D/YYYY → YYYY-MM-DD
+    let d = null;
+    let displayDate = rawDate;
+    const parts = rawDate.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (parts) {
+      displayDate = `${parts[3]}-${parts[1].padStart(2,'0')}-${parts[2].padStart(2,'0')}`;
+      d = new Date(displayDate + 'T00:00:00Z');
+    } else {
+      d = new Date(rawDate);
+    }
 
-    const isStrongPost = engRate > 3 || saves > 5;
-    const signalText = isStrongPost ? 'Strong' : 'Tracking';
-    const signalCls = isStrongPost ? 'signal-strong' : 'signal-weak';
+    // Campaign week label (W20 = 10 May 2026)
+    const campaignStart = new Date('2026-05-10T00:00:00Z');
+    const daysDiff = (d - campaignStart) / (24 * 60 * 60 * 1000);
+    let weekLabel = '\u2014';
+    if (!isNaN(daysDiff) && daysDiff >= 0 && daysDiff < 56) {
+      weekLabel = 'W' + (20 + Math.floor(daysDiff / 7));
+    }
+
+    // Display title — truncate at 55 chars
+    const displayTitle = title
+      ? (title.length > 55 ? title.substring(0, 52) + '\u2026' : title)
+      : '(profile post)';
+
+    const isStrong = engRate > 3 || saves > 5 || comments > 2;
+    const signalText = isStrong ? 'Strong' : 'Tracking';
+    const signalCls = isStrong ? 'signal-strong' : 'signal-weak';
 
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td>${date}</td>
+      <td>${displayDate}</td>
       <td>${weekLabel}</td>
-      <td><span class="post-type-badge ${typeCls}">${typeLabel}</span></td>
+      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+        <a href="${url}" target="_blank" style="color:var(--denim);text-decoration:none;font-family:var(--sans);font-size:0.62rem;">${displayTitle}</a>
+      </td>
       <td><strong>${fmt(impressions)}</strong></td>
       <td>${fmtPctDirect(engRate)}%</td>
       <td>${fmt(comments)}</td>
@@ -1345,30 +1391,60 @@ function buildWeeklyTable() {
 }
 
 async function loadWeeklyData() {
-  const rows = await fetchSheet('Weekly Summary', 'A2:D20');
-  if (!rows || rows.length === 0) return;
+  // Primary: calculate weekly completions directly from Sheet2 timestamps
+  // This means weekly data is live without manual entry in Weekly Summary.
+  const compRows = await fetchSheet('Sheet2', 'A2:A1000');
+  if (!compRows) return;
 
-  rows.forEach(row => {
-    const weekLabel = (row[0] || '').toUpperCase();
-    const idx = CONFIG.WEEKS.findIndex(w => w.num === weekLabel);
-    if (idx === -1) return;
+  const campaignStart = new Date('2026-05-10T00:00:00Z');
+  const weekCounts = {}; // idx → added this week
+  const weekTotals = {}; // idx → running total up to end of that week
 
-    const posts = parseInt(row[1] || 0);
-    const comp = parseInt(row[2] || 0);
-    const total = parseInt(row[3] || 0);
-    const proj = CONFIG.PROJECTIONS[idx];
+  // Build week-by-week counts from timestamps
+  compRows.forEach(row => {
+    const ts = row[0];
+    if (!ts) return;
+    try {
+      const d = new Date(ts);
+      const daysDiff = (d - campaignStart) / (24 * 60 * 60 * 1000);
+      if (daysDiff >= 0) {
+        const weekIdx = Math.min(Math.floor(daysDiff / 7), CONFIG.WEEKS.length - 1);
+        weekCounts[weekIdx] = (weekCounts[weekIdx] || 0) + 1;
+      }
+    } catch(e) {}
+  });
 
-    const postsEl = document.getElementById(`wk-posts-${idx}`);
-    const compEl = document.getElementById(`wk-comp-${idx}`);
-    const totalEl = document.getElementById(`wk-total-${idx}`);
-    const projEl = document.getElementById(`wk-proj-${idx}`);
+  // Calculate running totals
+  const totalPreCampaign = compRows.filter(r => {
+    try { return new Date(r[0]) < campaignStart; } catch(e) { return false; }
+  }).length;
 
-    if (postsEl) postsEl.innerHTML = `${posts}<span style="color:var(--muted);font-size:0.6rem"> / 3 target</span>`;
-    if (compEl) compEl.textContent = fmt(comp);
-    if (totalEl) totalEl.textContent = fmt(total);
-    if (projEl) {
+  let running = totalPreCampaign;
+  CONFIG.WEEKS.forEach((week, i) => {
+    running += (weekCounts[i] || 0);
+    weekTotals[i] = running;
+  });
+
+  // Populate table
+  CONFIG.WEEKS.forEach((week, i) => {
+    const comp = weekCounts[i] || 0;
+    const total = weekTotals[i] || 0;
+    const proj = CONFIG.PROJECTIONS[i];
+    const today = new Date();
+    const weekStart = new Date(campaignStart.getTime() + i * 7 * 24 * 60 * 60 * 1000);
+    const isFuture = today < weekStart;
+
+    const postsEl = document.getElementById(`wk-posts-${i}`);
+    const compEl = document.getElementById(`wk-comp-${i}`);
+    const totalEl = document.getElementById(`wk-total-${i}`);
+    const projEl = document.getElementById(`wk-proj-${i}`);
+
+    if (postsEl && !isFuture) postsEl.innerHTML = `—<span style="color:var(--muted);font-size:0.6rem"> / 3 target</span>`;
+    if (compEl && !isFuture) compEl.textContent = comp;
+    if (totalEl && !isFuture) totalEl.textContent = total;
+    if (projEl && !isFuture) {
       const onTrack = total >= proj;
-      projEl.innerHTML = `Proj: ${proj} &nbsp;<span class="${onTrack ? 'on-track' : 'behind'}">${onTrack ? '\u2713' : '\u2757'}</span>`;
+      projEl.innerHTML = `Proj: ${proj}&nbsp;<span class="${onTrack ? 'on-track' : 'behind'}">${onTrack ? '✓' : '⚠'}</span>`;
     }
   });
 }
@@ -1379,6 +1455,7 @@ async function init() {
   buildWeeklyTable();
 
   await Promise.all([
+    loadSectors(),
     loadCompletions(),
     loadLinkedIn(),
     loadWaves(),

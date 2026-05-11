@@ -850,7 +850,7 @@ body {
   <div class="header-right">
     <div class="live-badge"><span class="live-dot"></span>Live Data &mdash; Phase 1</div><br>
     INTEGRATED AI &nbsp;|&nbsp; CONFIDENTIAL<br>
-    Built by Vex &mdash; 1 May 2026 &mdash; v1.2 12 May 2026<br>
+    Built by Vex &mdash; 1 May 2026 &mdash; v1.3 12 May 2026<br>
     Refresh cadence: Daily 06:00 AEST
   </div>
 </div>
@@ -1415,12 +1415,12 @@ async function loadCompletions() {
 }
 
 function loadArchetypes(rows, total) {
-  const ARCH_COL = 6;
-  const SCORE_COL = 4;
-  const P1_COL = 7;
-  const P2_COL = 8;
-  const P3_COL = 9;
-  const P4_COL = 10;
+  const ARCH_COL = 2;   // archetype (calculated)
+  const SCORE_COL = 1;  // composite score
+  const P1_COL = 7;     // pillar1Score
+  const P2_COL = 8;     // pillar2Score
+  const P3_COL = 9;     // pillar3Score
+  const P4_COL = 10;    // pillar4Score
 
   const counts = { Reactor: 0, Experimenter: 0, Integrator: 0, Optimiser: 0, 'Autonomous Leader': 0 };
   let scoreSum = 0, scoreCount = 0;
