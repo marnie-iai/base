@@ -448,6 +448,9 @@ app.get('/dashboards/Index', requireDashboardAuth, (_req, res) => {
 app.get('/dashboards/clear-ground', requireDashboardAuth, (_req, res) => {
   res.sendFile(path.join(__dirname, 'dashboards', 'clear-ground.html'));
 });
+app.get('/dashboards/clear-ground-metrics', requireDashboardAuth, (_req, res) => {
+  res.sendFile(path.join(__dirname, 'dashboards', 'clear-ground-metrics.html'));
+});
 
 // Static assets within dashboards (if any future dashboards need them)
 app.use('/dashboards', requireDashboardAuth, express.static(path.join(__dirname, 'dashboards')));

@@ -1,0 +1,1483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clear Ground — Campaign Metrics</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --denim: #4A6584;
+  --solar: #F0C020;
+  --ground: #F5F2EC;
+  --ground2: #EDE9E0;
+  --navy: #0D1B2A;
+  --olive: #7A8C4A;
+  --ink: #1C1A16;
+  --muted: #7A7060;
+  --border: #D8D2C4;
+  --white: #FDFBF8;
+  --signal-warning: #C0392B;
+  --signal-warning-bg: #FDE8E8;
+  --green: #2E7D5A;
+  --green-bg: #E8F5EF;
+  --amber: #B45309;
+  --amber-bg: #FEF3E2;
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'Plus Jakarta Sans', sans-serif;
+
+  /* Trigger achieved state */
+  --trigger-bg: var(--navy);
+  --trigger-accent: var(--solar);
+}
+
+body {
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--mono);
+  min-height: 100vh;
+  padding: 2rem;
+}
+
+/* ---- HEADER ---- */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid var(--navy);
+}
+
+.dash-campaign-label {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--denim);
+  margin-bottom: 0.3rem;
+}
+
+.header-left h1 {
+  font-family: var(--sans);
+  font-size: 2.2rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--navy);
+}
+
+.header-left .sub {
+  font-size: 0.65rem;
+  color: var(--muted);
+  margin-top: 0.4rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-family: var(--mono);
+}
+
+.header-right {
+  text-align: right;
+  font-size: 0.65rem;
+  color: var(--muted);
+  letter-spacing: 0.05em;
+  line-height: 1.8;
+  font-family: var(--mono);
+}
+
+.live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: var(--navy);
+  color: var(--solar);
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.6rem;
+  margin-bottom: 0.4rem;
+}
+
+.live-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--solar);
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* ---- SECTION LABEL ---- */
+.section-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--mono);
+}
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ---- TRIGGER BLOCK (PRIMARY METRIC) ---- */
+.trigger-block {
+  background: var(--navy);
+  padding: 1.75rem 2rem;
+  margin-bottom: 2rem;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 2rem;
+  align-items: center;
+}
+
+.trigger-block.achieved {
+  background: var(--navy);
+  outline: 3px solid var(--solar);
+  outline-offset: -3px;
+  animation: triggerPulse 3s ease-in-out infinite;
+}
+
+@keyframes triggerPulse {
+  0%, 100% { outline-color: var(--solar); }
+  50% { outline-color: rgba(240,192,32,0.4); }
+}
+
+.trigger-count-wrap {
+  text-align: center;
+}
+
+.trigger-label {
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.4);
+  font-family: var(--mono);
+  margin-bottom: 0.5rem;
+}
+
+.trigger-count {
+  font-family: var(--sans);
+  font-size: 5rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--solar);
+  letter-spacing: -0.03em;
+}
+
+.trigger-of {
+  font-size: 1rem;
+  color: rgba(255,255,255,0.3);
+  font-family: var(--mono);
+  margin-top: 0.25rem;
+}
+
+.trigger-progress-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.trigger-bar-outer {
+  height: 12px;
+  background: rgba(255,255,255,0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+.trigger-bar-fill {
+  height: 100%;
+  background: var(--solar);
+  transition: width 1s ease;
+  position: relative;
+}
+
+.trigger-bar-fill::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: white;
+  opacity: 0.6;
+}
+
+.trigger-pct {
+  font-size: 0.62rem;
+  color: rgba(255,255,255,0.5);
+  font-family: var(--mono);
+  display: flex;
+  justify-content: space-between;
+}
+
+.trigger-milestone {
+  font-size: 0.6rem;
+  color: rgba(255,255,255,0.25);
+  font-family: var(--mono);
+  margin-top: 0.25rem;
+}
+
+.trigger-status-wrap {
+  text-align: right;
+}
+
+.trigger-status-label {
+  font-size: 0.58rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.35);
+  margin-bottom: 0.4rem;
+  font-family: var(--mono);
+}
+
+.trigger-status-value {
+  font-family: var(--sans);
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.5);
+}
+
+.trigger-status-value.active {
+  color: var(--white);
+}
+
+.trigger-status-tag {
+  display: inline-block;
+  margin-top: 0.5rem;
+  padding: 0.25rem 0.6rem;
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 600;
+  background: rgba(240,192,32,0.15);
+  color: var(--solar);
+  font-family: var(--mono);
+}
+
+.trigger-status-tag.achieved {
+  background: var(--solar);
+  color: var(--navy);
+  font-size: 0.7rem;
+  padding: 0.35rem 0.8rem;
+}
+
+/* ---- BREAKDOWN GRID (Sector / Source) ---- */
+.breakdown-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  margin-bottom: 2rem;
+}
+
+.breakdown-panel {
+  background: var(--white);
+  padding: 1.1rem;
+}
+
+.breakdown-title {
+  font-size: 0.6rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.9rem;
+  font-family: var(--mono);
+}
+
+.breakdown-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.65rem;
+}
+.breakdown-row:last-child { margin-bottom: 0; }
+
+.br-name {
+  font-size: 0.65rem;
+  color: var(--ink);
+  font-family: var(--sans);
+  width: 130px;
+  flex-shrink: 0;
+}
+
+.br-bar-wrap {
+  flex: 1;
+  height: 5px;
+  background: var(--ground2);
+}
+
+.br-bar-fill {
+  height: 100%;
+  background: var(--denim);
+}
+
+.br-bar-fill.olive { background: var(--olive); }
+.br-bar-fill.solar { background: var(--solar); }
+.br-bar-fill.denim2 { background: #6B8BAA; }
+
+.br-count {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--navy);
+  font-family: var(--mono);
+  width: 28px;
+  text-align: right;
+}
+
+.data-source-tag {
+  font-size: 0.58rem;
+  color: var(--olive);
+  padding: 0.12rem 0.35rem;
+  background: rgba(122,140,74,0.1);
+  display: inline-block;
+  margin-top: 0.75rem;
+}
+
+.placeholder-row {
+  font-size: 0.65rem;
+  color: var(--muted);
+  font-style: italic;
+  font-family: var(--sans);
+  padding: 0.5rem 0;
+}
+
+/* ---- LINKEDIN TABLE ---- */
+.li-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.68rem;
+  margin-bottom: 0;
+}
+
+.li-table th {
+  background: var(--denim);
+  color: var(--white);
+  padding: 0.55rem 0.75rem;
+  text-align: left;
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 500;
+  font-family: var(--mono);
+}
+
+.li-table td {
+  padding: 0.7rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--white);
+  vertical-align: middle;
+  font-family: var(--mono);
+}
+
+.li-table tr:hover td { background: var(--ground2); }
+
+.post-type-badge {
+  font-size: 0.55rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.12rem 0.35rem;
+  font-weight: 600;
+  font-family: var(--mono);
+}
+
+.type-obs { background: rgba(74,101,132,0.12); color: var(--denim); }
+.type-content { background: rgba(122,140,74,0.12); color: var(--olive); }
+.type-carousel { background: rgba(240,192,32,0.15); color: #8B6D00; }
+
+.signal-strong { color: var(--olive); font-weight: 600; }
+.signal-weak { color: var(--muted); }
+
+.li-cadence-note {
+  background: var(--ground2);
+  border: 1px solid var(--border);
+  border-top: none;
+  padding: 0.6rem 0.75rem;
+  font-size: 0.62rem;
+  color: var(--muted);
+  font-family: var(--sans);
+  margin-bottom: 2rem;
+  line-height: 1.5;
+}
+
+/* ---- WAVE TABLE ---- */
+.wave-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.7rem;
+  margin-bottom: 0;
+}
+
+.wave-table th {
+  background: var(--denim);
+  color: var(--white);
+  padding: 0.55rem 0.75rem;
+  text-align: left;
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 500;
+  font-family: var(--mono);
+}
+
+.wave-table td {
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--white);
+  vertical-align: middle;
+  font-family: var(--mono);
+}
+
+.wave-table tr:hover td { background: var(--ground2); }
+
+.wave-name {
+  font-weight: 600;
+  color: var(--navy);
+  font-family: var(--sans);
+  font-size: 0.72rem;
+}
+
+.wave-status {
+  font-size: 0.58rem;
+  color: var(--muted);
+  font-family: var(--mono);
+  display: block;
+  margin-top: 0.15rem;
+}
+
+.open-rate {
+  font-weight: 600;
+  color: var(--denim);
+}
+
+.hubspot-note {
+  background: var(--amber-bg);
+  border: 1px solid var(--border);
+  border-top: none;
+  padding: 0.6rem 0.75rem;
+  font-size: 0.62rem;
+  color: var(--amber);
+  font-family: var(--sans);
+  margin-bottom: 2rem;
+  line-height: 1.5;
+}
+
+/* ---- TRAFFIC ---- */
+.traffic-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  margin-bottom: 1px;
+}
+
+.tc {
+  background: var(--white);
+  padding: 1rem 1.1rem;
+}
+
+.tc.accent {
+  background: var(--denim);
+}
+
+.tc-label {
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.35rem;
+  font-family: var(--mono);
+}
+.tc.accent .tc-label { color: rgba(255,255,255,0.45); }
+
+.tc-value {
+  font-family: var(--sans);
+  font-size: 1.8rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--navy);
+}
+.tc.accent .tc-value { color: var(--solar); }
+
+.tc-sub {
+  font-size: 0.6rem;
+  color: var(--muted);
+  margin-top: 0.2rem;
+  font-family: var(--mono);
+}
+.tc.accent .tc-sub { color: rgba(255,255,255,0.4); }
+
+.source-bars-wrap {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-top: none;
+  padding: 1rem 1.1rem;
+  margin-bottom: 1px;
+}
+
+.source-bars-title {
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.75rem;
+  font-family: var(--mono);
+}
+
+.src-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.55rem;
+}
+.src-row:last-child { margin-bottom: 0; }
+
+.src-name {
+  font-size: 0.62rem;
+  color: var(--ink);
+  font-family: var(--sans);
+  width: 130px;
+  flex-shrink: 0;
+}
+
+.src-bar-wrap {
+  flex: 1;
+  height: 5px;
+  background: var(--ground2);
+}
+
+.src-bar-fill {
+  height: 100%;
+  background: var(--denim);
+}
+.src-bar-fill.olive { background: var(--olive); }
+.src-bar-fill.solar { background: var(--solar); }
+.src-bar-fill.muted { background: var(--muted); }
+
+.src-pct {
+  font-size: 0.62rem;
+  color: var(--muted);
+  width: 36px;
+  text-align: right;
+  font-family: var(--mono);
+}
+
+.conversion-bar {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-top: none;
+  padding: 1rem 1.1rem;
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.conv-label {
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-family: var(--mono);
+  flex-shrink: 0;
+}
+
+.conv-bar-outer {
+  flex: 1;
+  height: 8px;
+  background: var(--ground2);
+}
+
+.conv-bar-fill {
+  height: 100%;
+  background: var(--olive);
+  transition: width 1s ease;
+}
+
+.conv-value {
+  font-family: var(--sans);
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--navy);
+  flex-shrink: 0;
+}
+
+.conv-target {
+  font-size: 0.62rem;
+  color: var(--muted);
+  font-family: var(--mono);
+  flex-shrink: 0;
+}
+
+/* ---- WEEKLY SUMMARY ---- */
+.week-nav {
+  display: flex;
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  margin-bottom: 1px;
+}
+
+.week-tab {
+  flex: 1;
+  padding: 0.55rem 0.5rem;
+  text-align: center;
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: var(--white);
+  cursor: pointer;
+  font-family: var(--mono);
+  border: none;
+  transition: background 0.15s, color 0.15s;
+}
+
+.week-tab:hover { background: var(--ground2); }
+.week-tab.active { background: var(--navy); color: var(--solar); }
+.week-tab.current { background: var(--denim); color: var(--white); }
+
+.week-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.68rem;
+  margin-bottom: 2rem;
+}
+
+.week-table th {
+  background: var(--denim);
+  color: var(--white);
+  padding: 0.55rem 0.75rem;
+  text-align: left;
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 500;
+  font-family: var(--mono);
+}
+
+.week-table td {
+  padding: 0.7rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--white);
+  vertical-align: middle;
+  font-family: var(--mono);
+}
+
+.week-table tr:hover td { background: var(--ground2); }
+
+.week-table tr.current-week td {
+  background: rgba(74,101,132,0.06);
+}
+
+.week-num {
+  font-weight: 600;
+  color: var(--denim);
+}
+
+.milestone-badge {
+  display: inline-block;
+  font-size: 0.55rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.12rem 0.35rem;
+  font-weight: 600;
+  font-family: var(--mono);
+}
+
+.ms-wave { background: rgba(74,101,132,0.12); color: var(--denim); }
+.ms-event { background: rgba(122,140,74,0.12); color: var(--olive); }
+.ms-media { background: var(--solar); color: var(--navy); }
+.ms-ads { background: rgba(240,192,32,0.12); color: #8B6D00; }
+
+.on-track { color: var(--olive); font-weight: 600; }
+.behind { color: var(--signal-warning); font-weight: 600; }
+.pending { color: var(--muted); }
+
+/* ---- LAST UPDATED ---- */
+.last-updated-bar {
+  background: var(--ground2);
+  border: 1px solid var(--border);
+  padding: 0.6rem 1rem;
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.62rem;
+  font-family: var(--mono);
+  color: var(--muted);
+}
+
+.lu-item { display: flex; gap: 0.5rem; align-items: center; }
+.lu-label { color: var(--muted); }
+.lu-value { color: var(--ink); font-weight: 500; }
+.lu-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--border); }
+.lu-dot.live { background: var(--olive); }
+.lu-dot.pending { background: var(--amber); }
+
+/* ---- FOOTER ---- */
+.dash-footer {
+  font-size: 0.6rem;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  display: flex;
+  justify-content: space-between;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  margin-top: 2rem;
+  font-family: var(--mono);
+}
+
+/* ---- TRIGGER ACHIEVED OVERLAY ---- */
+.trigger-achieved-banner {
+  display: none;
+  background: var(--solar);
+  padding: 0.75rem 1rem;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.trigger-achieved-banner.show { display: block; }
+
+.tab-text {
+  font-family: var(--sans);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--navy);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.tab-sub {
+  font-size: 0.65rem;
+  color: rgba(13,27,42,0.65);
+  font-family: var(--mono);
+  margin-top: 0.15rem;
+}
+
+@media (max-width: 900px) {
+  .trigger-block { grid-template-columns: 1fr; text-align: center; }
+  .trigger-status-wrap { text-align: center; }
+  .breakdown-grid, .traffic-grid { grid-template-columns: 1fr; }
+  .week-nav { flex-wrap: wrap; }
+  body { padding: 1rem; }
+  .header { flex-direction: column; gap: 1rem; }
+  .last-updated-bar { flex-direction: column; gap: 0.5rem; align-items: flex-start; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <p class="dash-campaign-label">Clear Ground</p>
+    <h1>Campaign Metrics</h1>
+    <p class="sub">W20 — W27 &nbsp;|&nbsp; 10 May to 5 July 2026 &nbsp;|&nbsp; Internal only</p>
+  </div>
+  <div class="header-right">
+    <div class="live-badge"><span class="live-dot"></span>Live — Index + GA4</div><br>
+    INTEGRATED AI &nbsp;|&nbsp; NOT FOR DISTRIBUTION<br>
+    Companion to: ClearGround_CampaignMap_v2_May2026.html<br>
+    Built by Vex &nbsp;|&nbsp; 10 May 2026
+  </div>
+</div>
+
+<!-- Last updated bar -->
+<div class="last-updated-bar">
+  <div class="lu-item">
+    <span class="lu-dot live"></span>
+    <span class="lu-label">Index completions:</span>
+    <span class="lu-value" id="lu-index">—</span>
+  </div>
+  <div class="lu-item">
+    <span class="lu-dot pending"></span>
+    <span class="lu-label">LinkedIn data:</span>
+    <span class="lu-value" id="lu-linkedin">Weekly via Wilder</span>
+  </div>
+  <div class="lu-item">
+    <span class="lu-dot pending"></span>
+    <span class="lu-label">Wave data:</span>
+    <span class="lu-value">Manual import &mdash; pending HubSpot</span>
+  </div>
+  <div class="lu-item">
+    <span class="lu-dot live"></span>
+    <span class="lu-label">GA4 traffic:</span>
+    <span class="lu-value" id="lu-ga4">—</span>
+  </div>
+  <div class="lu-item">
+    <span class="lu-label">Page loaded:</span>
+    <span class="lu-value" id="lu-ts">—</span>
+  </div>
+</div>
+
+<!-- Trigger achieved banner — hidden until 30 completions -->
+<div class="trigger-achieved-banner" id="trigger-banner">
+  <div class="tab-text">Media Trigger Reached — 30 Completions</div>
+  <div class="tab-sub">Index benchmark publication is now credible. Media push activates. Notify Reid and Marnie.</div>
+</div>
+
+<!-- ====== SECTION 1: COMPLETION COUNTER ====== -->
+<div class="section-label">01 &mdash; Completion Counter &mdash; Trigger at 30</div>
+
+<div class="trigger-block" id="trigger-block">
+  <div class="trigger-count-wrap">
+    <div class="trigger-label">Current Completions</div>
+    <div class="trigger-count" id="completion-count">—</div>
+    <div class="trigger-of" id="completion-sub">of 30 trigger</div>
+  </div>
+
+  <div class="trigger-progress-wrap">
+    <div class="trigger-bar-outer">
+      <div class="trigger-bar-fill" id="trigger-bar" style="width:0%"></div>
+    </div>
+    <div class="trigger-pct">
+      <span id="trigger-pct-val">0%</span>
+      <span>30 — media trigger</span>
+    </div>
+    <div class="trigger-milestone" id="trigger-milestone-note">
+      Publishing threshold: 30 minimum &nbsp;|&nbsp; Preferred: 50
+    </div>
+  </div>
+
+  <div class="trigger-status-wrap">
+    <div class="trigger-status-label">Status</div>
+    <div class="trigger-status-value" id="trigger-status-val">Accumulating</div>
+    <div>
+      <span class="trigger-status-tag" id="trigger-status-tag">In Progress</span>
+    </div>
+    <div style="margin-top:0.75rem;font-size:0.6rem;color:rgba(255,255,255,0.25);font-family:var(--mono)" id="trigger-remaining">— to go</div>
+  </div>
+</div>
+
+<!-- Breakdown: sector + source -->
+<div class="breakdown-grid" style="margin-bottom:2rem;">
+  <div class="breakdown-panel">
+    <div class="breakdown-title">By Sector</div>
+    <div id="sector-rows">
+      <div class="placeholder-row">Awaiting sector data from Base</div>
+    </div>
+    <div class="data-source-tag">Base &mdash; index.integratedai.com.au</div>
+  </div>
+  <div class="breakdown-panel">
+    <div class="breakdown-title">By Source</div>
+    <div class="breakdown-row">
+      <div class="br-name">Wave 3 email</div>
+      <div class="br-bar-wrap"><div class="br-bar-fill" id="src-wave3" style="width:0%"></div></div>
+      <div class="br-count" id="src-wave3-n">—</div>
+    </div>
+    <div class="breakdown-row">
+      <div class="br-name">LinkedIn organic</div>
+      <div class="br-bar-wrap"><div class="br-bar-fill olive" id="src-li" style="width:0%"></div></div>
+      <div class="br-count" id="src-li-n">—</div>
+    </div>
+    <div class="breakdown-row">
+      <div class="br-name">Direct / other</div>
+      <div class="br-bar-wrap"><div class="br-bar-fill denim2" id="src-direct" style="width:0%"></div></div>
+      <div class="br-count" id="src-direct-n">—</div>
+    </div>
+    <div class="breakdown-row">
+      <div class="br-name">Wave 4</div>
+      <div class="br-bar-wrap"><div class="br-bar-fill solar" id="src-wave4" style="width:0%"></div></div>
+      <div class="br-count" id="src-wave4-n">—</div>
+    </div>
+    <div class="data-source-tag">GA4 &mdash; UTM attribution</div>
+  </div>
+</div>
+
+<!-- ====== SECTION 2: LINKEDIN ====== -->
+<div class="section-label">02 &mdash; LinkedIn Engagement (Per Post)</div>
+
+<table class="li-table">
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>Week</th>
+      <th>Type</th>
+      <th>Impressions</th>
+      <th>Eng. Rate</th>
+      <th>Comments</th>
+      <th>Saves</th>
+      <th>Follows</th>
+      <th>Signal</th>
+    </tr>
+  </thead>
+  <tbody id="li-rows">
+    <tr>
+      <td colspan="9" style="text-align:center;padding:1.5rem;color:var(--muted);font-style:italic;font-family:var(--sans);font-size:0.65rem;">
+        Sheet 3 not yet populated. Wilder to write first data after weekly LinkedIn export.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="li-cadence-note">
+  <strong style="color:var(--navy);">Data path:</strong> Marnie downloads LinkedIn Creator Analytics weekly (30 seconds). File to Google Drive. Wilder parses and writes to Sheet 3 in Hunter AI Index Lead Capture. Daily refresh is not achievable via manual export — weekly is the confirmed cadence. If LinkedIn API read access is secured in future, this upgrades to daily automatically.
+</div>
+
+<!-- ====== SECTION 3: WAVE PERFORMANCE ====== -->
+<div class="section-label">03 &mdash; Wave Performance</div>
+
+<table class="wave-table">
+  <thead>
+    <tr>
+      <th>Wave</th>
+      <th>Contacts Sent</th>
+      <th>Opens</th>
+      <th>Open Rate</th>
+      <th>Clicks</th>
+      <th>Click Rate</th>
+      <th>Completions Attributed</th>
+      <th>Completion Rate</th>
+    </tr>
+  </thead>
+  <tbody id="wave-rows">
+    <tr>
+      <td>
+        <span class="wave-name">Wave 3</span>
+        <span class="wave-status">Sent &mdash; May 2026</span>
+      </td>
+      <td>87</td>
+      <td id="w3-opens">—</td>
+      <td id="w3-open-rate" class="open-rate">—</td>
+      <td id="w3-clicks">—</td>
+      <td id="w3-click-rate">—</td>
+      <td id="w3-comp">—</td>
+      <td id="w3-comp-rate">—</td>
+    </tr>
+    <tr>
+      <td>
+        <span class="wave-name">Wave 4</span>
+        <span class="wave-status" id="w4-status">TBC &mdash; contacts not finalised</span>
+      </td>
+      <td id="w4-sent">TBC</td>
+      <td id="w4-opens">—</td>
+      <td id="w4-open-rate" class="open-rate">—</td>
+      <td id="w4-clicks">—</td>
+      <td id="w4-click-rate">—</td>
+      <td id="w4-comp">—</td>
+      <td id="w4-comp-rate">—</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="hubspot-note">
+  <strong>HubSpot access pending.</strong> Wave open and click data requires a HubSpot connection or manual export from Morgan. UTM <code>utm_source=em&amp;utm_campaign=cg</code> is live and tracking email-attributed completions through GA4 now. Completion figures will populate from GA4 as data arrives. Opens and clicks require HubSpot. Morgan to confirm: does a Make/HubSpot connection exist, or is manual export required?
+</div>
+
+<!-- ====== SECTION 4: TRAFFIC ====== -->
+<div class="section-label">04 &mdash; Traffic to Clear Ground Landing Page</div>
+
+<div class="traffic-grid" style="margin-bottom:1px;">
+  <div class="tc accent">
+    <div class="tc-label">Total Sessions</div>
+    <div class="tc-value" id="tc-sessions">—</div>
+    <div class="tc-sub">integratedai.com.au/clear-ground</div>
+  </div>
+  <div class="tc">
+    <div class="tc-label">Via Email (Wave)</div>
+    <div class="tc-value" id="tc-email" style="color:var(--denim)">—</div>
+    <div class="tc-sub">utm_source=em</div>
+    <div class="data-source-tag">GA4</div>
+  </div>
+  <div class="tc">
+    <div class="tc-label">Via LinkedIn</div>
+    <div class="tc-value" id="tc-li" style="color:var(--denim)">—</div>
+    <div class="tc-sub">utm_source=li</div>
+    <div class="data-source-tag">GA4</div>
+  </div>
+  <div class="tc">
+    <div class="tc-label">Via Insights Articles</div>
+    <div class="tc-value" id="tc-insights" style="color:var(--denim)">—</div>
+    <div class="tc-sub">utm_source=insights</div>
+    <div class="data-source-tag">GA4</div>
+  </div>
+</div>
+
+<div class="source-bars-wrap" style="margin-bottom:1px;">
+  <div class="source-bars-title">Session source breakdown</div>
+  <div class="src-row">
+    <div class="src-name">Email (Wave)</div>
+    <div class="src-bar-wrap"><div class="src-bar-fill" id="bar-email" style="width:0%"></div></div>
+    <div class="src-pct" id="pct-email">—%</div>
+  </div>
+  <div class="src-row">
+    <div class="src-name">LinkedIn organic</div>
+    <div class="src-bar-wrap"><div class="src-bar-fill olive" id="bar-li" style="width:0%"></div></div>
+    <div class="src-pct" id="pct-li">—%</div>
+  </div>
+  <div class="src-row">
+    <div class="src-name">Insights articles</div>
+    <div class="src-bar-wrap"><div class="src-bar-fill solar" id="bar-insights" style="width:0%"></div></div>
+    <div class="src-pct" id="pct-insights">—%</div>
+  </div>
+  <div class="src-row">
+    <div class="src-name">Direct / other</div>
+    <div class="src-bar-wrap"><div class="src-bar-fill muted" id="bar-direct-t" style="width:0%"></div></div>
+    <div class="src-pct" id="pct-direct-t">—%</div>
+  </div>
+</div>
+
+<div class="conversion-bar">
+  <span class="conv-label">Sessions &rarr; Index Completions</span>
+  <div class="conv-bar-outer">
+    <div class="conv-bar-fill" id="conv-bar" style="width:0%"></div>
+  </div>
+  <span class="conv-value" id="conv-rate">—%</span>
+  <span class="conv-target">Target: 12%</span>
+</div>
+
+<!-- ====== SECTION 5: WEEKLY SUMMARY ====== -->
+<div class="section-label">05 &mdash; Weekly Summary (W20 &mdash; W27)</div>
+
+<div class="week-nav" id="week-nav">
+  <!-- Populated by JS -->
+</div>
+
+<table class="week-table">
+  <thead>
+    <tr>
+      <th>Week</th>
+      <th>Dates</th>
+      <th>Posts Published</th>
+      <th>Completions Added</th>
+      <th>Running Total</th>
+      <th>vs Projection</th>
+      <th>Milestones</th>
+    </tr>
+  </thead>
+  <tbody id="week-rows">
+    <!-- Populated by JS -->
+  </tbody>
+</table>
+
+<!-- FOOTER -->
+<div class="dash-footer">
+  <span>CLEAR GROUND METRICS &nbsp;|&nbsp; INTEGRATED AI &nbsp;|&nbsp; INTERNAL ONLY &nbsp;|&nbsp; VEX &mdash; 10 MAY 2026</span>
+  <span>Index data: base.integratedai.com.au &nbsp;|&nbsp; GA4: G-S7SCLTB393</span>
+</div>
+
+<script>
+// ============================================================
+// CLEAR GROUND CAMPAIGN METRICS BOARD
+// Vex — Data Analyst Integer | 10 May 2026
+//
+// DATA SOURCES:
+//   Base (Index): https://base.integratedai.com.au/dashboards/Index
+//     — completion count, sector breakdown
+//   GA4 (Sheet 4): Hunter AI Index Lead Capture, Sheet 4
+//     — traffic to /clear-ground, UTM attribution, conversion
+//   LinkedIn (Sheet 3): Hunter AI Index Lead Capture, Sheet 3
+//     — post-level engagement, written by Wilder weekly
+//   Wave (manual): Hunter AI Index Lead Capture, Sheet 5
+//     — Wave 3 and 4 open/click data (pending HubSpot connection)
+//
+// DEPLOYMENT:
+//   CONFIG values below must be set before going live.
+//   SPREADSHEET_ID: confirm with Alex
+//   API_KEY: Google Sheets API key
+//   BASE_API_KEY: confirm with Dev (Base authentication)
+// ============================================================
+
+const CONFIG = {
+  SPREADSHEET_ID: 'REPLACE_WITH_SPREADSHEET_ID',
+  API_KEY: 'REPLACE_WITH_API_KEY',
+  BASE_URL: 'https://base.integratedai.com.au',
+  COMPLETION_TRIGGER: 30,
+  COMPLETION_PREFERRED: 50,
+  LANDING_PAGE: '/clear-ground',
+  CONV_TARGET: 0.12,
+
+  // Campaign week structure: W20–W27
+  WEEKS: [
+    { num: 'W20', dates: '10–16 May', milestones: [{ label: 'Wave 3 send', cls: 'ms-wave' }] },
+    { num: 'W21', dates: '17–23 May', milestones: [] },
+    { num: 'W22', dates: '24–30 May', milestones: [{ label: 'Innovators Lunch', cls: 'ms-event' }] },
+    { num: 'W23', dates: '31 May–6 Jun', milestones: [{ label: 'Graduation', cls: 'ms-event' }] },
+    { num: 'W24', dates: '7–13 Jun', milestones: [{ label: 'Paid ads check', cls: 'ms-ads' }] },
+    { num: 'W25', dates: '14–20 Jun', milestones: [{ label: 'Wave 4', cls: 'ms-wave' }] },
+    { num: 'W26', dates: '21–27 Jun', milestones: [] },
+    { num: 'W27', dates: '28 Jun–5 Jul', milestones: [{ label: 'Media push if triggered', cls: 'ms-media' }] },
+  ],
+  // Weekly completion projections (cumulative, conservative estimate)
+  PROJECTIONS: [3, 6, 10, 13, 17, 21, 26, 30],
+};
+
+// ---- Utilities ----
+function fmt(n) {
+  if (n === null || n === undefined || isNaN(n)) return '—';
+  return n.toLocaleString('en-AU');
+}
+
+function fmtPct(n) {
+  if (n === null || n === undefined || isNaN(n)) return '—%';
+  return (n * 100).toFixed(1) + '%';
+}
+
+function fmtPctDirect(n) {
+  if (n === null || n === undefined || isNaN(n)) return '—%';
+  return n.toFixed(1) + '%';
+}
+
+function setBar(barId, pctId, ratio) {
+  const bar = document.getElementById(barId);
+  const pct = document.getElementById(pctId);
+  if (bar) bar.style.width = Math.min(ratio * 100, 100) + '%';
+  if (pct) pct.textContent = (ratio * 100).toFixed(0) + '%';
+}
+
+async function fetchSheet(sheetName, range) {
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SPREADSHEET_ID}/values/${encodeURIComponent(sheetName + '!' + range)}?key=${CONFIG.API_KEY}`;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.values || [];
+  } catch (e) {
+    console.warn(`Sheet fetch failed: ${sheetName}!${range}`, e);
+    return null;
+  }
+}
+
+// ---- Timestamp ----
+function setTimestamp() {
+  const now = new Date();
+  const fmt = now.toLocaleString('en-AU', {
+    day: 'numeric', month: 'short', year: 'numeric',
+    hour: '2-digit', minute: '2-digit', timeZone: 'Australia/Sydney'
+  });
+  const el = document.getElementById('lu-ts');
+  if (el) el.textContent = fmt + ' AEST';
+}
+
+// ---- Section 1: Completion counter ----
+// Reads from Base API. Dev to confirm auth method.
+// Fallback: reads Sheet 1 row count from Google Sheets (known completions).
+async function loadCompletions() {
+  // Primary: attempt Base API
+  let count = null;
+  try {
+    const res = await fetch(`${CONFIG.BASE_URL}/api/completions/count`, {
+      headers: { 'Accept': 'application/json' }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      count = parseInt(data.count || data.total || 0);
+      document.getElementById('lu-index').textContent = 'Live via Base';
+    }
+  } catch (e) {
+    // Base not reachable — fall through to Sheets fallback
+  }
+
+  // Fallback: Sheet 1 row count (known completions)
+  if (count === null && CONFIG.SPREADSHEET_ID !== 'REPLACE_WITH_SPREADSHEET_ID') {
+    const rows = await fetchSheet('Sheet 1', 'A2:A1000');
+    if (rows) {
+      count = rows.length;
+      document.getElementById('lu-index').textContent = 'Sheet 1 (daily)';
+    }
+  }
+
+  if (count === null) return;
+
+  const trigger = CONFIG.COMPLETION_TRIGGER;
+  const progress = Math.min(count / trigger, 1);
+
+  document.getElementById('completion-count').textContent = count;
+  document.getElementById('trigger-bar').style.width = (progress * 100) + '%';
+  document.getElementById('trigger-pct-val').textContent = Math.round(progress * 100) + '%';
+
+  if (count >= trigger) {
+    // Trigger achieved
+    document.getElementById('completion-sub').textContent = `of ${trigger} — trigger reached`;
+    document.getElementById('trigger-block').classList.add('achieved');
+    document.getElementById('trigger-banner').classList.add('show');
+    document.getElementById('trigger-status-val').textContent = 'Triggered';
+    document.getElementById('trigger-status-val').classList.add('active');
+    const tag = document.getElementById('trigger-status-tag');
+    tag.textContent = 'Media Push Activates';
+    tag.classList.add('achieved');
+    document.getElementById('trigger-remaining').textContent =
+      count >= CONFIG.COMPLETION_PREFERRED
+        ? `${count - CONFIG.COMPLETION_PREFERRED} above preferred threshold (${CONFIG.COMPLETION_PREFERRED})`
+        : `${CONFIG.COMPLETION_PREFERRED - count} to preferred threshold`;
+    document.getElementById('trigger-milestone-note').textContent =
+      `Trigger reached — publication credible. Preferred threshold: ${CONFIG.COMPLETION_PREFERRED}.`;
+  } else {
+    const remaining = trigger - count;
+    document.getElementById('trigger-remaining').textContent = `${remaining} completions to trigger`;
+    document.getElementById('trigger-status-val').textContent = 'Accumulating';
+    document.getElementById('trigger-status-val').classList.add('active');
+  }
+
+  // Source breakdown — from GA4 Sheet 4 UTM data
+  // These are estimated from GA4 UTM attribution, not directly from Base.
+  // Actual source split requires Sheet 4 data confirmed firing.
+}
+
+// ---- Section 2: LinkedIn (Sheet 3) ----
+// Schema: date · postTitle · postUrl · impressions · engRate · comments · saves · follows · type
+async function loadLinkedIn() {
+  const rows = await fetchSheet('Sheet 3', 'A2:I100');
+  if (!rows || rows.length === 0) return;
+
+  document.getElementById('lu-linkedin').textContent = 'Sheet 3 — last Wilder write';
+
+  const tbody = document.getElementById('li-rows');
+  tbody.innerHTML = '';
+
+  // Sort newest first
+  const sorted = [...rows].sort((a, b) => new Date(b[0]) - new Date(a[0]));
+
+  sorted.forEach(row => {
+    const date = row[0] || '—';
+    const title = row[1] || '—';
+    const url = row[2] || '#';
+    const impressions = parseInt(row[3] || 0);
+    const engRate = parseFloat(row[4] || 0);
+    const comments = parseInt(row[5] || 0);
+    const saves = parseInt(row[6] || 0);
+    const follows = parseInt(row[7] || 0);
+    const type = row[8] || 'observational';
+
+    // Calculate week number from date
+    const d = new Date(date);
+    const campaignStart = new Date('2026-05-10');
+    const weekNum = Math.floor((d - campaignStart) / (7 * 24 * 60 * 60 * 1000)) + 20;
+    const weekLabel = weekNum >= 20 && weekNum <= 27 ? `W${weekNum}` : '—';
+
+    const typeMap = {
+      'observational': ['Observational', 'type-obs'],
+      'content': ['Content', 'type-content'],
+      'carousel': ['Carousel', 'type-carousel'],
+    };
+    const [typeLabel, typeCls] = typeMap[type.toLowerCase()] || ['—', ''];
+
+    // Signal assessment
+    const isStrongPost = engRate > 3 || saves > 5;
+    const signalText = isStrongPost ? 'Strong' : 'Tracking';
+    const signalCls = isStrongPost ? 'signal-strong' : 'signal-weak';
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${date}</td>
+      <td>${weekLabel}</td>
+      <td><span class="post-type-badge ${typeCls}">${typeLabel}</span></td>
+      <td><strong>${fmt(impressions)}</strong></td>
+      <td>${fmtPctDirect(engRate)}%</td>
+      <td>${fmt(comments)}${comments > 0 ? '' : ''}</td>
+      <td>${fmt(saves)}</td>
+      <td>${fmt(follows)}</td>
+      <td class="${signalCls}">${signalText}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// ---- Section 3: Wave performance ----
+// Sheet 5: wave · sent · opens · clicks · completions
+// wave, sent, opens, clicks, completions
+async function loadWaves() {
+  const rows = await fetchSheet('Sheet 5', 'A2:E10');
+  if (!rows || rows.length === 0) return;
+
+  rows.forEach(row => {
+    const wave = (row[0] || '').toLowerCase();
+    const sent = parseInt(row[1] || 0);
+    const opens = parseInt(row[2] || 0);
+    const clicks = parseInt(row[3] || 0);
+    const comp = parseInt(row[4] || 0);
+
+    if (wave.includes('3')) {
+      document.getElementById('w3-opens').textContent = fmt(opens);
+      document.getElementById('w3-open-rate').textContent = sent > 0 ? fmtPct(opens / sent) : '—%';
+      document.getElementById('w3-clicks').textContent = fmt(clicks);
+      document.getElementById('w3-click-rate').textContent = sent > 0 ? fmtPct(clicks / sent) : '—%';
+      document.getElementById('w3-comp').textContent = fmt(comp);
+      document.getElementById('w3-comp-rate').textContent = sent > 0 ? fmtPct(comp / sent) : '—%';
+    }
+
+    if (wave.includes('4')) {
+      document.getElementById('w4-sent').textContent = fmt(sent);
+      document.getElementById('w4-opens').textContent = fmt(opens);
+      document.getElementById('w4-open-rate').textContent = sent > 0 ? fmtPct(opens / sent) : '—%';
+      document.getElementById('w4-clicks').textContent = fmt(clicks);
+      document.getElementById('w4-click-rate').textContent = sent > 0 ? fmtPct(clicks / sent) : '—%';
+      document.getElementById('w4-comp').textContent = fmt(comp);
+      document.getElementById('w4-comp-rate').textContent = sent > 0 ? fmtPct(comp / sent) : '—%';
+      document.getElementById('w4-status').textContent = 'Sent';
+    }
+  });
+}
+
+// ---- Section 4: Traffic (Sheet 4 — GA4 data) ----
+// Sheet 4 col index (0-based):
+// 0:date, 1:sessions_total, 2:sessions_index, 3:sessions_insights
+// 4:source_organic, 5:source_direct, 6:source_linkedin, 7:source_other
+// 8:blog_sessions, 9:blog_avg_time
+// 10+ diagnostic funnel events
+// NOTE: clear-ground landing page sessions may be in a separate column
+// — if not present in Sheet 4, GA4 segment by page path is required.
+// For now reads sessions_total as proxy; Dev to confirm clear-ground page filter.
+async function loadTraffic() {
+  const rows = await fetchSheet('Sheet 4', 'A2:U200');
+  if (!rows || rows.length === 0) return;
+
+  let totals = Array(21).fill(0);
+  rows.forEach(row => {
+    for (let i = 1; i <= 20; i++) {
+      totals[i] += parseFloat(row[i] || 0);
+    }
+  });
+
+  // Traffic to clear-ground landing — GA4 filters by page path
+  // Using total sessions as proxy until page-specific filter confirmed with Dev
+  const sessions = totals[1];
+  const srcEmail = totals[6]; // source_linkedin is col 6 — email not yet separated
+  const srcLi = totals[6];
+  const srcDirect = totals[5];
+  const srcOther = totals[7];
+  const srcTotal = srcEmail + srcLi + srcDirect + srcOther;
+
+  document.getElementById('tc-sessions').textContent = fmt(sessions);
+  document.getElementById('lu-ga4').textContent = `Last daily pull — ${rows[rows.length - 1]?.[0] || 'pending'}`;
+
+  if (srcTotal > 0) {
+    setBar('bar-email', 'pct-email', srcEmail / srcTotal);
+    setBar('bar-li', 'pct-li', srcLi / srcTotal);
+    setBar('bar-insights', 'pct-insights', 0); // insights UTM not yet in Sheet 4 — flag
+    setBar('bar-direct-t', 'pct-direct-t', srcDirect / srcTotal);
+  }
+
+  // Conversion rate: completions / sessions
+  // Completions from Sheet 1 row count
+  if (CONFIG.SPREADSHEET_ID !== 'REPLACE_WITH_SPREADSHEET_ID') {
+    const compRows = await fetchSheet('Sheet 1', 'A2:A1000');
+    const comp = compRows ? compRows.length : 0;
+    if (sessions > 0 && comp > 0) {
+      const rate = comp / sessions;
+      document.getElementById('conv-rate').textContent = fmtPct(rate);
+      document.getElementById('conv-bar').style.width = Math.min(rate / CONFIG.CONV_TARGET, 1) * 100 + '%';
+    }
+  }
+}
+
+// ---- Section 5: Weekly summary ----
+function buildWeeklyTable() {
+  const nav = document.getElementById('week-nav');
+  const tbody = document.getElementById('week-rows');
+  const today = new Date();
+  const campaignStart = new Date('2026-05-10');
+
+  // Current week number (W20 = campaign start)
+  const currentWeekOffset = Math.floor((today - campaignStart) / (7 * 24 * 60 * 60 * 1000));
+  const currentWeekIdx = Math.max(0, Math.min(currentWeekOffset, CONFIG.WEEKS.length - 1));
+
+  // Build nav tabs
+  CONFIG.WEEKS.forEach((week, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'week-tab';
+    btn.textContent = week.num;
+    if (i === currentWeekIdx) btn.classList.add('current');
+    nav.appendChild(btn);
+  });
+
+  // Build table rows
+  CONFIG.WEEKS.forEach((week, i) => {
+    const isPast = i < currentWeekIdx;
+    const isCurrent = i === currentWeekIdx;
+    const isFuture = i > currentWeekIdx;
+    const projection = CONFIG.PROJECTIONS[i];
+
+    const milestoneHTML = week.milestones.map(m =>
+      `<span class="milestone-badge ${m.cls}">${m.label}</span>`
+    ).join(' ');
+
+    const tr = document.createElement('tr');
+    if (isCurrent) tr.classList.add('current-week');
+
+    const statusCls = isFuture ? 'pending' : 'on-track';
+    const statusText = isFuture ? '—' : 'Awaiting data';
+
+    tr.innerHTML = `
+      <td><span class="week-num">${week.num}</span>${isCurrent ? ' <span style="font-size:0.55rem;color:var(--denim);font-family:var(--mono)">NOW</span>' : ''}</td>
+      <td>${week.dates}</td>
+      <td id="wk-posts-${i}" class="${statusCls}">${isFuture ? '—' : '—'}<span style="color:var(--muted);font-size:0.6rem"> / 3 target</span></td>
+      <td id="wk-comp-${i}" class="${statusCls}">${isFuture ? '—' : '—'}</td>
+      <td id="wk-total-${i}">—</td>
+      <td id="wk-proj-${i}" style="color:var(--muted);font-size:0.62rem">Proj: ${projection}</td>
+      <td>${milestoneHTML || '<span style="color:var(--border)">—</span>'}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// ---- Weekly data from Sheet 6 (weekly summary) ----
+// Schema: week_num · posts_published · completions_added · running_total
+async function loadWeeklyData() {
+  const rows = await fetchSheet('Sheet 6', 'A2:D20');
+  if (!rows || rows.length === 0) return;
+
+  rows.forEach(row => {
+    const weekLabel = (row[0] || '').toUpperCase(); // e.g. "W20"
+    const idx = CONFIG.WEEKS.findIndex(w => w.num === weekLabel);
+    if (idx === -1) return;
+
+    const posts = parseInt(row[1] || 0);
+    const comp = parseInt(row[2] || 0);
+    const total = parseInt(row[3] || 0);
+    const proj = CONFIG.PROJECTIONS[idx];
+
+    const postsEl = document.getElementById(`wk-posts-${idx}`);
+    const compEl = document.getElementById(`wk-comp-${idx}`);
+    const totalEl = document.getElementById(`wk-total-${idx}`);
+    const projEl = document.getElementById(`wk-proj-${idx}`);
+
+    if (postsEl) postsEl.innerHTML = `${posts}<span style="color:var(--muted);font-size:0.6rem"> / 3 target</span>`;
+    if (compEl) compEl.textContent = fmt(comp);
+    if (totalEl) totalEl.textContent = fmt(total);
+    if (projEl) {
+      const onTrack = total >= proj;
+      projEl.innerHTML = `Proj: ${proj} &nbsp;<span class="${onTrack ? 'on-track' : 'behind'}">${onTrack ? '✓' : '⚑'}</span>`;
+    }
+  });
+}
+
+// ---- Init ----
+async function init() {
+  setTimestamp();
+  buildWeeklyTable();
+
+  if (CONFIG.SPREADSHEET_ID === 'REPLACE_WITH_SPREADSHEET_ID') {
+    // Not yet configured — renders in structured placeholder state.
+    console.info('ClearGround Metrics: Spreadsheet ID not configured. Displaying placeholder state.');
+    return;
+  }
+
+  await Promise.all([
+    loadCompletions(),
+    loadLinkedIn(),
+    loadWaves(),
+    loadTraffic(),
+    loadWeeklyData(),
+  ]);
+}
+
+init();
+</script>
+</body>
+</html>
