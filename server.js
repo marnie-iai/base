@@ -13,6 +13,12 @@ const PORTRAITS_REPO = 'marnie-iai/agent-portraits';
 const PORTRAITS_RAW = `https://raw.githubusercontent.com/${PORTRAITS_REPO}/main/portraits/`;
 const ROSTER_FILE = 'kb/00-foundations/00_Agent_Roster_v2_2_Apr2026.md';
 
+// ── Index / Sheets config ──────────────────────────────────────────────────────
+// Used by the public completions summary endpoint.
+const SHEETS_API_KEY        = process.env.SHEETS_API_KEY;        // Google Sheets API key (restricted to base.integratedai.com.au)
+const SHEETS_SPREADSHEET_ID = process.env.SHEETS_SPREADSHEET_ID; // Hunter AI Index Lead Capture spreadsheet ID
+const SHEETS_SECTOR_COL     = 0; // Column index for sector in Sheet 2 (0-based)
+
 // ── Site-wide Basic Auth ──────────────────────────────────────────────────────
 // Gates the entire site. Set SITE_AUTH env var in Railway.
 // Username: "iai"  |  Password: value of SITE_AUTH
@@ -217,6 +223,56 @@ async function getRoster() {
     return [];
   }
 }
+
+// ── Public endpoints (no auth — must be registered before requireSiteAuth) ────
+//
+// GET /api/public/completions/summary
+// Returns total Index completion count and sector distribution from Sheet 2.
+// Called directly from the browser by the Clear Ground campaign metrics dashboard.
+// Cached 10 min. No PII — Sheet 2 contains only sector, archetype, and scores.
+//
+app.get('/api/public/completions/summary', async (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Cache-Control', 'public, max-age=600');
+
+  const cacheKey = 'public:completions:summary';
+  const cached = cacheGet(cacheKey);
+  if (cached) return res.json(cached);
+
+  if (!SHEETS_API_KEY || !SHEETS_SPREADSHEET_ID) {
+    console.warn('[public/completions/summary] SHEETS_API_KEY or SHEETS_SPREADSHEET_ID not set');
+    return res.json({ total: null, sectors: {}, error: 'sheets_not_configured' });
+  }
+
+  try {
+    const range = encodeURIComponent('Sheet2!A2:Z1000');
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEETS_SPREADSHEET_ID}/values/${range}?key=${SHEETS_API_KEY}`;
+    const sheetsRes = await fetch(url, { headers: { 'User-Agent': 'IAI-Base/3.0' } });
+    if (!sheetsRes.ok) {
+      console.error(`[public/completions/summary] Sheets API ${sheetsRes.status}`);
+      return res.json({ total: null, sectors: {}, error: 'sheets_fetch_failed' });
+    }
+    const data = await sheetsRes.json();
+    const rows = data.values || [];
+
+    const sectors = {};
+    for (const row of rows) {
+      const sector = (row[SHEETS_SECTOR_COL] || '').trim();
+      if (sector) sectors[sector] = (sectors[sector] || 0) + 1;
+    }
+
+    const result = {
+      total: rows.length,
+      sectors,
+      cached_at: new Date().toISOString(),
+    };
+    cacheSet(cacheKey, result, TTL_10M);
+    return res.json(result);
+  } catch (err) {
+    console.error('[public/completions/summary]', err.message);
+    return res.json({ total: null, sectors: {}, error: 'internal' });
+  }
+});
 
 // ── Apply site-wide auth ───────────────────────────────────────────────────────
 app.use(requireSiteAuth);
