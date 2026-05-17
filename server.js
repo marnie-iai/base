@@ -2,6 +2,7 @@
 
 const express = require('express');
 const path = require('path');
+const { createClient } = require('@libsql/client');
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -12,6 +13,17 @@ const KB_REPO = 'marnie-iai/kb';
 const PORTRAITS_REPO = 'marnie-iai/agent-portraits';
 const PORTRAITS_RAW = `https://raw.githubusercontent.com/${PORTRAITS_REPO}/main/portraits/`;
 const ROSTER_FILE = 'kb/00-foundations/00_Agent_Roster_v2_2_Apr2026.md';
+
+// ── Turso / Agent Context config ──────────────────────────────────────────────
+const TURSO_URL        = process.env.TURSO_URL;
+const TURSO_AUTH_TOKEN = process.env.TURSO_AUTH_TOKEN;
+const AGENT_API_KEY    = process.env.AGENT_API_KEY;
+
+const turso = (TURSO_URL && TURSO_AUTH_TOKEN)
+  ? createClient({ url: TURSO_URL, authToken: TURSO_AUTH_TOKEN })
+  : null;
+
+if (!turso) console.warn('[turso] TURSO_URL or TURSO_AUTH_TOKEN not set — agent context endpoints disabled');
 
 // ── Index / Sheets config ──────────────────────────────────────────────────────
 // Used by the public completions summary endpoint.
@@ -74,6 +86,29 @@ function cacheGet(key) {
 }
 function cacheSet(key, data, ttl = TTL_5M) {
   cache.set(key, { data, ts: Date.now(), ttl });
+}
+
+// ── Turso init ────────────────────────────────────────────────────────────────
+async function initAgentContextTable() {
+  if (!turso) return;
+  try {
+    await turso.execute(`
+      CREATE TABLE IF NOT EXISTS agent_context (
+        id           INTEGER PRIMARY KEY AUTOINCREMENT,
+        agent_id     TEXT    NOT NULL,
+        session_date TEXT    NOT NULL,
+        context_json TEXT    NOT NULL,
+        created_at   TEXT    DEFAULT (datetime('now'))
+      )
+    `);
+    await turso.execute(`
+      CREATE INDEX IF NOT EXISTS idx_agent_context_agent
+      ON agent_context(agent_id, session_date DESC)
+    `);
+    console.log('[turso] agent_context table ready');
+  } catch (err) {
+    console.error('[turso] Failed to init agent_context table:', err.message);
+  }
 }
 
 // ── GitHub helpers ────────────────────────────────────────────────────────────
@@ -223,6 +258,94 @@ async function getRoster() {
     return [];
   }
 }
+
+// ── Agent auth middleware ─────────────────────────────────────────────────────
+// Agents authenticate with: Authorization: Bearer <AGENT_API_KEY>
+// Separate from site-wide Basic auth so agents can call without a browser session.
+function requireAgentAuth(req, res, next) {
+  if (!AGENT_API_KEY) {
+    console.warn('[agent-context] AGENT_API_KEY not set');
+    return res.status(503).json({ error: 'agent_auth_not_configured' });
+  }
+  const header = req.headers.authorization || '';
+  if (!header.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'unauthorized' });
+  }
+  if (header.slice(7).trim() !== AGENT_API_KEY) {
+    return res.status(401).json({ error: 'unauthorized' });
+  }
+  next();
+}
+
+// ── Agent Context endpoints ───────────────────────────────────────────────────
+// Registered before requireSiteAuth — agents use Bearer token, not Basic auth.
+//
+// GET /api/agent-context/:agent_id
+// Returns the most recent N context records for the agent (default 3, max 10).
+//
+app.get('/api/agent-context/:agent_id', requireAgentAuth, async (req, res) => {
+  if (!turso) return res.status(503).json({ error: 'turso_not_configured' });
+
+  const { agent_id } = req.params;
+  const limit = Math.min(parseInt(req.query.limit || '3', 10), 10);
+
+  try {
+    const result = await turso.execute({
+      sql: `SELECT id, agent_id, session_date, context_json, created_at
+            FROM agent_context
+            WHERE agent_id = ?
+            ORDER BY session_date DESC, id DESC
+            LIMIT ?`,
+      args: [agent_id, limit],
+    });
+
+    const records = result.rows.map(row => ({
+      id: row.id,
+      agent_id: row.agent_id,
+      session_date: row.session_date,
+      context_json: (() => { try { return JSON.parse(row.context_json); } catch { return row.context_json; } })(),
+      created_at: row.created_at,
+    }));
+
+    return res.json({ agent_id, records });
+  } catch (err) {
+    console.error('[GET /api/agent-context]', err.message);
+    return res.status(500).json({ error: 'internal' });
+  }
+});
+
+//
+// POST /api/agent-context
+// Writes a new context record. Never overwrites — append only.
+//
+app.post('/api/agent-context', requireAgentAuth, express.json(), async (req, res) => {
+  if (!turso) return res.status(503).json({ error: 'turso_not_configured' });
+
+  const { agent, session_date, context_json } = req.body || {};
+  if (!agent || !session_date) {
+    return res.status(400).json({ error: 'agent and session_date are required' });
+  }
+
+  try {
+    const result = await turso.execute({
+      sql: `INSERT INTO agent_context (agent_id, session_date, context_json)
+            VALUES (?, ?, ?)
+            RETURNING id, agent_id, session_date, created_at`,
+      args: [agent, session_date, JSON.stringify(context_json || {})],
+    });
+
+    const row = result.rows[0];
+    return res.status(201).json({
+      id: row.id,
+      agent_id: row.agent_id,
+      session_date: row.session_date,
+      created_at: row.created_at,
+    });
+  } catch (err) {
+    console.error('[POST /api/agent-context]', err.message);
+    return res.status(500).json({ error: 'internal' });
+  }
+});
 
 // ── Public endpoints (no auth — must be registered before requireSiteAuth) ────
 //
@@ -529,7 +652,8 @@ app.get('*', (_req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`Base listening on :${PORT}`);
   if (!GITHUB_PAT) console.warn('[!] GITHUB_PAT not set — KB endpoints will return empty results');
+  await initAgentContextTable();
 });
