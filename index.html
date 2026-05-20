@@ -727,7 +727,9 @@ body {
   font-family: var(--font-mono); font-size: 0.68rem;
   color: var(--text-muted); background: var(--ground);
   border: 1px solid var(--border); border-radius: 4px; padding: 2px 7px;
+  text-decoration: none; display: inline-block; transition: border-color 0.15s, color 0.15s;
 }
+.ask-source-chip:hover { border-color: var(--denim); color: var(--denim); }
 .ask-chat-sources { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
 .ask-chat-input-row {
   border-top: 1px solid var(--border); padding: 10px 12px;
@@ -1779,7 +1781,13 @@ function renderSearchResults(data) {
     if (sources && sources.length) {
       const src = document.createElement('div');
       src.className = 'ask-chat-sources';
-      src.innerHTML = sources.map(s => `<span class="ask-source-chip">${s}</span>`).join('');
+      src.innerHTML = sources.map(s => {
+        const name = s.name || s;
+        const path = s.path || null;
+        return path
+          ? `<a class="ask-source-chip" href="/read?path=${encodeURIComponent(path)}&from=/" target="_blank" rel="noopener">${escHtml(name)}</a>`
+          : `<span class="ask-source-chip">${escHtml(name)}</span>`;
+      }).join('');
       msg.appendChild(src);
     }
     msgs.appendChild(msg);
@@ -1793,7 +1801,13 @@ function renderSearchResults(data) {
     if (sources && sources.length) {
       let src = msgEl.querySelector('.ask-chat-sources');
       if (!src) { src = document.createElement('div'); src.className = 'ask-chat-sources'; msgEl.appendChild(src); }
-      src.innerHTML = sources.map(s => `<span class="ask-source-chip">${s}</span>`).join('');
+      src.innerHTML = sources.map(s => {
+        const name = s.name || s;
+        const path = s.path || null;
+        return path
+          ? `<a class="ask-source-chip" href="/read?path=${encodeURIComponent(path)}&from=/" target="_blank" rel="noopener">${escHtml(name)}</a>`
+          : `<span class="ask-source-chip">${escHtml(name)}</span>`;
+      }).join('');
     }
     const msgs = document.getElementById('ask-messages');
     if (msgs) msgs.scrollTop = msgs.scrollHeight;

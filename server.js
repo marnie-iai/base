@@ -697,7 +697,7 @@ app.get('/api/ask', async (req, res) => {
 
     const data    = await anthropicRes.json();
     const answer  = data.content?.[0]?.text || 'No response generated.';
-    const sources = context.map(c => c.name);
+    const sources = context.map(c => ({ name: c.name, path: c.path }));
 
     return res.json({ answer, sources });
 
