@@ -669,83 +669,80 @@ body {
 }
 
 /* ── Ask Base ─────────────────────────────────────────────────────────────── */
-.ask-wrap {
-  max-width: var(--max-w);
-  margin: 24px auto 20px;
-  padding: 0 24px;
-}
-.ask-bar {
-  display: flex;
-  gap: 8px;
-}
+.ask-wrap { max-width: var(--max-w); margin: 24px auto 20px; padding: 0 24px; }
+.ask-bar  { display: flex; gap: 8px; }
 .ask-input {
-  flex: 1;
-  padding: 11px 16px;
-  border: 1.5px solid var(--border-strong);
-  border-radius: var(--radius);
-  font-family: var(--font-body);
-  font-size: 0.9rem;
-  font-weight: 300;
-  color: var(--text);
-  background: var(--surface);
-  outline: none;
+  flex: 1; padding: 11px 16px;
+  border: 1.5px solid var(--border-strong); border-radius: var(--radius);
+  font-family: var(--font-body); font-size: 0.9rem; font-weight: 300;
+  color: var(--text); background: var(--surface); outline: none;
   transition: border-color 0.15s;
 }
 .ask-input:focus { border-color: var(--denim); }
 .ask-input::placeholder { color: var(--text-muted); }
 .ask-btn {
-  padding: 11px 20px;
-  background: var(--denim);
-  color: #fff;
-  border: none;
-  border-radius: var(--radius);
-  font-family: var(--font-body);
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity 0.15s;
-  white-space: nowrap;
+  padding: 11px 20px; background: var(--denim); color: #fff;
+  border: none; border-radius: var(--radius);
+  font-family: var(--font-body); font-size: 0.875rem; font-weight: 600;
+  cursor: pointer; transition: opacity 0.15s; white-space: nowrap;
 }
-.ask-btn:hover  { opacity: 0.85; }
+.ask-btn:hover { opacity: 0.85; }
 .ask-btn:disabled { opacity: 0.45; cursor: default; }
-.ask-response {
-  margin-top: 10px;
-  background: var(--surface);
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius);
-  padding: 18px 22px;
+/* Chat window */
+.ask-chat-wrap {
+  margin-top: 10px; background: var(--surface);
+  border: 1.5px solid var(--border); border-radius: var(--radius);
+  display: flex; flex-direction: column; max-height: 520px;
 }
-.ask-answer {
-  font-size: 0.9rem;
-  font-weight: 300;
-  color: var(--text);
-  line-height: 1.75;
-  white-space: pre-wrap;
+.ask-messages {
+  flex: 1; overflow-y: auto; padding: 16px;
+  display: flex; flex-direction: column; gap: 14px; min-height: 100px;
 }
-.ask-sources {
-  margin-top: 12px;
-  padding-top: 10px;
-  border-top: 1px solid var(--border);
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
+.ask-msg { display: flex; flex-direction: column; max-width: 85%; }
+.ask-msg.user { align-self: flex-end; align-items: flex-end; }
+.ask-msg.bot  { align-self: flex-start; align-items: flex-start; }
+.ask-bubble { padding: 10px 14px; border-radius: 14px; font-size: 0.875rem; line-height: 1.65; }
+.ask-msg.user .ask-bubble {
+  background: var(--denim); color: #fff;
+  border-bottom-right-radius: 3px; font-weight: 400;
 }
+.ask-msg.bot .ask-bubble {
+  background: var(--ground); border: 1px solid var(--border);
+  border-bottom-left-radius: 3px; color: var(--text);
+}
+.ask-bubble h1,.ask-bubble h2,.ask-bubble h3 { font-weight: 600; margin: 10px 0 4px; }
+.ask-bubble h2 { font-size: 0.95rem; }
+.ask-bubble h3 { font-size: 0.875rem; }
+.ask-bubble p  { margin-bottom: 6px; }
+.ask-bubble p:last-child { margin-bottom: 0; }
+.ask-bubble ul,.ask-bubble ol { padding-left: 18px; margin-bottom: 6px; }
+.ask-bubble li { margin-bottom: 3px; }
+.ask-bubble strong { font-weight: 600; }
+.ask-bubble code {
+  font-family: var(--font-mono); font-size: 0.8em;
+  background: rgba(74,101,132,0.1); padding: 1px 4px; border-radius: 3px;
+}
+.ask-bubble pre code { display: block; padding: 8px; overflow-x: auto; }
 .ask-source-chip {
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  color: var(--text-muted);
-  background: var(--ground);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 2px 7px;
+  font-family: var(--font-mono); font-size: 0.68rem;
+  color: var(--text-muted); background: var(--ground);
+  border: 1px solid var(--border); border-radius: 4px; padding: 2px 7px;
 }
-.ask-followup-row {
-  margin-top: 10px;
-  display: flex;
-  gap: 8px;
+.ask-chat-sources { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.ask-chat-input-row {
+  border-top: 1px solid var(--border); padding: 10px 12px;
+  display: flex; gap: 8px; align-items: center; flex-shrink: 0;
 }
-.ask-followup-row .ask-input { font-size: 0.85rem; padding: 8px 14px; }
-.ask-followup-row .ask-btn   { padding: 8px 14px; font-size: 0.8rem; }
+.ask-chat-input-row .ask-input { font-size: 0.875rem; padding: 9px 14px; }
+.ask-chat-input-row .ask-btn   { padding: 9px 16px; font-size: 0.85rem; }
+.ask-chat-reset {
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em;
+  color: var(--text-muted); padding: 6px 10px;
+  border: 1px solid var(--border); border-radius: 6px;
+  cursor: pointer; background: none; white-space: nowrap;
+  transition: all 0.12s; flex-shrink: 0;
+}
+.ask-chat-reset:hover { border-color: var(--denim); color: var(--denim); }
 .ask-loading { color: var(--text-muted); font-size: 0.875rem; font-style: italic; }
 
 /* ── Responsive ───────────────────────────────────────────────────────────── */
@@ -808,20 +805,11 @@ body {
 </header>
 
 <!-- ── Ask Base ───────────────────────────────────────────────────────────── -->
-<div class="ask-wrap">
-  <div class="ask-bar">
+<div class="ask-wrap" id="ask-wrap">
+  <div class="ask-bar" id="ask-bar">
     <input class="ask-input" type="text" id="ask-input"
       placeholder="Ask anything about how we work…" autocomplete="off">
     <button class="ask-btn" id="ask-btn">Ask</button>
-  </div>
-  <div class="ask-response" id="ask-response" style="display:none">
-    <div class="ask-answer" id="ask-answer"></div>
-    <div class="ask-sources" id="ask-sources"></div>
-    <div class="ask-followup-row" id="ask-followup-row" style="display:none">
-      <input class="ask-input" type="text" id="ask-followup"
-        placeholder="Ask a follow-up…" autocomplete="off">
-      <button class="ask-btn" id="ask-followup-btn">Ask</button>
-    </div>
   </div>
 </div>
 
@@ -1119,7 +1107,7 @@ function docItemHtml(f, from) {
   const url = isMd
     ? `/read?path=${encodeURIComponent(f.path)}&from=${encodeURIComponent(from || '/')}`
     : GH_BLOB + f.path;
-  const target = isMd ? '' : 'target="_blank" rel="noopener"';
+  const target = (isMd || isHtml) ? '' : 'target="_blank" rel="noopener"';
   return `<a class="doc-item" href="${url}" ${target}>
     <div class="doc-item-icon">${FILE_ICON}</div>
     <div class="doc-item-name">${cleanName(f.name)}</div>
@@ -1160,7 +1148,7 @@ function fileCardHtml(f, from) {
     ? `<span class="sf-badge">${sf}</span>`
     : `<span class="file-badge">${ext.toUpperCase()}</span>`;
 
-  const target = isMd ? '' : 'target="_blank" rel="noopener"';
+  const target = (isMd || isHtml) ? '' : 'target="_blank" rel="noopener"';
   return `<a class="file-card" href="${linkUrl}" ${target}>
     ${media}
     <div class="card-body">
@@ -1431,7 +1419,7 @@ async function loadIkigai() {
         const url = isMd
           ? `/read?path=${encodeURIComponent(f.path)}&from=${encodeURIComponent('/#sec-ikigai')}`
           : GH_BLOB + f.path;
-        const target = isMd ? '' : 'target="_blank" rel="noopener"';
+        const target = (isMd || isHtml) ? '' : 'target="_blank" rel="noopener"';
         return `<a class="doc-item" href="${url}" ${target}>
           <div class="doc-item-icon">${FILE_ICON}</div>
           <div class="doc-item-name">${cleanName(f.name)}</div>
@@ -1642,7 +1630,7 @@ function renderSearchResults(data) {
     const url = isMd
       ? `/read?path=${encodeURIComponent(item.path)}&from=${encodeURIComponent('/?q=' + encodeURIComponent(item.name))}`
       : GH_BLOB + item.path;
-    const target = isMd ? '' : 'target="_blank" rel="noopener"';
+    const target = (isMd || isHtml) ? '' : 'target="_blank" rel="noopener"';
     return `<a class="search-result" href="${url}" ${target}>
       <div class="search-result-meta">
         <div class="search-result-name">${cleanName(item.name)}</div>
@@ -1681,71 +1669,161 @@ function renderSearchResults(data) {
 
 // ── Ask Base ──────────────────────────────────────────────────────────────────
 (function () {
-  const input      = document.getElementById('ask-input');
-  const btn        = document.getElementById('ask-btn');
-  const responseEl = document.getElementById('ask-response');
-  const answerEl   = document.getElementById('ask-answer');
-  const sourcesEl  = document.getElementById('ask-sources');
-  const followupRow = document.getElementById('ask-followup-row');
-  const followupInput = document.getElementById('ask-followup');
-  const followupBtn   = document.getElementById('ask-followup-btn');
+  const wrap  = document.getElementById('ask-wrap');
+  const barEl = document.getElementById('ask-bar');
+  const input = document.getElementById('ask-input');
+  const btn   = document.getElementById('ask-btn');
 
-  let lastQuestion = '';
-  let lastAnswer   = '';
+  let chatMode = false;
+  let history  = [];
 
-  async function ask(question, isFollowup = false) {
-    const q = question.trim();
+  async function ask(q) {
+    q = q.trim();
     if (!q) return;
 
-    const fullQ = isFollowup && lastQuestion
-      ? `Previous question: ${lastQuestion}\nPrevious answer summary: ${lastAnswer.slice(0, 300)}\nFollow-up question: ${q}`
-      : q;
-
-    btn.disabled = true;
-    followupBtn.disabled = true;
-    responseEl.style.display = 'block';
-    answerEl.innerHTML = '<span class="ask-loading">Searching the KB…</span>';
-    sourcesEl.innerHTML = '';
-    followupRow.style.display = 'none';
-
-    try {
-      const r = await fetch('/api/ask?q=' + encodeURIComponent(fullQ));
-      const data = await r.json();
-
-      if (data.error) {
-        answerEl.textContent = 'Error: ' + data.error;
-      } else {
-        const answer = data.answer || 'No answer returned.';
-        answerEl.textContent = answer;
-        lastQuestion = isFollowup ? lastQuestion : q;
-        lastAnswer   = answer;
-        if (data.sources && data.sources.length) {
-          sourcesEl.innerHTML = data.sources
-            .map(s => `<span class="ask-source-chip">${s}</span>`)
-            .join('');
-        }
-        followupRow.style.display = 'flex';
-        followupInput.value = '';
-        followupInput.focus();
-      }
-    } catch {
-      answerEl.textContent = 'Could not reach the search endpoint.';
+    // Build context from last 2 exchanges if in chat
+    let fullQ = q;
+    if (history.length >= 2) {
+      const ctx = history.slice(-4).map(m =>
+        (m.role === 'user' ? 'Q: ' : 'A: ') + m.content.slice(0, 250)
+      ).join('\n');
+      fullQ = `Conversation context:\n${ctx}\n\nNew question: ${q}`;
     }
 
-    btn.disabled = false;
-    followupBtn.disabled = false;
+    history.push({ role: 'user', content: q, sources: [] });
+    if (!chatMode) switchToChatMode();
+    appendMsg('user', q, []);
+    const botEl = appendMsg('bot', null, []);
+    setDisabled(true);
+
+    try {
+      const r    = await fetch('/api/ask?q=' + encodeURIComponent(fullQ));
+      const data = await r.json();
+      if (data.error) {
+        updateMsg(botEl, 'Error: ' + data.error, []);
+        history.push({ role: 'bot', content: data.error, sources: [] });
+      } else {
+        const answer = data.answer || 'No answer returned.';
+        updateMsg(botEl, answer, data.sources || []);
+        history.push({ role: 'bot', content: answer, sources: data.sources || [] });
+      }
+    } catch {
+      updateMsg(botEl, 'Could not reach the search endpoint.', []);
+    }
+    setDisabled(false);
   }
 
-  btn.addEventListener('click', () => { lastQuestion = ''; lastAnswer = ''; ask(input.value); });
-  input.addEventListener('keydown', e => { if (e.key === 'Enter') { lastQuestion = ''; lastAnswer = ''; ask(input.value); } });
+  function switchToChatMode() {
+    chatMode = true;
+    barEl.style.display = 'none';
 
-  followupBtn.addEventListener('click', () => {
-    if (followupInput.value.trim()) ask(followupInput.value, true);
-  });
-  followupInput.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && followupInput.value.trim()) ask(followupInput.value, true);
-  });
+    const chatWrap  = document.createElement('div');
+    chatWrap.id     = 'ask-chat-wrap';
+    chatWrap.className = 'ask-chat-wrap';
+
+    const msgs      = document.createElement('div');
+    msgs.id         = 'ask-messages';
+    msgs.className  = 'ask-messages';
+
+    const inputRow  = document.createElement('div');
+    inputRow.className = 'ask-chat-input-row';
+
+    const chatInput = document.createElement('input');
+    chatInput.type  = 'text';
+    chatInput.className = 'ask-input';
+    chatInput.id    = 'ask-chat-input';
+    chatInput.placeholder = 'Ask a follow-up…';
+    chatInput.autocomplete = 'off';
+
+    const sendBtn   = document.createElement('button');
+    sendBtn.className = 'ask-btn';
+    sendBtn.id      = 'ask-chat-btn';
+    sendBtn.textContent = 'Ask';
+
+    const resetBtn  = document.createElement('button');
+    resetBtn.className = 'ask-chat-reset';
+    resetBtn.textContent = 'New';
+    resetBtn.onclick = resetChat;
+
+    inputRow.append(chatInput, sendBtn, resetBtn);
+    chatWrap.append(msgs, inputRow);
+    wrap.appendChild(chatWrap);
+
+    sendBtn.addEventListener('click', () => {
+      const q = chatInput.value.trim();
+      if (q) { chatInput.value = ''; ask(q); }
+    });
+    chatInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && chatInput.value.trim()) {
+        const q = chatInput.value.trim();
+        chatInput.value = '';
+        ask(q);
+      }
+    });
+    setTimeout(() => chatInput.focus(), 50);
+  }
+
+  function appendMsg(role, content, sources) {
+    const msgs   = document.getElementById('ask-messages');
+    const msg    = document.createElement('div');
+    msg.className = 'ask-msg ' + role;
+    const bubble = document.createElement('div');
+    bubble.className = 'ask-bubble';
+    if (content === null) {
+      bubble.innerHTML = '<span class="ask-loading">Searching the KB…</span>';
+    } else {
+      bubble.innerHTML = role === 'bot' && window.marked
+        ? marked.parse(content) : escHtml(content);
+    }
+    msg.appendChild(bubble);
+    if (sources && sources.length) {
+      const src = document.createElement('div');
+      src.className = 'ask-chat-sources';
+      src.innerHTML = sources.map(s => `<span class="ask-source-chip">${s}</span>`).join('');
+      msg.appendChild(src);
+    }
+    msgs.appendChild(msg);
+    msgs.scrollTop = msgs.scrollHeight;
+    return msg;
+  }
+
+  function updateMsg(msgEl, content, sources) {
+    const bubble = msgEl.querySelector('.ask-bubble');
+    bubble.innerHTML = window.marked ? marked.parse(content) : escHtml(content);
+    if (sources && sources.length) {
+      let src = msgEl.querySelector('.ask-chat-sources');
+      if (!src) { src = document.createElement('div'); src.className = 'ask-chat-sources'; msgEl.appendChild(src); }
+      src.innerHTML = sources.map(s => `<span class="ask-source-chip">${s}</span>`).join('');
+    }
+    const msgs = document.getElementById('ask-messages');
+    if (msgs) msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  function setDisabled(d) {
+    const b = document.getElementById('ask-chat-btn');
+    const i = document.getElementById('ask-chat-input');
+    if (b) b.disabled = d;
+    if (i) i.disabled = d;
+  }
+
+  function resetChat() {
+    chatMode = false;
+    history  = [];
+    const cw = document.getElementById('ask-chat-wrap');
+    if (cw) cw.remove();
+    barEl.style.display = 'flex';
+    input.value = '';
+    input.focus();
+  }
+
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  btn.addEventListener('click', () => { if (input.value.trim()) ask(input.value); });
+  input.addEventListener('keydown', e => { if (e.key === 'Enter' && input.value.trim()) ask(input.value); });
 })();
 </script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </body>
 </html>
