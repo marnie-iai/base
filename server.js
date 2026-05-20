@@ -6,9 +6,10 @@ const { createClient } = require('@libsql/client');
 
 const app = express();
 const PORT = process.env.PORT || 8080;
-const GITHUB_PAT = process.env.GITHUB_PAT;
-const SITE_AUTH      = process.env.SITE_AUTH;      // Basic-auth password for entire site
-const DASHBOARD_AUTH = process.env.DASHBOARD_AUTH; // Basic-auth password for /dashboards/* (legacy — SITE_AUTH covers this)
+const GITHUB_PAT      = process.env.GITHUB_PAT;
+const SITE_AUTH       = process.env.SITE_AUTH;
+const DASHBOARD_AUTH  = process.env.DASHBOARD_AUTH;
+const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 const KB_REPO = 'marnie-iai/kb';
 const PORTRAITS_REPO = 'marnie-iai/agent-portraits';
 const PORTRAITS_RAW = `https://raw.githubusercontent.com/${PORTRAITS_REPO}/main/portraits/`;
@@ -26,15 +27,11 @@ const turso = (TURSO_URL && TURSO_AUTH_TOKEN)
 if (!turso) console.warn('[turso] TURSO_URL or TURSO_AUTH_TOKEN not set — agent context endpoints disabled');
 
 // ── Index / Sheets config ──────────────────────────────────────────────────────
-// Used by the public completions summary endpoint.
-const SHEETS_API_KEY        = process.env.SHEETS_API_KEY;        // Google Sheets API key (restricted to base.integratedai.com.au)
-const SHEETS_SPREADSHEET_ID = process.env.SHEETS_SPREADSHEET_ID; // Hunter AI Index Lead Capture spreadsheet ID
-const SHEETS_SECTOR_COL     = 0; // Column index for sector in Sheet 2 (0-based)
+const SHEETS_API_KEY        = process.env.SHEETS_API_KEY;
+const SHEETS_SPREADSHEET_ID = process.env.SHEETS_SPREADSHEET_ID;
+const SHEETS_SECTOR_COL     = 0;
 
 // ── Site-wide Basic Auth ──────────────────────────────────────────────────────
-// Gates the entire site. Set SITE_AUTH env var in Railway.
-// Username: "iai"  |  Password: value of SITE_AUTH
-// If unset, logs a warning but allows through (dev only — always set in prod).
 function requireSiteAuth(req, res, next) {
   if (!SITE_AUTH) {
     console.warn('[site] SITE_AUTH not set — site is unprotected');
@@ -55,9 +52,8 @@ function requireSiteAuth(req, res, next) {
 }
 
 // ── Dashboard auth middleware ──────────────────────────────────────────────────
-// Kept for per-route granularity if needed. SITE_AUTH already covers /dashboards/*.
 function requireDashboardAuth(req, res, next) {
-  if (!DASHBOARD_AUTH) return next(); // SITE_AUTH is the primary gate
+  if (!DASHBOARD_AUTH) return next();
   const header = req.headers.authorization || '';
   if (!header.startsWith('Basic ')) {
     res.setHeader('WWW-Authenticate', 'Basic realm="IAI Dashboards"');
@@ -184,7 +180,6 @@ function parseRoster(text) {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
 
-    // ── H2 section ──────────────────────────────────────────────────────────
     if (line.startsWith('## ')) {
       const h2 = line.slice(3).trim();
       const lh2 = h2.toLowerCase();
@@ -221,7 +216,6 @@ function parseRoster(text) {
       continue;
     }
 
-    // ── Table row ────────────────────────────────────────────────────────────
     if (line.startsWith('|') && !line.includes(':---')) {
       const cells = line.split('|').map(c => c.trim()).filter(Boolean);
       if (!cells.length) continue;
@@ -260,8 +254,6 @@ async function getRoster() {
 }
 
 // ── Agent auth middleware ─────────────────────────────────────────────────────
-// Agents authenticate with: Authorization: Bearer <AGENT_API_KEY>
-// Separate from site-wide Basic auth so agents can call without a browser session.
 function requireAgentAuth(req, res, next) {
   if (!AGENT_API_KEY) {
     console.warn('[agent-context] AGENT_API_KEY not set');
@@ -277,18 +269,126 @@ function requireAgentAuth(req, res, next) {
   next();
 }
 
+// ── Conversational KB search — routing tables ─────────────────────────────────
+const AGENT_KB_PATHS = {
+  arna:     ['kb/00-foundations', 'kb/01-business/Arna'],
+  reid:     ['kb/01-business/Reid'],
+  morgan:   ['kb/01-business/Morgan'],
+  harlow:   ['kb/01-business/Harlow'],
+  lumen:    ['kb/01-business/Lumen'],
+  sterling: ['kb/01-business/Sterling'],
+  steel:    ['kb/01-business/Steel'],
+  casey:    ['kb/01-business/Casey'],
+  wilder:   ['kb/01-business/Wilder'],
+  wren:     ['kb/01-business/Content'],
+  dev:      ['kb/04-resource/Dev'],
+  clio:     ['kb/04-resource/Clio'],
+  maren:    ['kb/04-resource/Maren'],
+  vex:      ['kb/04-resource/Vex'],
+  piper:    ['kb/04-resource/Piper'],
+  flint:    ['kb/05-ikigai/platform-intelligence'],
+  rook:     ['kb/04-resource/Rook'],
+  mirror:   ['kb/02-workshop/Mirror'],
+  scout:    ['kb/02-workshop/Scout'],
+  sage:     ['kb/02-workshop/Sage'],
+  rue:      ['kb/02-workshop/Rue'],
+};
+
+const ENTITY_KB_PATHS = {
+  'inspector':          ['kb/01-business/ics'],
+  'iops':               ['kb/01-business/products-and-services', 'kb/01-business/iai'],
+  'clear ground':       ['kb/01-business/iai', 'kb/00-foundations'],
+  'collapse the gap':   ['kb/01-business/iai', 'kb/00-foundations'],
+  'hif':                ['kb/01-business/hif'],
+  'hunter':             ['kb/01-business/hif'],
+  'project compliance': ['kb/01-business/ics'],
+  'ics':                ['kb/01-business/ics'],
+  'tmm':                ['kb/01-business/tmm'],
+  'hma':                ['kb/01-business/hma'],
+  'ikigai':             ['kb/05-ikigai'],
+  'workshop':           ['kb/02-workshop'],
+};
+
+const STRUCTURAL_KB_PATHS = {
+  'brief':        ['kb/00-foundations'],
+  'decision':     ['kb/00-foundations'],
+  'protocol':     ['kb/00-foundations'],
+  'architecture': ['kb/00-foundations', 'kb/04-resource/Dev'],
+  'session':      ['kb/00-foundations/session-intel'],
+  'handover':     ['kb/00-foundations/session-intel'],
+  'filing':       ['kb/00-foundations'],
+  'migration':    ['kb/00-foundations/migration-status', 'kb/00-foundations'],
+  'brand':        ['kb/00-foundations', 'kb/01-business/Lumen'],
+  'sprint':       ['kb/00-foundations'],
+  'roster':       ['kb/00-foundations'],
+};
+
+function routeQuestion(question) {
+  const q = question.toLowerCase();
+  const paths = new Set();
+
+  for (const [kw, ps] of Object.entries(AGENT_KB_PATHS)) {
+    if (q.includes(kw)) ps.forEach(p => paths.add(p));
+  }
+  for (const [kw, ps] of Object.entries(ENTITY_KB_PATHS)) {
+    if (q.includes(kw)) ps.forEach(p => paths.add(p));
+  }
+  for (const [kw, ps] of Object.entries(STRUCTURAL_KB_PATHS)) {
+    if (q.includes(kw)) ps.forEach(p => paths.add(p));
+  }
+
+  // Fallback — broad search across foundations and IAI business
+  if (paths.size === 0) {
+    paths.add('kb/00-foundations');
+    paths.add('kb/01-business/iai');
+  }
+
+  return [...paths].slice(0, 6);
+}
+
+async function fetchKBFilesForSearch(paths) {
+  const allFiles = [];
+  await Promise.all(paths.map(async p => {
+    try {
+      const files = await fetchKBDir(p);
+      files.filter(f => /\.(md|txt)$/i.test(f.name)).forEach(f => allFiles.push(f));
+    } catch { /* skip failed paths */ }
+  }));
+
+  // Priority: session intel > briefs/specs > everything else; recency within group
+  allFiles.sort((a, b) => {
+    const score = f => /sessionintel/i.test(f.name) ? 3 : /brief|spec|architecture|protocol/i.test(f.name) ? 2 : 1;
+    const diff = score(b) - score(a);
+    return diff !== 0 ? diff : b.name.localeCompare(a.name);
+  });
+
+  return allFiles.slice(0, 12);
+}
+
+async function buildSearchContext(files) {
+  const CHAR_CAP = 80000; // ~20k tokens
+  const chunks = [];
+  let totalChars = 0;
+
+  for (const file of files) {
+    if (totalChars >= CHAR_CAP) break;
+    try {
+      const text = await fetchRawText(file.path);
+      if (!text) continue;
+      const excerpt = text.slice(0, CHAR_CAP - totalChars);
+      chunks.push({ path: file.path, name: file.name, text: excerpt });
+      totalChars += excerpt.length;
+    } catch { /* skip */ }
+  }
+
+  return chunks;
+}
+
 // ── Agent Context endpoints ───────────────────────────────────────────────────
-// Registered before requireSiteAuth — agents use Bearer token, not Basic auth.
-//
-// GET /api/agent-context/:agent_id
-// Returns the most recent N context records for the agent (default 3, max 10).
-//
 app.get('/api/agent-context/:agent_id', requireAgentAuth, async (req, res) => {
   if (!turso) return res.status(503).json({ error: 'turso_not_configured' });
-
   const { agent_id } = req.params;
   const limit = Math.min(parseInt(req.query.limit || '3', 10), 10);
-
   try {
     const result = await turso.execute({
       sql: `SELECT id, agent_id, session_date, context_json, created_at
@@ -298,7 +398,6 @@ app.get('/api/agent-context/:agent_id', requireAgentAuth, async (req, res) => {
             LIMIT ?`,
       args: [agent_id, limit],
     });
-
     const records = result.rows.map(row => ({
       id: row.id,
       agent_id: row.agent_id,
@@ -306,7 +405,6 @@ app.get('/api/agent-context/:agent_id', requireAgentAuth, async (req, res) => {
       context_json: (() => { try { return JSON.parse(row.context_json); } catch { return row.context_json; } })(),
       created_at: row.created_at,
     }));
-
     return res.json({ agent_id, records });
   } catch (err) {
     console.error('[GET /api/agent-context]', err.message);
@@ -314,18 +412,12 @@ app.get('/api/agent-context/:agent_id', requireAgentAuth, async (req, res) => {
   }
 });
 
-//
-// POST /api/agent-context
-// Writes a new context record. Never overwrites — append only.
-//
 app.post('/api/agent-context', requireAgentAuth, express.json(), async (req, res) => {
   if (!turso) return res.status(503).json({ error: 'turso_not_configured' });
-
   const { agent, session_date, context_json } = req.body || {};
   if (!agent || !session_date) {
     return res.status(400).json({ error: 'agent and session_date are required' });
   }
-
   try {
     const result = await turso.execute({
       sql: `INSERT INTO agent_context (agent_id, session_date, context_json)
@@ -333,13 +425,10 @@ app.post('/api/agent-context', requireAgentAuth, express.json(), async (req, res
             RETURNING id, agent_id, session_date, created_at`,
       args: [agent, session_date, JSON.stringify(context_json || {})],
     });
-
     const row = result.rows[0];
     return res.status(201).json({
-      id: row.id,
-      agent_id: row.agent_id,
-      session_date: row.session_date,
-      created_at: row.created_at,
+      id: row.id, agent_id: row.agent_id,
+      session_date: row.session_date, created_at: row.created_at,
     });
   } catch (err) {
     console.error('[POST /api/agent-context]', err.message);
@@ -347,48 +436,29 @@ app.post('/api/agent-context', requireAgentAuth, express.json(), async (req, res
   }
 });
 
-// ── Public endpoints (no auth — must be registered before requireSiteAuth) ────
-//
-// GET /api/public/completions/summary
-// Returns total Index completion count and sector distribution from Sheet 2.
-// Called directly from the browser by the Clear Ground campaign metrics dashboard.
-// Cached 10 min. No PII — Sheet 2 contains only sector, archetype, and scores.
-//
+// ── Public endpoints ──────────────────────────────────────────────────────────
 app.get('/api/public/completions/summary', async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Cache-Control', 'public, max-age=600');
-
   const cacheKey = 'public:completions:summary';
   const cached = cacheGet(cacheKey);
   if (cached) return res.json(cached);
-
   if (!SHEETS_API_KEY || !SHEETS_SPREADSHEET_ID) {
-    console.warn('[public/completions/summary] SHEETS_API_KEY or SHEETS_SPREADSHEET_ID not set');
     return res.json({ total: null, sectors: {}, error: 'sheets_not_configured' });
   }
-
   try {
     const range = encodeURIComponent('Sheet2!A2:Z1000');
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEETS_SPREADSHEET_ID}/values/${range}?key=${SHEETS_API_KEY}`;
     const sheetsRes = await fetch(url, { headers: { 'User-Agent': 'IAI-Base/3.0' } });
-    if (!sheetsRes.ok) {
-      console.error(`[public/completions/summary] Sheets API ${sheetsRes.status}`);
-      return res.json({ total: null, sectors: {}, error: 'sheets_fetch_failed' });
-    }
+    if (!sheetsRes.ok) return res.json({ total: null, sectors: {}, error: 'sheets_fetch_failed' });
     const data = await sheetsRes.json();
     const rows = data.values || [];
-
     const sectors = {};
     for (const row of rows) {
       const sector = (row[SHEETS_SECTOR_COL] || '').trim();
       if (sector) sectors[sector] = (sectors[sector] || 0) + 1;
     }
-
-    const result = {
-      total: rows.length,
-      sectors,
-      cached_at: new Date().toISOString(),
-    };
+    const result = { total: rows.length, sectors, cached_at: new Date().toISOString() };
     cacheSet(cacheKey, result, TTL_10M);
     return res.json(result);
   } catch (err) {
@@ -432,11 +502,9 @@ app.get('/api/search', async (req, res) => {
     const url = `https://api.github.com/search/code?q=${encodeURIComponent(q.trim())}+repo:${KB_REPO}&per_page=30`;
     const data = await ghFetch(url, true);
     if (!data) {
-      // ghFetch returned null — API error (likely 401/403). Do NOT cache.
       console.error('[GET /api/search] GitHub returned null — check PAT scopes and validity');
       return res.json({ items: [], error: 'github_auth' });
     }
-    // Only cache successful (non-null) responses
     cacheSet(key, data, TTL_5M);
     return res.json(data);
   } catch (err) {
@@ -480,14 +548,12 @@ app.get('/api/raw', async (req, res) => {
   }
 });
 
-// Agent roster — full parsed list
+// Agent roster
 app.get('/api/roster', async (_req, res) => {
   try {
     const agents = await getRoster();
     return res.json(agents);
-  } catch {
-    return res.json([]);
-  }
+  } catch { return res.json([]); }
 });
 
 // Agent constellation data
@@ -496,31 +562,22 @@ app.get('/api/agent/:slug', async (req, res) => {
   const key = `agent:${slug}`;
   const cached = cacheGet(key);
   if (cached) return res.json(cached);
-
   try {
     const roster = await getRoster();
     const agent = roster.find(a => a.slug === slug);
     if (!agent) return res.status(404).json({ error: 'Agent not found' });
-
-    // Portrait URL (public repo) — Name_headshot.png
     const portraitUrl = `${PORTRAITS_RAW}${agent.name}_headshot.png`;
-
-    // Identity — prompt docs matching this slug
     const agentDocs = await fetchKBDir('kb/00-foundations/agents');
     const identity = agentDocs
       .filter(f => f.name.toLowerCase().includes(`prompt-${slug}`))
       .sort((a, b) => b.name.localeCompare(a.name));
-
-    // Briefs — search for agent name in KB, filter for brief-like files
     const searchResults = await searchKB(agent.name);
     const briefs = searchResults.filter(f => {
       const n = f.name.toLowerCase();
       const p = f.path.toLowerCase();
-      if (p.includes('/agents/')) return false; // already in identity
+      if (p.includes('/agents/')) return false;
       return /brief|handover|devspec|devbrief|spec|induction/.test(n);
     }).slice(0, 12);
-
-    // Related agents — same point + direct reports chain
     const related = roster.filter(a =>
       a.slug !== slug && !['petra'].includes(a.slug) && (
         a.point === agent.point ||
@@ -528,27 +585,14 @@ app.get('/api/agent/:slug', async (req, res) => {
         a.reportsTo === slug
       )
     ).slice(0, 8);
-
-    // Reports-to name lookup
     const reportsToAgent = agent.reportsTo ? roster.find(a => a.slug === agent.reportsTo) : null;
-
     const result = {
-      ...agent,
-      portraitUrl,
+      ...agent, portraitUrl,
       reportsToName: reportsToAgent ? reportsToAgent.name : null,
-      identity: identity.map(f => ({
-        name: f.name, path: f.path,
-        url: `https://github.com/${KB_REPO}/blob/main/${f.path}`,
-      })),
-      briefs: briefs.map(f => ({
-        name: f.name, path: f.path,
-        url: `https://github.com/${KB_REPO}/blob/main/${f.path}`,
-      })),
-      related: related.map(a => ({
-        name: a.name, slug: a.slug, role: a.role, point: a.point, status: a.status,
-      })),
+      identity: identity.map(f => ({ name: f.name, path: f.path, url: `https://github.com/${KB_REPO}/blob/main/${f.path}` })),
+      briefs:   briefs.map(f => ({ name: f.name, path: f.path, url: `https://github.com/${KB_REPO}/blob/main/${f.path}` })),
+      related:  related.map(a => ({ name: a.name, slug: a.slug, role: a.role, point: a.point, status: a.status })),
     };
-
     cacheSet(key, result);
     return res.json(result);
   } catch (err) {
@@ -583,44 +627,105 @@ app.get('/api/filemeta', async (req, res) => {
   }
 });
 
+// ── Conversational KB search — /api/ask ───────────────────────────────────────
+// Accepts: GET /api/ask?q=<question>
+// Returns: { answer: string, sources: string[] }
+app.get('/api/ask', async (req, res) => {
+  const question = (req.query.q || '').trim();
+  if (question.length < 3) return res.status(400).json({ error: 'query too short' });
+  if (!ANTHROPIC_API_KEY) {
+    console.error('[/api/ask] ANTHROPIC_API_KEY not set');
+    return res.status(503).json({ error: 'Search not configured — ANTHROPIC_API_KEY missing' });
+  }
+
+  try {
+    const paths   = routeQuestion(question);
+    const files   = await fetchKBFilesForSearch(paths);
+    const context = await buildSearchContext(files);
+
+    if (!context.length) {
+      return res.json({
+        answer: 'Nothing relevant found in the KB for that question. Try rephrasing with an agent name, project name, or topic.',
+        sources: [],
+      });
+    }
+
+    const contextBlock = context.map(c => `--- FILE: ${c.path} ---\n${c.text}`).join('\n\n');
+
+    const systemPrompt = [
+      'You are Base, the IAI internal knowledge interface.',
+      'You answer questions about how Integrated AI (IAI) works — its agents, decisions, projects, and operating protocols — by synthesising information from the IAI knowledge base.',
+      '',
+      'Rules:',
+      '- Answer directly and concisely. No preamble, no filler.',
+      '- Australian English. No em dashes. Use commas, colons, or new sentences instead.',
+      '- Cite which KB files you drew from by filename (not full path) at the end of your answer.',
+      '- If the answer is partial or uncertain, say so clearly.',
+      '- End with a brief offer to surface a specific file if useful: "Want me to pull up [filename]?" Only include this if there is something genuinely worth surfacing.',
+      '- If nothing in the provided files answers the question, say so directly. Do not fabricate.',
+    ].join('\n');
+
+    const userMessage = `KB files retrieved:\n\n${contextBlock}\n\n---\n\nQuestion: ${question}`;
+
+    const anthropicRes = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key':         ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+        'content-type':      'application/json',
+      },
+      body: JSON.stringify({
+        model:      'claude-sonnet-4-5',
+        max_tokens: 1024,
+        system:     systemPrompt,
+        messages:   [{ role: 'user', content: userMessage }],
+      }),
+    });
+
+    if (!anthropicRes.ok) {
+      const err = await anthropicRes.text();
+      console.error('[/api/ask] Anthropic error:', anthropicRes.status, err);
+      return res.status(502).json({ error: 'Synthesis failed — check ANTHROPIC_API_KEY and model access' });
+    }
+
+    const data    = await anthropicRes.json();
+    const answer  = data.content?.[0]?.text || 'No response generated.';
+    const sources = context.map(c => c.name);
+
+    return res.json({ answer, sources });
+
+  } catch (err) {
+    console.error('[/api/ask]', err.message);
+    return res.status(500).json({ error: 'internal' });
+  }
+});
+
 // Diagnostic
 app.get('/api/debug', async (_req, res) => {
   const headers = { 'User-Agent': 'IAI-Base/3.0', 'Accept': 'application/vnd.github.v3+json' };
   if (GITHUB_PAT) headers['Authorization'] = `Bearer ${GITHUB_PAT}`;
-
-  // Test 1 — basic contents API (confirms PAT works)
   let contentsStatus, contentsPreview, contentsErr;
   try {
     const r = await fetch(`https://api.github.com/repos/${KB_REPO}/contents/kb/00-foundations`, { headers });
     contentsStatus = r.status;
     contentsPreview = (await r.text()).slice(0, 200);
   } catch (err) { contentsErr = err.message; }
-
-  // Test 2 — code search API (separate scope requirement)
   let searchStatus, searchPreview, searchErr;
   try {
-    const r = await fetch(
-      `https://api.github.com/search/code?q=arna+repo:${KB_REPO}&per_page=1`,
-      { headers }
-    );
+    const r = await fetch(`https://api.github.com/search/code?q=arna+repo:${KB_REPO}&per_page=1`, { headers });
     searchStatus = r.status;
     searchPreview = (await r.text()).slice(0, 200);
   } catch (err) { searchErr = err.message; }
-
   return res.json({
-    patSet: !!GITHUB_PAT,
+    patSet: !!GITHUB_PAT, anthropicSet: !!ANTHROPIC_API_KEY,
     patPrefix: GITHUB_PAT ? GITHUB_PAT.slice(0, 10) + '…' : null,
-    patType: GITHUB_PAT ? (GITHUB_PAT.startsWith('ghp_') ? 'classic ✓' : GITHUB_PAT.startsWith('github_pat_') ? 'fine-grained' : 'unknown') : 'not set',
+    patType: GITHUB_PAT ? (GITHUB_PAT.startsWith('ghp_') ? 'classic' : GITHUB_PAT.startsWith('github_pat_') ? 'fine-grained' : 'unknown') : 'not set',
     contents: { status: contentsStatus, preview: contentsPreview, error: contentsErr },
     search:   { status: searchStatus,   preview: searchPreview,   error: searchErr },
   });
 });
 
 // ── Dashboards ────────────────────────────────────────────────────────────────
-// Index Analytics Dashboard (Vex / Business Point)
-// Source file: dashboards/index-analytics.html
-// Ref: VexDeliverable_IndexAnalyticsDashboard_v6_May2026.html (v5 placeholder — swap when v6 is available)
-// Auth: HTTP Basic, password = DASHBOARD_AUTH env var
 app.get('/dashboards/Index', requireDashboardAuth, (_req, res) => {
   res.sendFile(path.join(__dirname, 'dashboards', 'index-analytics.html'));
 });
@@ -633,27 +738,15 @@ app.get('/dashboards/clear-ground-metrics', requireDashboardAuth, (_req, res) =>
 app.get('/dashboards/iai-website', requireDashboardAuth, (_req, res) => {
   res.sendFile(path.join(__dirname, 'dashboards', 'iai-website.html'));
 });
-
-// Static assets within dashboards (if any future dashboards need them)
 app.use('/dashboards', requireDashboardAuth, express.static(path.join(__dirname, 'dashboards')));
 
-// In-app document reader
-app.get('/read', (_req, res) => {
-  res.sendFile(path.join(__dirname, 'read.html'));
-});
-
-// Agent constellation page
-app.get('/agent/:slug', (_req, res) => {
-  res.sendFile(path.join(__dirname, 'agent.html'));
-});
-
-// Main intranet — catch-all
-app.get('*', (_req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
+app.get('/read',        (_req, res) => res.sendFile(path.join(__dirname, 'read.html')));
+app.get('/agent/:slug', (_req, res) => res.sendFile(path.join(__dirname, 'agent.html')));
+app.get('*',            (_req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
 app.listen(PORT, async () => {
   console.log(`Base listening on :${PORT}`);
-  if (!GITHUB_PAT) console.warn('[!] GITHUB_PAT not set — KB endpoints will return empty results');
+  if (!GITHUB_PAT)        console.warn('[!] GITHUB_PAT not set — KB endpoints will return empty results');
+  if (!ANTHROPIC_API_KEY) console.warn('[!] ANTHROPIC_API_KEY not set — /api/ask will return 503');
   await initAgentContextTable();
 });
