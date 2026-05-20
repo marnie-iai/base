@@ -1683,13 +1683,13 @@ function renderSearchResults(data) {
     q = q.trim();
     if (!q) return;
 
-    // Build context from last 2 exchanges if in chat
-    let fullQ = q;
+    // q goes to the server for KB routing (new question only — no history)
+    // ctx goes to Anthropic for synthesis context only (not used for file selection)
+    let ctx = '';
     if (history.length >= 2) {
-      const ctx = history.slice(-4).map(m =>
-        (m.role === 'user' ? 'Q: ' : 'A: ') + m.content.slice(0, 250)
+      ctx = history.slice(-4).map(m =>
+        (m.role === 'user' ? 'Q: ' : 'A: ') + m.content.slice(0, 300)
       ).join('\n');
-      fullQ = `Conversation context:\n${ctx}\n\nNew question: ${q}`;
     }
 
     history.push({ role: 'user', content: q, sources: [] });
@@ -1699,7 +1699,9 @@ function renderSearchResults(data) {
     setDisabled(true);
 
     try {
-      const r    = await fetch('/api/ask?q=' + encodeURIComponent(fullQ));
+      let url = '/api/ask?q=' + encodeURIComponent(q);
+      if (ctx) url += '&ctx=' + encodeURIComponent(ctx);
+      const r    = await fetch(url);
       const data = await r.json();
       if (data.error) {
         updateMsg(botEl, 'Error: ' + data.error, []);
@@ -1747,7 +1749,13 @@ function renderSearchResults(data) {
     resetBtn.textContent = 'New';
     resetBtn.onclick = resetChat;
 
-    inputRow.append(chatInput, sendBtn, resetBtn);
+    const exportBtn = document.createElement('button');
+    exportBtn.className = 'ask-chat-reset';
+    exportBtn.textContent = 'Export';
+    exportBtn.title = 'Download transcript as markdown';
+    exportBtn.onclick = exportTranscript;
+
+    inputRow.append(chatInput, sendBtn, resetBtn, exportBtn);
     chatWrap.append(msgs, inputRow);
     wrap.appendChild(chatWrap);
 
@@ -1828,6 +1836,32 @@ function renderSearchResults(data) {
     barEl.style.display = 'flex';
     input.value = '';
     input.focus();
+  }
+
+  function exportTranscript() {
+    if (!history.length) return;
+    const now  = new Date();
+    const date = now.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
+    const time = now.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' });
+    let md = `# Base Transcript — ${date} ${time}\n\n`;
+    history.forEach(m => {
+      if (m.role === 'user') {
+        md += `**You:** ${m.content}\n\n`;
+      } else {
+        md += `**Base:** ${m.content}\n`;
+        if (m.sources && m.sources.length) {
+          md += '\nSources: ' + m.sources.map(s => s.name || s).join(', ') + '\n';
+        }
+        md += '\n';
+      }
+    });
+    const blob = new Blob([md], { type: 'text/markdown' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = `Base_Transcript_${now.toISOString().slice(0,10)}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   function escHtml(s) {

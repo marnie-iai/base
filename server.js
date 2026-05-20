@@ -300,13 +300,21 @@ const ENTITY_KB_PATHS = {
   'clear ground':       ['kb/01-business/iai', 'kb/00-foundations'],
   'collapse the gap':   ['kb/01-business/iai', 'kb/00-foundations'],
   'hif':                ['kb/01-business/hif'],
-  'hunter':             ['kb/01-business/hif'],
+  'hunter innovation':  ['kb/01-business/hif'],
   'project compliance': ['kb/01-business/ics'],
   'ics':                ['kb/01-business/ics'],
   'tmm':                ['kb/01-business/tmm'],
   'hma':                ['kb/01-business/hma'],
   'ikigai':             ['kb/05-ikigai'],
   'workshop':           ['kb/02-workshop'],
+  'fractional':         ['kb/01-business/iai', 'kb/01-business/Reid'],
+  'caio':               ['kb/01-business/iai', 'kb/01-business/Reid'],
+  'ai index':           ['kb/01-business/iai', 'kb/00-foundations'],
+  'industrial ai':      ['kb/01-business/iai', 'kb/00-foundations'],
+  'lead generation':    ['kb/01-business/Morgan', 'kb/01-business/iai'],
+  'linkedin':           ['kb/01-business/Morgan', 'kb/01-business/Wilder'],
+  'vida':               ['kb/05-ikigai'],
+  'indigo':             ['kb/01-business/hif'],
 };
 
 const STRUCTURAL_KB_PATHS = {
@@ -633,11 +641,14 @@ app.get('/api/filemeta', async (req, res) => {
 });
 
 // ── Conversational KB search — /api/ask ───────────────────────────────────────
-// Accepts: GET /api/ask?q=<question>
-// Returns: { answer: string, sources: string[] }
+// Accepts: GET /api/ask?q=<new question>&ctx=<conversation history (optional)>
+// q  — used for KB file routing (keyword match on THIS question only)
+// ctx — passed to Anthropic for synthesis context (not used for routing)
+// Returns: { answer: string, sources: Array<{name,path}> }
 app.get('/api/ask', async (req, res) => {
-  const question = (req.query.q || '').trim();
-  if (question.length < 3) return res.status(400).json({ error: 'query too short' });
+  const question = (req.query.q   || '').trim();
+  const ctx      = (req.query.ctx || '').trim();
+  if (question.length < 2) return res.status(400).json({ error: 'query too short' });
   if (!ANTHROPIC_API_KEY) {
     console.error('[/api/ask] ANTHROPIC_API_KEY not set');
     return res.status(503).json({ error: 'Search not configured — ANTHROPIC_API_KEY missing' });
@@ -666,11 +677,13 @@ app.get('/api/ask', async (req, res) => {
       '- Australian English. No em dashes. Use commas, colons, or new sentences instead.',
       '- Cite which KB files you drew from by filename (not full path) at the end of your answer.',
       '- If the answer is partial or uncertain, say so clearly.',
+      '- If the user says "yes" or gives a short affirmative, check the conversation context to understand what they are confirming and respond accordingly.',
       '- End with a brief offer to surface a specific file if useful: "Want me to pull up [filename]?" Only include this if there is something genuinely worth surfacing.',
       '- If nothing in the provided files answers the question, say so directly. Do not fabricate.',
     ].join('\n');
 
-    const userMessage = `KB files retrieved:\n\n${contextBlock}\n\n---\n\nQuestion: ${question}`;
+    const ctxSection   = ctx ? `Conversation so far:\n${ctx}\n\n---\n\n` : '';
+    const userMessage  = `KB files retrieved:\n\n${contextBlock}\n\n---\n\n${ctxSection}New question: ${question}`;
 
     const anthropicRes = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
