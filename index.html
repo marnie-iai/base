@@ -1690,9 +1690,16 @@ function renderSearchResults(data) {
   const followupInput = document.getElementById('ask-followup');
   const followupBtn   = document.getElementById('ask-followup-btn');
 
-  async function ask(question) {
+  let lastQuestion = '';
+  let lastAnswer   = '';
+
+  async function ask(question, isFollowup = false) {
     const q = question.trim();
     if (!q) return;
+
+    const fullQ = isFollowup && lastQuestion
+      ? `Previous question: ${lastQuestion}\nPrevious answer summary: ${lastAnswer.slice(0, 300)}\nFollow-up question: ${q}`
+      : q;
 
     btn.disabled = true;
     followupBtn.disabled = true;
@@ -1702,13 +1709,16 @@ function renderSearchResults(data) {
     followupRow.style.display = 'none';
 
     try {
-      const r = await fetch('/api/ask?q=' + encodeURIComponent(q));
+      const r = await fetch('/api/ask?q=' + encodeURIComponent(fullQ));
       const data = await r.json();
 
       if (data.error) {
         answerEl.textContent = 'Error: ' + data.error;
       } else {
-        answerEl.textContent = data.answer || 'No answer returned.';
+        const answer = data.answer || 'No answer returned.';
+        answerEl.textContent = answer;
+        lastQuestion = isFollowup ? lastQuestion : q;
+        lastAnswer   = answer;
         if (data.sources && data.sources.length) {
           sourcesEl.innerHTML = data.sources
             .map(s => `<span class="ask-source-chip">${s}</span>`)
@@ -1726,14 +1736,14 @@ function renderSearchResults(data) {
     followupBtn.disabled = false;
   }
 
-  btn.addEventListener('click', () => ask(input.value));
-  input.addEventListener('keydown', e => { if (e.key === 'Enter') ask(input.value); });
+  btn.addEventListener('click', () => { lastQuestion = ''; lastAnswer = ''; ask(input.value); });
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') { lastQuestion = ''; lastAnswer = ''; ask(input.value); } });
 
   followupBtn.addEventListener('click', () => {
-    if (followupInput.value.trim()) ask(followupInput.value);
+    if (followupInput.value.trim()) ask(followupInput.value, true);
   });
   followupInput.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && followupInput.value.trim()) ask(followupInput.value);
+    if (e.key === 'Enter' && followupInput.value.trim()) ask(followupInput.value, true);
   });
 })();
 </script>
