@@ -901,9 +901,16 @@ const ALL_KB_PATHS = [
   'kb/00-foundations/agents',
   'kb/01-business/iai', 'kb/01-business/ics', 'kb/01-business/tmm',
   'kb/01-business/hma', 'kb/01-business/hif',
-  'kb/02-workshop',
+  'kb/01-business/Arna', 'kb/01-business/Reid', 'kb/01-business/Morgan',
+  'kb/01-business/Harlow', 'kb/01-business/Lumen', 'kb/01-business/Sterling',
+  'kb/01-business/Steel', 'kb/01-business/Casey', 'kb/01-business/Wilder',
+  'kb/01-business/Content', 'kb/01-business/products-and-services',
+  'kb/02-workshop', 'kb/02-workshop/Mirror', 'kb/02-workshop/Scout',
+  'kb/02-workshop/Sage', 'kb/02-workshop/Rue',
   'kb/03-family', 'kb/03-family/meal-plans',
-  'kb/04-shared-services',
+  'kb/04-resource', 'kb/04-resource/Dev', 'kb/04-resource/Clio',
+  'kb/04-resource/Maren', 'kb/04-resource/Vex', 'kb/04-resource/Piper',
+  'kb/04-resource/Flint', 'kb/04-resource/Rook',
   'kb/05-ikigai', 'kb/05-ikigai/pursuits',
   'kb/05-ikigai/platform-intelligence', 'kb/05-ikigai/gap-register',
 ];
@@ -1160,36 +1167,62 @@ async function loadFoundations() {
 async function loadBusiness() {
   const body = document.getElementById('body-business');
   const ents = ['iai','ics','tmm','hma','hif'];
+  const agentDirs = ['Arna','Reid','Morgan','Harlow','Lumen','Sterling','Steel','Casey','Wilder','Content','products-and-services'];
   try {
-    const results = await Promise.all(ents.map(e => fetchKB('kb/01-business/' + e)));
-    const allFiles = [];
-    ents.forEach((e, i) => results[i].forEach(f => allFiles.push({ ...f, _ent: e.toUpperCase() })));
+    const [entResults, agentResults] = await Promise.all([
+      Promise.all(ents.map(e => fetchKB('kb/01-business/' + e))),
+      Promise.all(agentDirs.map(a => fetchKB('kb/01-business/' + a))),
+    ]);
+    const entFiles = [];
+    ents.forEach((e, i) => entResults[i].forEach(f => entFiles.push({ ...f, _ent: e.toUpperCase() })));
+    const agentFiles = [];
+    agentDirs.forEach((a, i) => agentResults[i].forEach(f => agentFiles.push(f)));
 
-    if (!allFiles.length) { body.innerHTML = '<div class="section-empty">No files found</div>'; return; }
-
-    let active = 'ALL';
-    const bar = document.createElement('div');
-    bar.className = 'filter-bar';
-    const grid = document.createElement('div');
-
-    ['ALL', ...ents.map(e => e.toUpperCase())].forEach(e => {
-      const btn = document.createElement('button');
-      btn.className = 'filter-btn' + (e === 'ALL' ? ' active' : '');
-      btn.textContent = e;
-      btn.onclick = () => {
-        bar.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        active = e;
-        const filtered = e === 'ALL' ? allFiles : allFiles.filter(f => f._ent === e);
-        renderGrid(filtered, grid, '/#sec-business');
-      };
-      bar.appendChild(btn);
-    });
+    if (!entFiles.length && !agentFiles.length) { body.innerHTML = '<div class="section-empty">No files found</div>'; return; }
 
     body.innerHTML = '';
-    body.appendChild(bar);
-    body.appendChild(grid);
-    renderGrid(allFiles, grid, '/#sec-business');
+
+    // Entity tabs — primary view
+    if (entFiles.length) {
+      let active = 'ALL';
+      const bar = document.createElement('div');
+      bar.className = 'filter-bar';
+      const grid = document.createElement('div');
+
+      ['ALL', ...ents.map(e => e.toUpperCase())].forEach(e => {
+        const btn = document.createElement('button');
+        btn.className = 'filter-btn' + (e === 'ALL' ? ' active' : '');
+        btn.textContent = e;
+        btn.onclick = () => {
+          bar.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          active = e;
+          const filtered = e === 'ALL' ? entFiles : entFiles.filter(f => f._ent === e);
+          renderGrid(filtered, grid, '/#sec-business');
+        };
+        bar.appendChild(btn);
+      });
+
+      body.appendChild(bar);
+      body.appendChild(grid);
+      renderGrid(entFiles, grid, '/#sec-business');
+    }
+
+    // Agent files — subsection below entity tabs
+    if (agentFiles.length) {
+      const sub = document.createElement('div');
+      sub.className = 'subsection';
+      const label = document.createElement('div');
+      label.className = 'subsection-label';
+      label.textContent = 'Agent Files';
+      const grid2 = document.createElement('div');
+      const fb = buildFilters(agentFiles, grid2, null, '/#sec-business');
+      sub.appendChild(label);
+      sub.appendChild(fb);
+      sub.appendChild(grid2);
+      body.appendChild(sub);
+      renderGrid(agentFiles, grid2, '/#sec-business');
+    }
   } catch {
     body.innerHTML = '<div class="section-error">Business section unavailable</div>';
   }
@@ -1198,12 +1231,19 @@ async function loadBusiness() {
 // ── Workshop ──────────────────────────────────────────────────────────────────
 async function loadWorkshop() {
   const body = document.getElementById('body-workshop');
+  const agentDirs = ['Mirror','Scout','Sage','Rue'];
   try {
-    const files = await fetchKB('kb/02-workshop');
-    if (!files.length) { body.innerHTML = '<div class="section-empty">No files found</div>'; return; }
+    const [rootFiles, ...agentResults] = await Promise.all([
+      fetchKB('kb/02-workshop'),
+      ...agentDirs.map(a => fetchKB('kb/02-workshop/' + a)),
+    ]);
+    const agentFiles = agentResults.flat();
 
-    const sfFiles    = files.filter(f => fileExt(f.name) === 'html' && sfNumber(f.name));
-    const otherFiles = files.filter(f => !(fileExt(f.name) === 'html' && sfNumber(f.name)));
+    const sfFiles    = rootFiles.filter(f => fileExt(f.name) === 'html' && sfNumber(f.name));
+    const otherFiles = rootFiles.filter(f => !(fileExt(f.name) === 'html' && sfNumber(f.name)));
+    const allOther   = [...otherFiles, ...agentFiles];
+
+    if (!sfFiles.length && !allOther.length) { body.innerHTML = '<div class="section-empty">No files found</div>'; return; }
 
     body.innerHTML = '';
 
@@ -1215,19 +1255,19 @@ async function loadWorkshop() {
       body.appendChild(sub);
     }
 
-    if (otherFiles.length) {
+    if (allOther.length) {
       const sub = document.createElement('div');
       sub.className = 'subsection';
       const label = document.createElement('div');
       label.className = 'subsection-label';
       label.textContent = sfFiles.length ? 'All Files' : 'Files';
       const grid = document.createElement('div');
-      const fb = buildFilters(otherFiles, grid, null, '/#sec-workshop');
+      const fb = buildFilters(allOther, grid, null, '/#sec-workshop');
       sub.appendChild(label);
       sub.appendChild(fb);
       sub.appendChild(grid);
       body.appendChild(sub);
-      renderGrid(otherFiles, grid, '/#sec-workshop');
+      renderGrid(allOther, grid, '/#sec-workshop');
     }
   } catch {
     body.innerHTML = '<div class="section-error">Workshop section unavailable</div>';
@@ -1318,15 +1358,20 @@ async function loadIkigai() {
 // ── Resource ──────────────────────────────────────────────────────────────────
 async function loadResource() {
   const body = document.getElementById('body-resource');
+  const agentDirs = ['Dev','Clio','Maren','Vex','Piper','Flint','Rook'];
   try {
-    const files = await fetchKB('kb/04-shared-services');
-    if (!files.length) { body.innerHTML = '<div class="section-empty">No files found</div>'; return; }
+    const [rootFiles, ...agentResults] = await Promise.all([
+      fetchKB('kb/04-resource'),
+      ...agentDirs.map(a => fetchKB('kb/04-resource/' + a)),
+    ]);
+    const allFiles = [...rootFiles, ...agentResults.flat()];
+    if (!allFiles.length) { body.innerHTML = '<div class="section-empty">No files found</div>'; return; }
     body.innerHTML = '';
     const grid = document.createElement('div');
-    const fb = buildFilters(files, grid, null, '/#sec-resource');
+    const fb = buildFilters(allFiles, grid, null, '/#sec-resource');
     body.appendChild(fb);
     body.appendChild(grid);
-    renderGrid(files, grid, '/#sec-resource');
+    renderGrid(allFiles, grid, '/#sec-resource');
   } catch {
     body.innerHTML = '<div class="section-error">Resource section unavailable</div>';
   }
