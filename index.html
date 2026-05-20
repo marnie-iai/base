@@ -667,9 +667,90 @@ body {
   -webkit-box-orient: vertical;
 }
 
+/* ── Ask Base ─────────────────────────────────────────────────────────────── */
+.ask-wrap {
+  max-width: var(--max-w);
+  margin: 0 auto 20px;
+  padding: 0 24px;
+}
+.ask-bar {
+  display: flex;
+  gap: 8px;
+}
+.ask-input {
+  flex: 1;
+  padding: 11px 16px;
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--radius);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 300;
+  color: var(--text);
+  background: var(--surface);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.ask-input:focus { border-color: var(--denim); }
+.ask-input::placeholder { color: var(--text-muted); }
+.ask-btn {
+  padding: 11px 20px;
+  background: var(--denim);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  white-space: nowrap;
+}
+.ask-btn:hover  { opacity: 0.85; }
+.ask-btn:disabled { opacity: 0.45; cursor: default; }
+.ask-response {
+  margin-top: 10px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 22px;
+}
+.ask-answer {
+  font-size: 0.9rem;
+  font-weight: 300;
+  color: var(--text);
+  line-height: 1.75;
+  white-space: pre-wrap;
+}
+.ask-sources {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.ask-source-chip {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  background: var(--ground);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 7px;
+}
+.ask-followup-row {
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+}
+.ask-followup-row .ask-input { font-size: 0.85rem; padding: 8px 14px; }
+.ask-followup-row .ask-btn   { padding: 8px 14px; font-size: 0.8rem; }
+.ask-loading { color: var(--text-muted); font-size: 0.875rem; font-style: italic; }
+
 /* ── Responsive ───────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
   .main-wrap { padding: 20px 16px 60px; }
+  .ask-wrap  { padding: 0 16px; }
   .header-inner { padding: 0 16px; }
   .file-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
   .portrait-grid { grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); }
@@ -724,6 +805,24 @@ body {
     <div class="header-date" id="header-date"></div>
   </div>
 </header>
+
+<!-- ── Ask Base ───────────────────────────────────────────────────────────── -->
+<div class="ask-wrap">
+  <div class="ask-bar">
+    <input class="ask-input" type="text" id="ask-input"
+      placeholder="Ask anything about how we work…" autocomplete="off">
+    <button class="ask-btn" id="ask-btn">Ask</button>
+  </div>
+  <div class="ask-response" id="ask-response" style="display:none">
+    <div class="ask-answer" id="ask-answer"></div>
+    <div class="ask-sources" id="ask-sources"></div>
+    <div class="ask-followup-row" id="ask-followup-row" style="display:none">
+      <input class="ask-input" type="text" id="ask-followup"
+        placeholder="Ask a follow-up…" autocomplete="off">
+      <button class="ask-btn" id="ask-followup-btn">Ask</button>
+    </div>
+  </div>
+</div>
 
 <!-- ── Main ───────────────────────────────────────────────────────────────── -->
 <div class="main-wrap">
@@ -1577,6 +1676,64 @@ function renderSearchResults(data) {
     doSearch(urlQ);
     _kbSearch.focus();
   }
+})();
+
+// ── Ask Base ──────────────────────────────────────────────────────────────────
+(function () {
+  const input      = document.getElementById('ask-input');
+  const btn        = document.getElementById('ask-btn');
+  const responseEl = document.getElementById('ask-response');
+  const answerEl   = document.getElementById('ask-answer');
+  const sourcesEl  = document.getElementById('ask-sources');
+  const followupRow = document.getElementById('ask-followup-row');
+  const followupInput = document.getElementById('ask-followup');
+  const followupBtn   = document.getElementById('ask-followup-btn');
+
+  async function ask(question) {
+    const q = question.trim();
+    if (!q) return;
+
+    btn.disabled = true;
+    followupBtn.disabled = true;
+    responseEl.style.display = 'block';
+    answerEl.innerHTML = '<span class="ask-loading">Searching the KB…</span>';
+    sourcesEl.innerHTML = '';
+    followupRow.style.display = 'none';
+
+    try {
+      const r = await fetch('/api/ask?q=' + encodeURIComponent(q));
+      const data = await r.json();
+
+      if (data.error) {
+        answerEl.textContent = 'Error: ' + data.error;
+      } else {
+        answerEl.textContent = data.answer || 'No answer returned.';
+        if (data.sources && data.sources.length) {
+          sourcesEl.innerHTML = data.sources
+            .map(s => `<span class="ask-source-chip">${s}</span>`)
+            .join('');
+        }
+        followupRow.style.display = 'flex';
+        followupInput.value = '';
+        followupInput.focus();
+      }
+    } catch {
+      answerEl.textContent = 'Could not reach the search endpoint.';
+    }
+
+    btn.disabled = false;
+    followupBtn.disabled = false;
+  }
+
+  btn.addEventListener('click', () => ask(input.value));
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') ask(input.value); });
+
+  followupBtn.addEventListener('click', () => {
+    if (followupInput.value.trim()) ask(followupInput.value);
+  });
+  followupInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && followupInput.value.trim()) ask(followupInput.value);
+  });
 })();
 </script>
 </body>
