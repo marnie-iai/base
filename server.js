@@ -121,7 +121,9 @@ async function fetchKBDir(kbPath) {
   const cached = cacheGet(key);
   if (cached) return cached;
   try {
-    const data = await ghFetch(`https://api.github.com/repos/${KB_REPO}/contents/${kbPath}`, true);
+    // Encode each segment separately so spaces become %20 but slashes stay intact
+    const encoded = kbPath.split('/').map(s => encodeURIComponent(s)).join('/');
+    const data = await ghFetch(`https://api.github.com/repos/${KB_REPO}/contents/${encoded}`, true);
     const result = Array.isArray(data) ? data.filter(f => f.type === 'file') : [];
     cacheSet(key, result);
     return result;
@@ -130,7 +132,8 @@ async function fetchKBDir(kbPath) {
 
 async function fetchRawText(kbPath) {
   try {
-    const url = `https://raw.githubusercontent.com/${KB_REPO}/main/${kbPath}`;
+    const encoded = kbPath.split('/').map(s => encodeURIComponent(s)).join('/');
+    const url = `https://raw.githubusercontent.com/${KB_REPO}/main/${encoded}`;
     const headers = { 'User-Agent': 'IAI-Base/3.0' };
     if (GITHUB_PAT) headers['Authorization'] = `Bearer ${GITHUB_PAT}`;
     const r = await fetch(url, { headers });
@@ -349,10 +352,12 @@ function routeQuestion(question) {
     if (q.includes(kw)) ps.forEach(p => paths.add(p));
   }
 
-  // If an agent was detected, always include session intel so current
+  // If an agent was detected, always include both session intel folders so current
   // work context surfaces — filtered to that agent's files in fetchKBFilesForSearch
+  // Two folders exist: session-intel (lowercase, recent) and Session Intel (title case, older)
   if (detectedAgent) {
     paths.add('kb/00-foundations/session-intel');
+    paths.add('kb/00-foundations/Session Intel');
   }
 
   // Fallback — broad search across foundations and IAI business
