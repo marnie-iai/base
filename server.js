@@ -467,6 +467,11 @@ app.get('/api/public/completions/summary', async (req, res) => {
   }
 });
 
+// ── PWA static assets (public — must be before auth) ─────────────────────────
+app.get('/manifest.json', (_req, res) => res.sendFile(path.join(__dirname, 'manifest.json')));
+app.get('/icon-192.png',  (_req, res) => res.sendFile(path.join(__dirname, 'icon-192.png')));
+app.get('/icon-512.png',  (_req, res) => res.sendFile(path.join(__dirname, 'icon-512.png')));
+
 // ── Apply site-wide auth ───────────────────────────────────────────────────────
 app.use(requireSiteAuth);
 
