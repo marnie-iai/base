@@ -334,9 +334,13 @@ const STRUCTURAL_KB_PATHS = {
 function routeQuestion(question) {
   const q = question.toLowerCase();
   const paths = new Set();
+  let detectedAgent = null;
 
   for (const [kw, ps] of Object.entries(AGENT_KB_PATHS)) {
-    if (q.includes(kw)) ps.forEach(p => paths.add(p));
+    if (q.includes(kw)) {
+      ps.forEach(p => paths.add(p));
+      if (!detectedAgent) detectedAgent = kw;
+    }
   }
   for (const [kw, ps] of Object.entries(ENTITY_KB_PATHS)) {
     if (q.includes(kw)) ps.forEach(p => paths.add(p));
@@ -345,16 +349,22 @@ function routeQuestion(question) {
     if (q.includes(kw)) ps.forEach(p => paths.add(p));
   }
 
+  // If an agent was detected, always include session intel so current
+  // work context surfaces — filtered to that agent's files in fetchKBFilesForSearch
+  if (detectedAgent) {
+    paths.add('kb/00-foundations/session-intel');
+  }
+
   // Fallback — broad search across foundations and IAI business
   if (paths.size === 0) {
     paths.add('kb/00-foundations');
     paths.add('kb/01-business/iai');
   }
 
-  return [...paths].slice(0, 6);
+  return { paths: [...paths].slice(0, 7), agentFilter: detectedAgent };
 }
 
-async function fetchKBFilesForSearch(paths) {
+async function fetchKBFilesForSearch(paths, agentFilter = null) {
   const allFiles = [];
   await Promise.all(paths.map(async p => {
     try {
@@ -363,9 +373,23 @@ async function fetchKBFilesForSearch(paths) {
     } catch { /* skip failed paths */ }
   }));
 
-  // Priority: session intel > briefs/specs > everything else; recency within group
+  // Scoring:
+  //   5 — session intel for the detected agent (most current context)
+  //   3 — session intel (no agent filter, or structural session query)
+  //   2 — briefs/specs/architecture/protocol
+  //   1 — everything else
+  //   0 — other agents' session intel when an agent filter is active (deprioritise)
   allFiles.sort((a, b) => {
-    const score = f => /sessionintel/i.test(f.name) ? 3 : /brief|spec|architecture|protocol/i.test(f.name) ? 2 : 1;
+    const score = f => {
+      const isSessionIntel = /sessionintel/i.test(f.name);
+      if (isSessionIntel) {
+        if (agentFilter) {
+          return f.name.toLowerCase().startsWith(agentFilter) ? 5 : 0;
+        }
+        return 3;
+      }
+      return /brief|spec|architecture|protocol/i.test(f.name) ? 2 : 1;
+    };
     const diff = score(b) - score(a);
     return diff !== 0 ? diff : b.name.localeCompare(a.name);
   });
@@ -655,8 +679,8 @@ app.get('/api/ask', async (req, res) => {
   }
 
   try {
-    const paths   = routeQuestion(question);
-    const files   = await fetchKBFilesForSearch(paths);
+    const { paths, agentFilter } = routeQuestion(question);
+    const files   = await fetchKBFilesForSearch(paths, agentFilter);
     const context = await buildSearchContext(files);
 
     if (!context.length) {
