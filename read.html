@@ -1221,6 +1221,21 @@ async function main() {
   // For .md files, render as markdown
   if (filename.toLowerCase().endsWith('.md')) {
     bodyEl.innerHTML = marked.parse(rawText);
+  } else if (filename.toLowerCase().endsWith('.html')) {
+    // For .html files, render in a sandboxed iframe via srcdoc
+    const frame = document.createElement('iframe');
+    frame.srcdoc   = rawText;
+    frame.sandbox  = 'allow-scripts';
+    frame.title    = displayTitle;
+    frame.style.cssText = 'width:100%;border:none;min-height:80vh;display:block;border-radius:6px;';
+    bodyEl.appendChild(frame);
+    // Auto-resize to content height once loaded
+    frame.addEventListener('load', () => {
+      try {
+        const h = frame.contentDocument.documentElement.scrollHeight;
+        if (h > 200) frame.style.height = h + 'px';
+      } catch { frame.style.height = '85vh'; }
+    });
   } else {
     // For other text files, show raw in a code block
     bodyEl.innerHTML = `<div class="md-code-block">
