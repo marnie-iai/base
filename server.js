@@ -675,7 +675,7 @@ app.get('/api/ask', async (req, res) => {
         'content-type':      'application/json',
       },
       body: JSON.stringify({
-        model:      'claude-sonnet-4-5',
+        model:      'claude-sonnet-4-5-20250514',
         max_tokens: 1024,
         system:     systemPrompt,
         messages:   [{ role: 'user', content: userMessage }],
@@ -683,9 +683,11 @@ app.get('/api/ask', async (req, res) => {
     });
 
     if (!anthropicRes.ok) {
-      const err = await anthropicRes.text();
-      console.error('[/api/ask] Anthropic error:', anthropicRes.status, err);
-      return res.status(502).json({ error: 'Synthesis failed — check ANTHROPIC_API_KEY and model access' });
+      const errText = await anthropicRes.text();
+      console.error('[/api/ask] Anthropic error:', anthropicRes.status, errText);
+      let errDetail = '';
+      try { errDetail = JSON.parse(errText)?.error?.message || ''; } catch { /* ignore */ }
+      return res.status(502).json({ error: `Synthesis failed (${anthropicRes.status})${errDetail ? ': ' + errDetail : ' — check ANTHROPIC_API_KEY and model access'}` });
     }
 
     const data    = await anthropicRes.json();
