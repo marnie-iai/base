@@ -522,7 +522,8 @@ app.get('/api/kb', async (req, res) => {
   const cached = cacheGet(key);
   if (cached) return res.json(cached);
   try {
-    const url = `https://api.github.com/repos/${KB_REPO}/contents/${kbPath}`;
+    const encoded = kbPath.split('/').map(s => encodeURIComponent(s)).join('/');
+    const url = `https://api.github.com/repos/${KB_REPO}/contents/${encoded}`;
     const data = await ghFetch(url, true);
     const result = Array.isArray(data) ? data : (data ? [data] : []);
     cacheSet(key, result);

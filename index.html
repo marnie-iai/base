@@ -992,15 +992,19 @@ const GH_BLOB  = 'https://github.com/marnie-iai/kb/blob/main/';
 const IMG_EXTS = new Set(['png','jpg','jpeg','gif','webp']);
 
 const ALL_KB_PATHS = [
-  'kb/00-foundations/vault',
-  'kb/00-foundations/agent-portraits',
-  'kb/00-foundations/agents',
+  'kb/00-foundations', 'kb/00-foundations/vault', 'kb/00-foundations/dev-briefs',
+  'kb/00-foundations/agent-portraits', 'kb/00-foundations/agents',
   'kb/01-business/iai', 'kb/01-business/ics', 'kb/01-business/tmm',
   'kb/01-business/hma', 'kb/01-business/hif',
-  'kb/01-business/Arna', 'kb/01-business/Reid', 'kb/01-business/Morgan',
-  'kb/01-business/Harlow', 'kb/01-business/Lumen', 'kb/01-business/Sterling',
-  'kb/01-business/Steel', 'kb/01-business/Casey', 'kb/01-business/Wilder',
-  'kb/01-business/Content', 'kb/01-business/products-and-services',
+  'kb/01-business/Reid', 'kb/01-business/Morgan', 'kb/01-business/Harlow',
+  'kb/01-business/Lumen', 'kb/01-business/Steel', 'kb/01-business/Casey',
+  'kb/01-business/Wilder', 'kb/01-business/Dev', 'kb/01-business/Content',
+  'kb/01-business/01_Wren_IO', 'kb/01-business/Briefs', 'kb/01-business/Branding',
+  'kb/01-business/Strategy', 'kb/01-business/Campaigns', 'kb/01-business/Marketing',
+  'kb/01-business/Commercial Intelligence', 'kb/01-business/Agent Prompt Docs',
+  'kb/01-business/Products and Services', 'kb/01-business/Status Snapshots',
+  'kb/01-business/Protocols', 'kb/01-business/Design', 'kb/01-business/Infrastructure',
+  'kb/01-business/Client Proposals',
   'kb/02-workshop', 'kb/02-workshop/Mirror', 'kb/02-workshop/Scout',
   'kb/02-workshop/Sage', 'kb/02-workshop/Rue',
   'kb/03-family', 'kb/03-family/meal-plans',
@@ -1214,8 +1218,10 @@ const STATUS_LABELS = { live: 'Live', active: 'Active', planned: 'Planned' };
 async function loadFoundations() {
   const body = document.getElementById('body-foundations');
   try {
-    const [vault, roster] = await Promise.all([
+    const [rootFiles, vault, devBriefs, roster] = await Promise.all([
+      fetchKB('kb/00-foundations'),
       fetchKB('kb/00-foundations/vault'),
+      fetchKB('kb/00-foundations/dev-briefs'),
       fetch('/api/roster').then(r => r.ok ? r.json() : []),
     ]);
 
@@ -1247,10 +1253,26 @@ async function loadFoundations() {
     }
     html += '</div>';
 
+    // Root files
+    if (rootFiles.length) {
+      html += '<div class="subsection"><div class="subsection-label">Foundation Files</div>';
+      html += renderGridHtml(rootFiles, '/#sec-foundations');
+      html += '</div>';
+    }
+
+    // Dev briefs
+    if (devBriefs.length) {
+      html += '<div class="subsection"><div class="subsection-label">Dev Briefs</div>';
+      html += renderGridHtml(devBriefs, '/#sec-foundations');
+      html += '</div>';
+    }
+
     // Vault
-    html += '<div class="subsection"><div class="subsection-label">Vault</div>';
-    html += renderGridHtml(vault, '/#sec-foundations');
-    html += '</div>';
+    if (vault.length) {
+      html += '<div class="subsection"><div class="subsection-label">Vault</div>';
+      html += renderGridHtml(vault, '/#sec-foundations');
+      html += '</div>';
+    }
 
     // Filing Standards (static)
     const filingItems = [
@@ -1271,7 +1293,12 @@ async function loadFoundations() {
 async function loadBusiness() {
   const body = document.getElementById('body-business');
   const ents = ['iai','ics','tmm','hma','hif'];
-  const agentDirs = ['Arna','Reid','Morgan','Harlow','Lumen','Sterling','Steel','Casey','Wilder','Content','products-and-services'];
+  const agentDirs = [
+    'Reid','Morgan','Harlow','Lumen','Steel','Casey','Wilder','Dev','Content','01_Wren_IO',
+    'Briefs','Branding','Strategy','Campaigns','Marketing',
+    'Commercial Intelligence','Agent Prompt Docs','Products and Services',
+    'Status Snapshots','Protocols','Design','Infrastructure','Client Proposals',
+  ];
   try {
     const [entResults, agentResults] = await Promise.all([
       Promise.all(ents.map(e => fetchKB('kb/01-business/' + e))),
