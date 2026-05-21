@@ -13,7 +13,7 @@ const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 const KB_REPO = 'marnie-iai/kb';
 const PORTRAITS_REPO = 'marnie-iai/agent-portraits';
 const PORTRAITS_RAW = `https://raw.githubusercontent.com/${PORTRAITS_REPO}/main/portraits/`;
-const ROSTER_FILE = 'kb/00-foundations/00_Agent_Roster_v2_2_Apr2026.md';
+const ROSTER_FILE = 'kb/00-foundations/00_Agent_Roster_v2_4_May2026.md';
 const GRID_API    = 'https://api.integratedai.com.au';
 
 // ── Turso / Agent Context config ──────────────────────────────────────────────
@@ -286,6 +286,8 @@ const AGENT_KB_PATHS = {
   wilder:   ['kb/01-business/Wilder'],
   wren:     ['kb/01-business/Content'],
   dev:      ['kb/04-resource/Dev'],
+  mel:      ['kb/04-resource/Dev'],
+  jd:       ['kb/04-resource/Dev'],
   clio:     ['kb/04-resource/Clio'],
   maren:    ['kb/04-resource/Maren'],
   vex:      ['kb/04-resource/Vex'],
