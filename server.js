@@ -591,9 +591,10 @@ app.get('/api/raw', async (req, res) => {
 });
 
 // ── HTML file viewer — /view?path=... ────────────────────────────────────────
-// Serves .html KB files directly as text/html — no Base chrome, full-page display
+// Serves .html KB files full-page with the Base nav bar injected at the top
 app.get('/view', async (req, res) => {
   const filePath = (req.query.path || '').trim();
+  const fromParam = (req.query.from || '/').trim();
   if (!filePath || !filePath.toLowerCase().endsWith('.html')) {
     return res.status(400).send('Only .html files are supported via /view');
   }
@@ -604,7 +605,53 @@ app.get('/view', async (req, res) => {
     if (GITHUB_PAT) headers['Authorization'] = `Bearer ${GITHUB_PAT}`;
     const r = await fetch(url, { headers });
     if (!r.ok) return res.status(r.status).send('File not found');
-    const html = await r.text();
+    let html = await r.text();
+
+    const backHref = fromParam || '/';
+    const navHtml = `
+<style>
+#_bnav{position:fixed;top:0;left:0;right:0;z-index:2147483647;height:48px;
+  background:#fff;border-bottom:1px solid rgba(28,36,44,0.10);
+  display:flex;align-items:center;padding:0 20px;gap:16px;
+  font-family:'IBM Plex Mono',monospace;box-sizing:border-box;
+  box-shadow:0 1px 6px rgba(0,0,0,0.06);}
+#_bnav a{text-decoration:none;}
+#_bnav-dot{width:28px;height:28px;background:#0E1117;border-radius:6px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+#_bnav-dot span{display:block;width:8px;height:8px;border-radius:50%;background:#D66A35;}
+#_bnav-wm{display:flex;flex-direction:column;line-height:1.25;flex-shrink:0;}
+#_bnav-name{font-size:12px;font-weight:600;color:#1C242C;letter-spacing:0.02em;}
+#_bnav-sub{font-size:9px;color:#8A9BB0;letter-spacing:0.06em;}
+#_bnav-links{display:flex;gap:14px;margin-left:8px;}
+#_bnav-links a{font-size:11px;color:#4A6584;letter-spacing:0.04em;display:flex;align-items:center;gap:4px;}
+#_bnav-links a::before{content:'●';font-size:5px;color:#4A6584;}
+#_bnav-back{margin-left:auto;font-size:11px;color:#4A6584;letter-spacing:0.04em;white-space:nowrap;}
+#_bnav-back:hover{color:#1C242C;}
+body{padding-top:48px!important;}
+</style>
+<div id="_bnav">
+  <a href="/" id="_bnav-dot-lnk"><div id="_bnav-dot"><span></span></div></a>
+  <div id="_bnav-wm">
+    <span id="_bnav-name">BASE.</span>
+    <span id="_bnav-sub">Integrated AI</span>
+  </div>
+  <div id="_bnav-links">
+    <a href="https://grid.integratedai.com.au" target="_blank">Grid.IO</a>
+    <a href="https://marnie-io.vercel.app" target="_blank">Mio</a>
+    <a href="/" target="_blank">DI</a>
+  </div>
+  <a href="${backHref}" id="_bnav-back">← Back to Base</a>
+</div>`;
+
+    // Inject nav after opening <body> tag (or prepend if none found)
+    const bodyMatch = html.match(/<body[^>]*>/i);
+    if (bodyMatch) {
+      const idx = html.indexOf(bodyMatch[0]) + bodyMatch[0].length;
+      html = html.slice(0, idx) + navHtml + html.slice(idx);
+    } else {
+      html = navHtml + html;
+    }
+
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 'public, max-age=300');
     return res.send(html);

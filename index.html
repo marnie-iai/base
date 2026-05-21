@@ -1141,7 +1141,7 @@ function fileCardHtml(f, from) {
   const linkUrl  = isMd
     ? `/read?path=${encodeURIComponent(f.path)}&from=${encodeURIComponent(from || '/')}`
     : isHtmlCard
-      ? `/view?path=${encodeURIComponent(f.path)}`
+      ? `/view?path=${encodeURIComponent(f.path)}&from=${encodeURIComponent(from || '/')}`
       : GH_BLOB + f.path;
   const thumbUrl = '/api/raw?path=' + encodeURIComponent(f.path); // proxied for img src
   const isImg  = IMG_EXTS.has(ext);
