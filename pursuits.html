@@ -261,9 +261,9 @@ function renderCard(p) {
     ? `<div class="pursuit-meta">${p.client}</div>`
     : '<div></div>';
   const boardHtml = p.boardUrl
-    ? `<a class="pursuit-board-link" href="${p.boardUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Board ↗</a>`
+    ? `<a class="pursuit-board-link" href="${p.boardUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Pursuit ↗</a>`
     : '';
-  return `<a class="pursuit-card" href="/pursuits/${p.id}" style="border-top-color:${p.color || '#4A6584'}">
+  return `<div class="pursuit-card" onclick="location.href='/pursuits/${p.id}'" style="border-top-color:${p.color || '#4A6584'};cursor:pointer">
     <div class="pursuit-card-top">
       <div style="display:flex;align-items:flex-start;gap:10px;flex:1;min-width:0">
         <div class="pursuit-color-dot" style="background:${p.color || '#4A6584'}"></div>
@@ -279,7 +279,7 @@ function renderCard(p) {
       ${clientStr}
       ${boardHtml}
     </div>
-  </a>`;
+  </div>`;
 }
 
 function applyFilter() {
