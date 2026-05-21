@@ -380,6 +380,12 @@ body {
 .card-body { padding: 12px 12px 12px; flex: 1; display: flex; flex-direction: column; gap: 8px; }
 .card-name { font-size: 12px; font-weight: 600; color: var(--text); line-height: 1.4; }
 .card-meta { display: flex; align-items: center; gap: 6px; margin-top: auto; padding-top: 4px; }
+.card-dl-btn {
+  margin-left: auto; background: none; border: 1px solid var(--border); border-radius: 3px;
+  padding: 1px 5px; font-size: 11px; color: var(--text-muted); cursor: pointer; line-height: 1.4;
+  flex-shrink: 0; transition: border-color 0.12s, color 0.12s;
+}
+.card-dl-btn:hover { border-color: var(--denim); color: var(--denim); }
 .file-badge {
   font-family: var(--font-mono); font-size: 9px; font-weight: 500;
   padding: 2px 6px; border-radius: 3px;
@@ -1150,12 +1156,17 @@ function fileCardHtml(f, from) {
     ? `<span class="sf-badge">${sf}</span>`
     : `<span class="file-badge">${ext.toUpperCase()}</span>`;
 
+  const isDl = isMd || isHtml || ext === 'txt';
+  const dlBtn = isDl
+    ? `<button class="card-dl-btn" onclick="dlFile(event,'/api/raw?path=${encodeURIComponent(f.path)}','${f.name.replace(/'/g, "\\'")}')" title="Download ${f.name}">↓</button>`
+    : '';
+
   const target = (isMd || isHtml) ? '' : 'target="_blank" rel="noopener"';
   return `<a class="file-card" href="${linkUrl}" ${target}>
     ${media}
     <div class="card-body">
       <div class="card-name">${cleanName(f.name)}</div>
-      <div class="card-meta">${badge}</div>
+      <div class="card-meta">${badge}${dlBtn}</div>
     </div>
   </a>`;
 }
@@ -1668,6 +1679,23 @@ function renderSearchResults(data) {
     _kbSearch.focus();
   }
 })();
+
+// ── File download helper (used by card dl buttons) ────────────────────────────
+function dlFile(e, rawUrl, filename) {
+  e.preventDefault();
+  e.stopPropagation();
+  fetch(rawUrl)
+    .then(r => { if (!r.ok) throw new Error(r.status); return r.blob(); })
+    .then(blob => {
+      const url = URL.createObjectURL(blob);
+      const a   = document.createElement('a');
+      a.href     = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    })
+    .catch(() => alert('Download failed — file may not be available'));
+}
 
 // ── Ask Base ──────────────────────────────────────────────────────────────────
 (function () {

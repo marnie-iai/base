@@ -214,6 +214,14 @@ body {
   gap: 10px;
   flex-shrink: 0;
 }
+.reader-dl-btn {
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+  color: var(--denim); background: none;
+  border: 1px solid var(--border-strong); border-radius: 4px;
+  padding: 3px 10px; cursor: pointer; letter-spacing: 0.04em;
+  transition: border-color 0.12s, background 0.12s;
+}
+.reader-dl-btn:hover { border-color: var(--denim); background: var(--mustard-dim); }
 .file-badge {
   font-family: 'IBM Plex Mono', monospace;
   font-size: 9px;
@@ -1216,6 +1224,25 @@ async function main() {
       <p style="margin-top:12px;"><a href="${fromParam || '/'}">← Return to Base</a></p>
     </div>`;
     return;
+  }
+
+  // Download button for text files
+  if (/\.(md|txt)$/i.test(filename)) {
+    const metaEl = document.getElementById('reader-meta');
+    if (metaEl) {
+      const dlBtn = document.createElement('button');
+      dlBtn.className   = 'reader-dl-btn';
+      dlBtn.textContent = '↓ Download';
+      dlBtn.title       = `Download ${filename}`;
+      dlBtn.addEventListener('click', () => {
+        const blob = new Blob([rawText], { type: 'text/plain' });
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a');
+        a.href = url; a.download = filename; a.click();
+        URL.revokeObjectURL(url);
+      });
+      metaEl.prepend(dlBtn);
+    }
   }
 
   // For .md files, render as markdown
