@@ -1137,12 +1137,13 @@ function renderGridHtml(files, from) {
 function fileCardHtml(f, from) {
   const ext = fileExt(f.name);
   const isMd = ext === 'md';
-  const linkUrl  = isMd
+  const isHtmlCard = ext === 'html';
+  const linkUrl  = (isMd || isHtmlCard)
     ? `/read?path=${encodeURIComponent(f.path)}&from=${encodeURIComponent(from || '/')}`
-    : GH_BLOB + f.path;           // click → GitHub blob view or reader
+    : GH_BLOB + f.path;
   const thumbUrl = '/api/raw?path=' + encodeURIComponent(f.path); // proxied for img src
   const isImg  = IMG_EXTS.has(ext);
-  const isHtml = ext === 'html';
+  const isHtml = isHtmlCard;
   const sf = sfNumber(f.name);
 
   let media = '';
