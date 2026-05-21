@@ -993,18 +993,31 @@ const IMG_EXTS = new Set(['png','jpg','jpeg','gif','webp']);
 
 const ALL_KB_PATHS = [
   'kb/00-foundations', 'kb/00-foundations/vault', 'kb/00-foundations/dev-briefs',
-  'kb/00-foundations/agent-portraits', 'kb/00-foundations/agents',
-  'kb/01-business/iai', 'kb/01-business/ics', 'kb/01-business/tmm',
+  'kb/00-foundations/Session Intel', 'kb/00-foundations/session-intel',
+  'kb/00-foundations/Session Handovers', 'kb/00-foundations/migration-status',
+  'kb/00-foundations/agents', 'kb/00-foundations/skills',
+  'kb/01-business/iai', 'kb/01-business/iai/Product', 'kb/01-business/iai/design',
+  'kb/01-business/ics', 'kb/01-business/tmm', 'kb/01-business/tmm/Hedweld',
   'kb/01-business/hma', 'kb/01-business/hif',
   'kb/01-business/Reid', 'kb/01-business/Morgan', 'kb/01-business/Harlow',
   'kb/01-business/Lumen', 'kb/01-business/Steel', 'kb/01-business/Casey',
-  'kb/01-business/Wilder', 'kb/01-business/Dev', 'kb/01-business/Content',
-  'kb/01-business/01_Wren_IO', 'kb/01-business/Briefs', 'kb/01-business/Branding',
-  'kb/01-business/Strategy', 'kb/01-business/Campaigns', 'kb/01-business/Marketing',
-  'kb/01-business/Commercial Intelligence', 'kb/01-business/Agent Prompt Docs',
-  'kb/01-business/Products and Services', 'kb/01-business/Status Snapshots',
-  'kb/01-business/Protocols', 'kb/01-business/Design', 'kb/01-business/Infrastructure',
-  'kb/01-business/Client Proposals',
+  'kb/01-business/Wilder', 'kb/01-business/Dev', 'kb/01-business/Dev/Wireframes',
+  'kb/01-business/Content', 'kb/01-business/Content/Insights',
+  'kb/01-business/Content/image prompts', 'kb/01-business/Content/website',
+  'kb/01-business/01_Wren_IO', 'kb/01-business/01_Wren_IO/Wren - Insights Publishing',
+  'kb/01-business/Briefs', 'kb/01-business/Branding',
+  'kb/01-business/Strategy', 'kb/01-business/Strategy/Discussion Notes',
+  'kb/01-business/Campaigns', 'kb/01-business/Campaigns/ClearGround',
+  'kb/01-business/Campaigns/Collapse the Gap', 'kb/01-business/Campaigns/Dashboards',
+  'kb/01-business/Marketing', 'kb/01-business/Commercial Intelligence',
+  'kb/01-business/Agent Prompt Docs', 'kb/01-business/Industrial Industrial AI Index',
+  'kb/01-business/Products and Services', 'kb/01-business/Products and Services/Grid',
+  'kb/01-business/Products and Services/Hunter AI Index',
+  'kb/01-business/Products and Services/MarnieIO',
+  'kb/01-business/Products and Services/Project Compliance',
+  'kb/01-business/Status Snapshots', 'kb/01-business/Protocols',
+  'kb/01-business/Design', 'kb/01-business/Infrastructure',
+  'kb/01-business/Client Proposals', 'kb/01-business/Client Proposals/TMM',
   'kb/02-workshop', 'kb/02-workshop/Mirror', 'kb/02-workshop/Scout',
   'kb/02-workshop/Sage', 'kb/02-workshop/Rue',
   'kb/03-family', 'kb/03-family/meal-plans',
@@ -1013,6 +1026,21 @@ const ALL_KB_PATHS = [
   'kb/04-resource/Flint', 'kb/04-resource/Rook',
   'kb/05-ikigai', 'kb/05-ikigai/pursuits',
   'kb/05-ikigai/platform-intelligence', 'kb/05-ikigai/gap-register',
+  'kb/05-ikigai/agent-briefs', 'kb/05-ikigai/claude-power-user',
+  'kb/02-workshop', 'kb/02-workshop/Mirror', 'kb/02-workshop/Mirror/Sessions',
+  'kb/02-workshop/Scout', 'kb/02-workshop/Scout/Weekly Notes',
+  'kb/02-workshop/Sage', 'kb/02-workshop/Rue', 'kb/02-workshop/Rue/Briefs',
+  'kb/02-workshop/Sable', 'kb/02-workshop/Content', 'kb/02-workshop/Field Notes',
+  'kb/02-workshop/Shopping the Archive', 'kb/02-workshop/Agent Prompt Docs',
+  'kb/02-workshop/session-intelligence',
+  'kb/03-family', 'kb/03-family/meal-plans', 'kb/03-family/Neve',
+  'kb/03-family/Vida', 'kb/03-family/Menu', 'kb/03-family/Health Exports',
+  'kb/03-family/Health Exports/Marnie.IO', 'kb/03-family/Agent Prompt Docs',
+  'kb/04-resource', 'kb/04-resource/Dev', 'kb/04-resource/Clio',
+  'kb/04-resource/Maren', 'kb/04-resource/Vex', 'kb/04-resource/Piper',
+  'kb/04-resource/Flint', 'kb/04-resource/Rook', 'kb/04-resource/Cora',
+  'kb/04-resource/Agent Prompt Docs', 'kb/04-resource/04_Piper_IO',
+  'kb/04-resource/04_Piper_IO/Piper - DI Generation',
 ];
 
 // ── Client-side cache ─────────────────────────────────────────────────────────
@@ -1218,12 +1246,21 @@ const STATUS_LABELS = { live: 'Live', active: 'Active', planned: 'Planned' };
 async function loadFoundations() {
   const body = document.getElementById('body-foundations');
   try {
-    const [rootFiles, vault, devBriefs, roster] = await Promise.all([
+    const [rootFiles, vault, devBriefs, sessionIntel, sessionIntel2,
+           sessionHandovers, migrationStatus, agents, skills, roster] = await Promise.all([
       fetchKB('kb/00-foundations'),
       fetchKB('kb/00-foundations/vault'),
       fetchKB('kb/00-foundations/dev-briefs'),
+      fetchKB('kb/00-foundations/Session Intel'),
+      fetchKB('kb/00-foundations/session-intel'),
+      fetchKB('kb/00-foundations/Session Handovers'),
+      fetchKB('kb/00-foundations/migration-status'),
+      fetchKB('kb/00-foundations/agents'),
+      fetchKB('kb/00-foundations/skills'),
       fetch('/api/roster').then(r => r.ok ? r.json() : []),
     ]);
+    const allSessionIntel = [...sessionIntel, ...sessionIntel2]
+      .sort((a, b) => b.name.localeCompare(a.name));
 
     let html = '';
 
@@ -1260,10 +1297,45 @@ async function loadFoundations() {
       html += '</div>';
     }
 
+    // Session Intel
+    if (allSessionIntel.length) {
+      html += '<div class="subsection"><div class="subsection-label">Session Intel</div>';
+      html += renderGridHtml(allSessionIntel, '/#sec-foundations');
+      html += '</div>';
+    }
+
+    // Session Handovers
+    if (sessionHandovers.length) {
+      html += '<div class="subsection"><div class="subsection-label">Session Handovers</div>';
+      html += renderGridHtml(sessionHandovers, '/#sec-foundations');
+      html += '</div>';
+    }
+
     // Dev briefs
     if (devBriefs.length) {
       html += '<div class="subsection"><div class="subsection-label">Dev Briefs</div>';
       html += renderGridHtml(devBriefs, '/#sec-foundations');
+      html += '</div>';
+    }
+
+    // Agent prompt docs
+    if (agents.length) {
+      html += '<div class="subsection"><div class="subsection-label">Agent Prompt Docs</div>';
+      html += renderGridHtml(agents, '/#sec-foundations');
+      html += '</div>';
+    }
+
+    // Skills
+    if (skills.length) {
+      html += '<div class="subsection"><div class="subsection-label">Skills</div>';
+      html += renderGridHtml(skills, '/#sec-foundations');
+      html += '</div>';
+    }
+
+    // Migration status
+    if (migrationStatus.length) {
+      html += '<div class="subsection"><div class="subsection-label">Migration Status</div>';
+      html += renderGridHtml(migrationStatus, '/#sec-foundations');
       html += '</div>';
     }
 
@@ -1298,6 +1370,16 @@ async function loadBusiness() {
     'Briefs','Branding','Strategy','Campaigns','Marketing',
     'Commercial Intelligence','Agent Prompt Docs','Products and Services',
     'Status Snapshots','Protocols','Design','Infrastructure','Client Proposals',
+    'Industrial Industrial AI Index',
+    // Subdirectories
+    'Content/Insights','Content/image prompts','Content/website',
+    'Campaigns/ClearGround','Campaigns/Collapse the Gap','Campaigns/Dashboards',
+    'Products and Services/Grid','Products and Services/Hunter AI Index',
+    'Products and Services/MarnieIO','Products and Services/Project Compliance',
+    'Strategy/Discussion Notes','Client Proposals/TMM',
+    '01_Wren_IO/Wren - Insights Publishing',
+    'iai/Product','iai/design','tmm/Hedweld',
+    'Dev/Wireframes',
   ];
   try {
     const [entResults, agentResults] = await Promise.all([
@@ -1362,7 +1444,11 @@ async function loadBusiness() {
 // ── Workshop ──────────────────────────────────────────────────────────────────
 async function loadWorkshop() {
   const body = document.getElementById('body-workshop');
-  const agentDirs = ['Mirror','Scout','Sage','Rue'];
+  const agentDirs = [
+    'Mirror','Scout','Sage','Rue','Sable','Content','Field Notes',
+    'Shopping the Archive','Agent Prompt Docs','session-intelligence',
+    'Mirror/Sessions','Scout/Weekly Notes','Rue/Briefs',
+  ];
   try {
     const [rootFiles, ...agentResults] = await Promise.all([
       fetchKB('kb/02-workshop'),
@@ -1409,11 +1495,17 @@ async function loadWorkshop() {
 async function loadFamily() {
   const body = document.getElementById('body-family');
   try {
-    const [main, meals] = await Promise.all([
+    const results = await Promise.all([
       fetchKB('kb/03-family'),
       fetchKB('kb/03-family/meal-plans'),
+      fetchKB('kb/03-family/Neve'),
+      fetchKB('kb/03-family/Vida'),
+      fetchKB('kb/03-family/Menu'),
+      fetchKB('kb/03-family/Health Exports'),
+      fetchKB('kb/03-family/Health Exports/Marnie.IO'),
+      fetchKB('kb/03-family/Agent Prompt Docs'),
     ]);
-    const all = [...main, ...meals];
+    const all = results.flat();
     if (!all.length) { body.innerHTML = '<div class="section-empty">No files found</div>'; return; }
     body.innerHTML = '';
     const grid = document.createElement('div');
@@ -1430,11 +1522,13 @@ async function loadFamily() {
 async function loadIkigai() {
   const body = document.getElementById('body-ikigai');
   try {
-    const [root, pursuits, intel, gaps] = await Promise.all([
+    const [root, pursuits, intel, gaps, agentBriefs, powerUser] = await Promise.all([
       fetchKB('kb/05-ikigai'),
       fetchKB('kb/05-ikigai/pursuits'),
       fetchKB('kb/05-ikigai/platform-intelligence'),
       fetchKB('kb/05-ikigai/gap-register'),
+      fetchKB('kb/05-ikigai/agent-briefs'),
+      fetchKB('kb/05-ikigai/claude-power-user'),
     ]);
 
     const topIntel = [...intel].sort((a,b) => b.name.localeCompare(a.name)).slice(0, 3);
@@ -1479,6 +1573,20 @@ async function loadIkigai() {
     html += gaps.length ? renderGridHtml(gaps, '/#sec-ikigai') : '<div class="section-empty">No gap register entries found</div>';
     html += '</div>';
 
+    // Agent Briefs
+    if (agentBriefs.length) {
+      html += '<div class="ik-subsec"><div class="ik-subsec-title">Agent Briefs</div>';
+      html += renderGridHtml(agentBriefs, '/#sec-ikigai');
+      html += '</div>';
+    }
+
+    // Claude Power User
+    if (powerUser.length) {
+      html += '<div class="ik-subsec"><div class="ik-subsec-title">Claude Power User</div>';
+      html += renderGridHtml(powerUser, '/#sec-ikigai');
+      html += '</div>';
+    }
+
     html += '</div>';
     body.innerHTML = html;
   } catch {
@@ -1489,7 +1597,7 @@ async function loadIkigai() {
 // ── Resource ──────────────────────────────────────────────────────────────────
 async function loadResource() {
   const body = document.getElementById('body-resource');
-  const agentDirs = ['Dev','Clio','Maren','Vex','Piper','Flint','Rook'];
+  const agentDirs = ['Dev','Clio','Maren','Vex','Piper','Flint','Rook','Cora','Agent Prompt Docs','04_Piper_IO','04_Piper_IO/Piper - DI Generation'];
   try {
     const [rootFiles, ...agentResults] = await Promise.all([
       fetchKB('kb/04-resource'),
