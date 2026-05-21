@@ -1138,9 +1138,11 @@ function fileCardHtml(f, from) {
   const ext = fileExt(f.name);
   const isMd = ext === 'md';
   const isHtmlCard = ext === 'html';
-  const linkUrl  = (isMd || isHtmlCard)
+  const linkUrl  = isMd
     ? `/read?path=${encodeURIComponent(f.path)}&from=${encodeURIComponent(from || '/')}`
-    : GH_BLOB + f.path;
+    : isHtmlCard
+      ? `/view?path=${encodeURIComponent(f.path)}`
+      : GH_BLOB + f.path;
   const thumbUrl = '/api/raw?path=' + encodeURIComponent(f.path); // proxied for img src
   const isImg  = IMG_EXTS.has(ext);
   const isHtml = isHtmlCard;

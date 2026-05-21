@@ -1198,6 +1198,12 @@ async function main() {
     return;
   }
 
+  // HTML files render full-page via /view — redirect if landed here directly
+  if (filename.toLowerCase().endsWith('.html')) {
+    window.location.replace('/view?path=' + encodeURIComponent(filePath));
+    return;
+  }
+
   const displayTitle = cleanTitle(filename);
   setPageTitle(displayTitle);
 

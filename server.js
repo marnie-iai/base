@@ -590,6 +590,30 @@ app.get('/api/raw', async (req, res) => {
   }
 });
 
+// ── HTML file viewer — /view?path=... ────────────────────────────────────────
+// Serves .html KB files directly as text/html — no Base chrome, full-page display
+app.get('/view', async (req, res) => {
+  const filePath = (req.query.path || '').trim();
+  if (!filePath || !filePath.toLowerCase().endsWith('.html')) {
+    return res.status(400).send('Only .html files are supported via /view');
+  }
+  try {
+    const encoded = filePath.split('/').map(s => encodeURIComponent(s)).join('/');
+    const url     = `https://raw.githubusercontent.com/${KB_REPO}/main/${encoded}`;
+    const headers = { 'User-Agent': 'IAI-Base/3.0' };
+    if (GITHUB_PAT) headers['Authorization'] = `Bearer ${GITHUB_PAT}`;
+    const r = await fetch(url, { headers });
+    if (!r.ok) return res.status(r.status).send('File not found');
+    const html = await r.text();
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Cache-Control', 'public, max-age=300');
+    return res.send(html);
+  } catch (err) {
+    console.error('[GET /view]', err.message);
+    return res.status(500).send('Could not load file');
+  }
+});
+
 // Agent roster
 app.get('/api/roster', async (_req, res) => {
   try {
