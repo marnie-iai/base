@@ -295,6 +295,36 @@ body {
   margin-top: 1px;
 }
 
+/* ── Pursuit membership ──────────────────────────────────────────────────── */
+.pursuit-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  transition: border-color 0.12s;
+}
+.pursuit-chip:hover { border-color: var(--denim); }
+.pursuit-dot-sm { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.pursuit-chip-info { flex: 1; min-width: 0; }
+.pursuit-chip-name {
+  font-size: 12px; font-weight: 600; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.pursuit-chip-role {
+  font-family: var(--font-mono); font-size: 10px; color: var(--muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  margin-top: 1px;
+}
+.pursuit-chip-code {
+  font-family: var(--font-mono); font-size: 9px; font-weight: 500;
+  padding: 2px 7px; border-radius: 4px;
+  background: rgba(74,101,132,0.1); color: var(--denim);
+  letter-spacing: 0.06em; text-transform: uppercase; flex-shrink: 0;
+}
+
 /* ── Empty / loading ─────────────────────────────────────────────────────── */
 .cs-loading, .cs-error {
   padding: 60px 0; text-align: center;
@@ -385,7 +415,7 @@ function sectionHtml(title, count, bodyHtml) {
   </div>`;
 }
 
-function renderConstellation(agent) {
+function renderConstellation(agent, agentPursuits = []) {
   // Update page title
   document.title = `${agent.name} — Integrated AI`;
 
@@ -435,6 +465,22 @@ function renderConstellation(agent) {
     );
   }
 
+  // Pursuits section
+  let pursuitsHtml = '';
+  if (agentPursuits && agentPursuits.length) {
+    const chips = agentPursuits.map(p =>
+      `<a class="pursuit-chip" href="/pursuits/${p.code}">
+        <div class="pursuit-dot-sm" style="background:${p.color}"></div>
+        <div class="pursuit-chip-info">
+          <div class="pursuit-chip-name">${p.displayName}</div>
+          <div class="pursuit-chip-role">${p.role}</div>
+        </div>
+        <span class="pursuit-chip-code">${p.code}</span>
+      </a>`
+    ).join('');
+    pursuitsHtml = sectionHtml('Pursuits', agentPursuits.length, `<div class="related-grid">${chips}</div>`);
+  }
+
   // Related agents section
   let relatedHtml = '';
   if (agent.related && agent.related.length) {
@@ -470,6 +516,7 @@ function renderConstellation(agent) {
     <div class="constellation-body">
       ${identityHtml}
       ${briefsHtml}
+      ${pursuitsHtml}
       ${relatedHtml}
     </div>`;
 }
@@ -483,8 +530,12 @@ function renderConstellation(agent) {
   }
 
   try {
-    const r = await fetch('/api/agent/' + slug);
-    if (r.status === 404) {
+    const [agentRes, pursuitsRes] = await Promise.all([
+      fetch('/api/agent/' + slug),
+      fetch('/api/pursuits').catch(() => null),
+    ]);
+
+    if (agentRes.status === 404) {
       document.getElementById('constellation').innerHTML =
         `<div class="cs-error" style="padding:80px 24px">
           Agent not found.<br>
@@ -492,9 +543,34 @@ function renderConstellation(agent) {
         </div>`;
       return;
     }
-    if (!r.ok) throw new Error('API error');
-    const data = await r.json();
-    renderConstellation(data);
+    if (!agentRes.ok) throw new Error('API error');
+    const data = await agentRes.json();
+
+    let agentPursuits = [];
+    if (pursuitsRes && pursuitsRes.ok) {
+      try {
+        const pd = await pursuitsRes.json();
+        const allCodes = (pd.pursuits || []).map(p => p.id);
+        const details = await Promise.all(
+          allCodes.map(code =>
+            fetch(`/api/pursuits/${code}`)
+              .then(r => r.ok ? r.json() : null)
+              .catch(() => null)
+          )
+        );
+        agentPursuits = details
+          .filter(d => d && d.members && d.members.some(m => m.agentId === slug))
+          .map(d => ({
+            code:        d.id,
+            displayName: d.displayName,
+            color:       d.color || '#4A6584',
+            role:        (d.members.find(m => m.agentId === slug) || {}).pursuitRole || '',
+            status:      d.status,
+          }));
+      } catch { /* pursuits load failed silently */ }
+    }
+
+    renderConstellation(data, agentPursuits);
   } catch {
     document.getElementById('constellation').innerHTML =
       '<div class="cs-error">Failed to load agent data — try refreshing</div>';

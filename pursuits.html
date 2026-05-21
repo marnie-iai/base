@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pursuits — Integrated AI</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='112' fill='%230E1117'/><circle cx='256' cy='256' r='96' fill='%23D66A35'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@300;400;500&family=Zilla+Slab:wght@700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ground:        #F5F2EC;
+  --warm:          #F6F2EA;
+  --surface:       #FFFFFF;
+  --text:          #1C242C;
+  --muted:         #A89E8E;
+  --muted-soft:    rgba(28,36,44,0.55);
+  --border:        rgba(28,36,44,0.08);
+  --border-strong: rgba(28,36,44,0.16);
+  --denim:         #4A6584;
+  --cotton:        #E8C84E;
+  --font-body:     'Plus Jakarta Sans', sans-serif;
+  --font-mono:     'IBM Plex Mono', monospace;
+  --font-display:  'Zilla Slab', serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+a { color: inherit; text-decoration: none; }
+body {
+  font-family: var(--font-body);
+  font-weight: 300;
+  color: var(--text);
+  background: var(--ground);
+  background-image:
+    repeating-linear-gradient(rgba(28,36,44,0.04) 0px, rgba(28,36,44,0.04) 1px, transparent 1px, transparent 80px),
+    repeating-linear-gradient(90deg, rgba(28,36,44,0.04) 0px, rgba(28,36,44,0.04) 1px, transparent 1px, transparent 80px);
+  min-height: 100vh;
+}
+
+.back-nav {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+}
+.back-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted-soft);
+  transition: color 0.12s;
+}
+.back-link:hover { color: var(--denim); }
+.back-arrow { font-size: 14px; line-height: 1; }
+
+.page-header {
+  background: var(--warm);
+  border-bottom: 2px solid var(--denim);
+  padding: 32px 24px 28px;
+}
+.page-header-inner { max-width: 960px; margin: 0 auto; }
+.page-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted-soft);
+  margin-bottom: 10px;
+}
+.page-title {
+  font-family: var(--font-display);
+  font-size: clamp(28px, 5vw, 40px);
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  margin-bottom: 6px;
+}
+.page-subtitle {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--muted-soft);
+}
+
+.page-body {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 32px 24px 80px;
+}
+
+.filter-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+.filter-btn {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--muted-soft);
+  cursor: pointer;
+  transition: all 0.12s;
+}
+.filter-btn.active, .filter-btn:hover {
+  background: var(--denim);
+  color: #fff;
+  border-color: var(--denim);
+}
+
+.pursuits-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+.pursuit-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--denim);
+  border-radius: 10px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: box-shadow 0.14s, transform 0.1s;
+}
+.pursuit-card:hover {
+  box-shadow: 0 4px 16px rgba(28,36,44,0.08);
+  transform: translateY(-2px);
+}
+.pursuit-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.pursuit-color-dot {
+  width: 11px; height: 11px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+.pursuit-code-wrap { flex: 1; min-width: 0; }
+.pursuit-code {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted-soft);
+  margin-bottom: 3px;
+}
+.pursuit-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.3;
+}
+.pursuit-status {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 20px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+.pursuit-status.active  { background: rgba(74,101,132,0.12); color: var(--denim); }
+.pursuit-status.dormant { background: rgba(28,36,44,0.06);  color: var(--muted-soft); }
+.pursuit-description {
+  font-size: 12px;
+  color: var(--muted-soft);
+  line-height: 1.5;
+  flex: 1;
+}
+.pursuit-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  gap: 8px;
+}
+.pursuit-meta { font-family: var(--font-mono); font-size: 10px; color: var(--muted); }
+.pursuit-board-link {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--denim);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: color 0.12s;
+}
+.pursuit-board-link:hover { color: var(--text); }
+
+.page-loading, .page-error {
+  padding: 80px 0;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--muted-soft);
+  grid-column: 1 / -1;
+}
+.page-error { color: rgba(180,60,60,0.7); }
+
+@media (max-width: 600px) {
+  .page-header { padding: 24px 16px 20px; }
+  .page-body { padding: 24px 16px 60px; }
+  .back-nav { padding: 0 16px; }
+  .pursuits-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<nav class="back-nav">
+  <a class="back-link" href="/"><span class="back-arrow">←</span>Base</a>
+</nav>
+
+<header class="page-header">
+  <div class="page-header-inner">
+    <div class="page-eyebrow">Integrated AI</div>
+    <div class="page-title">Pursuits</div>
+    <div class="page-subtitle" id="subtitle">Loading…</div>
+  </div>
+</header>
+
+<main class="page-body">
+  <div class="filter-row" id="filters" style="display:none">
+    <button class="filter-btn active" data-filter="all">All</button>
+    <button class="filter-btn" data-filter="active">Active</button>
+    <button class="filter-btn" data-filter="dormant">Dormant</button>
+  </div>
+  <div id="pursuits-grid" class="pursuits-grid">
+    <div class="page-loading">Loading pursuits…</div>
+  </div>
+</main>
+
+<script>
+'use strict';
+
+let allPursuits = [];
+let activeFilter = 'all';
+
+function renderCard(p) {
+  const status = (p.status || 'active').toLowerCase();
+  const clientStr = p.client
+    ? `<div class="pursuit-meta">${p.client}</div>`
+    : '<div></div>';
+  const boardHtml = p.boardUrl
+    ? `<a class="pursuit-board-link" href="${p.boardUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Board ↗</a>`
+    : '';
+  return `<a class="pursuit-card" href="/pursuits/${p.id}" style="border-top-color:${p.color || '#4A6584'}">
+    <div class="pursuit-card-top">
+      <div style="display:flex;align-items:flex-start;gap:10px;flex:1;min-width:0">
+        <div class="pursuit-color-dot" style="background:${p.color || '#4A6584'}"></div>
+        <div class="pursuit-code-wrap">
+          <div class="pursuit-code">${p.id}</div>
+          <div class="pursuit-name">${p.displayName || p.name}</div>
+        </div>
+      </div>
+      <span class="pursuit-status ${status}">${status}</span>
+    </div>
+    ${p.description ? `<div class="pursuit-description">${p.description}</div>` : ''}
+    <div class="pursuit-card-footer">
+      ${clientStr}
+      ${boardHtml}
+    </div>
+  </a>`;
+}
+
+function applyFilter() {
+  const grid = document.getElementById('pursuits-grid');
+  const filtered = activeFilter === 'all'
+    ? allPursuits
+    : allPursuits.filter(p => (p.status || 'active').toLowerCase() === activeFilter);
+  if (!filtered.length) {
+    grid.innerHTML = '<div class="page-loading">No pursuits found</div>';
+    return;
+  }
+  grid.innerHTML = filtered.map(renderCard).join('');
+}
+
+document.getElementById('filters').addEventListener('click', e => {
+  const btn = e.target.closest('.filter-btn');
+  if (!btn) return;
+  activeFilter = btn.dataset.filter;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  applyFilter();
+});
+
+(async function () {
+  try {
+    const res = await fetch('/api/pursuits');
+    if (!res.ok) throw new Error('API error');
+    const data = await res.json();
+    allPursuits = data.pursuits || [];
+    document.getElementById('subtitle').textContent =
+      `${allPursuits.length} pursuit${allPursuits.length !== 1 ? 's' : ''} — IAI operating context`;
+    document.getElementById('filters').style.display = 'flex';
+    applyFilter();
+  } catch {
+    document.getElementById('pursuits-grid').innerHTML =
+      '<div class="page-error">Failed to load pursuits — try refreshing</div>';
+    document.getElementById('subtitle').textContent = '';
+  }
+})();
+</script>
+</body>
+</html>

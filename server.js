@@ -14,6 +14,7 @@ const KB_REPO = 'marnie-iai/kb';
 const PORTRAITS_REPO = 'marnie-iai/agent-portraits';
 const PORTRAITS_RAW = `https://raw.githubusercontent.com/${PORTRAITS_REPO}/main/portraits/`;
 const ROSTER_FILE = 'kb/00-foundations/00_Agent_Roster_v2_2_Apr2026.md';
+const GRID_API    = 'https://api.integratedai.com.au';
 
 // ── Turso / Agent Context config ──────────────────────────────────────────────
 const TURSO_URL        = process.env.TURSO_URL;
@@ -741,6 +742,41 @@ app.get('/api/filemeta', async (req, res) => {
   }
 });
 
+// ── Pursuits registry — proxy to Grid API ─────────────────────────────────────
+app.get('/api/pursuits', async (_req, res) => {
+  const key = 'pursuits:list';
+  const cached = cacheGet(key);
+  if (cached) return res.json(cached);
+  try {
+    const r = await fetch(`${GRID_API}/pursuits`, { headers: { 'User-Agent': 'IAI-Base/3.0' } });
+    if (!r.ok) return res.status(r.status).json({ error: 'Grid API error' });
+    const data = await r.json();
+    cacheSet(key, data, TTL_5M);
+    return res.json(data);
+  } catch (err) {
+    console.error('[GET /api/pursuits]', err.message);
+    return res.status(500).json({ error: 'internal' });
+  }
+});
+
+app.get('/api/pursuits/:code', async (req, res) => {
+  const code = req.params.code.toUpperCase();
+  const key  = `pursuits:${code}`;
+  const cached = cacheGet(key);
+  if (cached) return res.json(cached);
+  try {
+    const r = await fetch(`${GRID_API}/pursuits/${code}`, { headers: { 'User-Agent': 'IAI-Base/3.0' } });
+    if (r.status === 404) return res.status(404).json({ error: 'Pursuit not found' });
+    if (!r.ok) return res.status(r.status).json({ error: 'Grid API error' });
+    const data = await r.json();
+    cacheSet(key, data, TTL_5M);
+    return res.json(data);
+  } catch (err) {
+    console.error(`[GET /api/pursuits/${req.params.code}]`, err.message);
+    return res.status(500).json({ error: 'internal' });
+  }
+});
+
 // ── Conversational KB search — /api/ask ───────────────────────────────────────
 // Accepts: GET /api/ask?q=<new question>&ctx=<conversation history (optional)>
 // q  — used for KB file routing (keyword match on THIS question only)
@@ -861,9 +897,24 @@ app.get('/dashboards/iai-website', requireDashboardAuth, (_req, res) => {
 });
 app.use('/dashboards', requireDashboardAuth, express.static(path.join(__dirname, 'dashboards')));
 
-app.get('/read',        (_req, res) => res.sendFile(path.join(__dirname, 'read.html')));
-app.get('/agent/:slug', (_req, res) => res.sendFile(path.join(__dirname, 'agent.html')));
-app.get('*',            (_req, res) => res.sendFile(path.join(__dirname, 'index.html')));
+// In-app document reader
+app.get('/read', (_req, res) => {
+  res.sendFile(path.join(__dirname, 'read.html'));
+});
+
+// Agent constellation page
+app.get('/agent/:slug', (_req, res) => {
+  res.sendFile(path.join(__dirname, 'agent.html'));
+});
+
+// Pursuits index and per-pursuit detail
+app.get('/pursuits',       (_req, res) => res.sendFile(path.join(__dirname, 'pursuits.html')));
+app.get('/pursuits/:code', (_req, res) => res.sendFile(path.join(__dirname, 'pursuit-detail.html')));
+
+// Main intranet — catch-all
+app.get('*', (_req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 app.listen(PORT, async () => {
   console.log(`Base listening on :${PORT}`);

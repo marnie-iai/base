@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pursuit — Integrated AI</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='112' fill='%230E1117'/><circle cx='256' cy='256' r='96' fill='%23D66A35'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@300;400;500&family=Zilla+Slab:wght@700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+
+<svg style="display:none" aria-hidden="true">
+  <defs>
+    <filter id="duotone-denim-cotton">
+      <feColorMatrix type="saturate" values="0"/>
+      <feComponentTransfer>
+        <feFuncR type="table" tableValues="0.290 0.906"/>
+        <feFuncG type="table" tableValues="0.392 0.784"/>
+        <feFuncB type="table" tableValues="0.518 0.306"/>
+      </feComponentTransfer>
+    </filter>
+  </defs>
+</svg>
+
+<style>
+:root {
+  --ground:        #F5F2EC;
+  --warm:          #F6F2EA;
+  --surface:       #FFFFFF;
+  --text:          #1C242C;
+  --muted:         #A89E8E;
+  --muted-soft:    rgba(28,36,44,0.55);
+  --border:        rgba(28,36,44,0.08);
+  --border-strong: rgba(28,36,44,0.16);
+  --denim:         #4A6584;
+  --cotton:        #E8C84E;
+  --accent:        #4A6584;
+  --font-body:     'Plus Jakarta Sans', sans-serif;
+  --font-mono:     'IBM Plex Mono', monospace;
+  --font-display:  'Zilla Slab', serif;
+  --font-ikigai:   'Playfair Display', serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+a { color: inherit; text-decoration: none; }
+body {
+  font-family: var(--font-body);
+  font-weight: 300;
+  color: var(--text);
+  background: var(--ground);
+  background-image:
+    repeating-linear-gradient(rgba(28,36,44,0.04) 0px, rgba(28,36,44,0.04) 1px, transparent 1px, transparent 80px),
+    repeating-linear-gradient(90deg, rgba(28,36,44,0.04) 0px, rgba(28,36,44,0.04) 1px, transparent 1px, transparent 80px);
+  min-height: 100vh;
+}
+
+.back-nav {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+}
+.back-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted-soft);
+  transition: color 0.12s;
+}
+.back-link:hover { color: var(--denim); }
+.back-arrow { font-size: 14px; line-height: 1; }
+
+.pursuit-header {
+  background: var(--warm);
+  border-bottom: 3px solid var(--accent);
+}
+.header-inner {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 32px 24px 28px;
+}
+.header-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 0;
+}
+.header-left { flex: 1; min-width: 0; }
+.pursuit-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.eyebrow-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+.eyebrow-code {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted-soft);
+}
+.pursuit-status-badge {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 20px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.pursuit-status-badge.active  { background: rgba(74,101,132,0.12); color: var(--denim); }
+.pursuit-status-badge.dormant { background: rgba(28,36,44,0.06);  color: var(--muted-soft); }
+.pursuit-title {
+  font-family: var(--font-ikigai);
+  font-size: clamp(26px, 4vw, 38px);
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  margin-bottom: 6px;
+}
+.pursuit-client {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--muted-soft);
+  letter-spacing: 0.02em;
+  margin-bottom: 10px;
+}
+.pursuit-description {
+  font-size: 13px;
+  color: var(--muted-soft);
+  line-height: 1.6;
+  max-width: 600px;
+  margin-top: 10px;
+}
+.board-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: var(--accent);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-radius: 6px;
+  transition: opacity 0.12s;
+  white-space: nowrap;
+  flex-shrink: 0;
+  align-self: flex-start;
+}
+.board-btn:hover { opacity: 0.85; }
+
+.meta-strip {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  padding-top: 16px;
+  margin-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.meta-item { display: flex; flex-direction: column; gap: 2px; }
+.meta-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.meta-value {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text);
+}
+
+.pursuit-body {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 36px 24px 80px;
+}
+
+.cs-section { margin-bottom: 40px; }
+.cs-section-title {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.02em;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--cotton);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.cs-section-count {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--muted-soft);
+  font-weight: 400;
+}
+
+.constellation-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+.member-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  transition: box-shadow 0.14s, transform 0.1s;
+}
+.member-card:hover {
+  box-shadow: 0 4px 14px rgba(28,36,44,0.08);
+  transform: translateY(-2px);
+}
+.member-card a { display: block; }
+.member-portrait {
+  width: 100%;
+  aspect-ratio: 1;
+  background: var(--denim);
+  overflow: hidden;
+}
+.member-portrait img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  filter: url(#duotone-denim-cotton);
+  display: block;
+}
+.member-initials {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--cotton);
+  background: var(--denim);
+}
+.member-info { padding: 12px; }
+.member-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 2px;
+  text-transform: capitalize;
+}
+.member-role {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--muted-soft);
+  line-height: 1.4;
+}
+
+.cs-loading, .cs-error {
+  padding: 60px 0;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--muted-soft);
+}
+.cs-error { color: rgba(180,60,60,0.7); }
+.cs-empty {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+  font-style: italic;
+}
+
+@media (max-width: 600px) {
+  .back-nav { padding: 0 16px; }
+  .header-inner { padding: 24px 16px 20px; }
+  .header-top { flex-direction: column; gap: 16px; }
+  .pursuit-body { padding: 24px 16px 60px; }
+  .constellation-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+}
+</style>
+</head>
+<body>
+
+<nav class="back-nav">
+  <a class="back-link" href="/pursuits"><span class="back-arrow">←</span>Pursuits</a>
+</nav>
+
+<div id="pursuit-page">
+  <div class="cs-loading">Loading…</div>
+</div>
+
+<script>
+'use strict';
+
+const CODE = window.location.pathname
+  .replace(/^\/pursuits\//, '').split('/')[0].toUpperCase();
+
+function formatDate(iso) {
+  if (!iso) return null;
+  try {
+    return new Date(iso).toLocaleDateString('en-AU', {
+      day: 'numeric', month: 'short', year: 'numeric'
+    });
+  } catch { return iso; }
+}
+
+function renderPage(p) {
+  document.title = `${p.displayName} — Integrated AI`;
+
+  const accent = p.color || '#4A6584';
+  document.documentElement.style.setProperty('--accent', accent);
+
+  const status = (p.status || 'active').toLowerCase();
+
+  const boardBtn = p.boardUrl
+    ? `<a class="board-btn" href="${p.boardUrl}" target="_blank" rel="noopener">Sprint Board ↗</a>`
+    : '';
+
+  const clientStr = p.client
+    ? `<div class="pursuit-client">${p.client}</div>` : '';
+  const descStr = p.description
+    ? `<div class="pursuit-description">${p.description}</div>` : '';
+
+  const metaItems = [];
+  if (p.startDate) metaItems.push({ label: 'Started', value: formatDate(p.startDate) });
+  if (p.endDate)   metaItems.push({ label: 'Ends',    value: formatDate(p.endDate) });
+  if (p.apiPath)   metaItems.push({ label: 'API',     value: p.apiPath });
+
+  const metaStrip = metaItems.length
+    ? `<div class="meta-strip">${metaItems.map(m =>
+        `<div class="meta-item">
+          <span class="meta-label">${m.label}</span>
+          <span class="meta-value">${m.value}</span>
+        </div>`
+      ).join('')}</div>`
+    : '';
+
+  const members = p.members || [];
+  let constellationHtml;
+  if (members.length) {
+    const cards = members.map(m => {
+      const initials = m.agentId.slice(0, 2).toUpperCase();
+      return `<div class="member-card">
+        <a href="/agent/${m.agentId}">
+          <div class="member-portrait">
+            <img
+              src="${m.portraitUrl}"
+              alt="${m.agentId}"
+              onerror="this.style.display='none';this.parentNode.innerHTML='<div class=\\'member-initials\\'>${initials}</div>'"
+            >
+          </div>
+          <div class="member-info">
+            <div class="member-name">${m.agentId}</div>
+            <div class="member-role">${m.pursuitRole}</div>
+          </div>
+        </a>
+      </div>`;
+    }).join('');
+    constellationHtml = `<div class="constellation-grid">${cards}</div>`;
+  } else {
+    constellationHtml = '<div class="cs-empty">No constellation members registered yet</div>';
+  }
+
+  document.getElementById('pursuit-page').innerHTML = `
+    <header class="pursuit-header">
+      <div class="header-inner">
+        <div class="header-top">
+          <div class="header-left">
+            <div class="pursuit-eyebrow">
+              <div class="eyebrow-dot"></div>
+              <span class="eyebrow-code">${p.id}</span>
+              <span class="pursuit-status-badge ${status}">${status}</span>
+            </div>
+            <div class="pursuit-title">${p.displayName}</div>
+            ${clientStr}
+            ${descStr}
+          </div>
+          ${boardBtn}
+        </div>
+        ${metaStrip}
+      </div>
+    </header>
+    <div class="pursuit-body">
+      <div class="cs-section">
+        <div class="cs-section-title">
+          Constellation
+          <span class="cs-section-count">${members.length}</span>
+        </div>
+        ${constellationHtml}
+      </div>
+    </div>`;
+}
+
+(async function () {
+  if (!CODE) {
+    document.getElementById('pursuit-page').innerHTML =
+      '<div class="cs-error">No pursuit code in URL</div>';
+    return;
+  }
+  try {
+    const res = await fetch('/api/pursuits/' + CODE);
+    if (res.status === 404) {
+      document.getElementById('pursuit-page').innerHTML =
+        `<div class="cs-error" style="padding:80px 24px">
+          Pursuit '${CODE}' not found.<br>
+          <a href="/pursuits" style="color:var(--denim);font-family:var(--font-mono);font-size:11px;margin-top:12px;display:inline-block">← All Pursuits</a>
+        </div>`;
+      return;
+    }
+    if (!res.ok) throw new Error('API error');
+    const data = await res.json();
+    renderPage(data);
+  } catch {
+    document.getElementById('pursuit-page').innerHTML =
+      '<div class="cs-error">Failed to load pursuit — try refreshing</div>';
+  }
+})();
+</script>
+</body>
+</html>
