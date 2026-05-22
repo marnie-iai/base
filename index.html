@@ -904,6 +904,51 @@ body {
   margin-top: 3px;
 }
 
+/* ── File search (below tiles) ────────────────────────────────────────────── */
+.file-search-wrap {
+  position: relative;
+  margin-bottom: 24px;
+}
+.file-search-bar {
+  position: relative;
+}
+.file-search-icon {
+  position: absolute; left: 14px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted); pointer-events: none;
+}
+.file-search-input {
+  width: 100%; height: 42px;
+  padding: 0 16px 0 42px;
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
+  font-family: var(--font-body); font-size: 14px; font-weight: 300;
+  color: var(--text); outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.file-search-input::placeholder { color: var(--text-muted); }
+.file-search-input:focus {
+  border-color: var(--denim);
+  box-shadow: 0 0 0 3px rgba(74,101,132,0.1);
+}
+#nav-search-dropdown {
+  position: absolute; top: calc(100% + 6px); left: 0; right: 0;
+  background: var(--surface); border: 1px solid var(--border-strong);
+  border-radius: var(--radius); box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+  z-index: 300; overflow: hidden; display: none;
+}
+#nav-search-dropdown.visible { display: block; }
+.nav-search-status {
+  padding: 10px 14px 0;
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--text-muted); letter-spacing: 0.04em; min-height: 0;
+}
+.nav-search-results {
+  max-height: 340px; overflow-y: auto;
+  padding: 6px; display: flex; flex-direction: column; gap: 2px;
+}
+
 /* ── KB section divider ───────────────────────────────────────────────────── */
 .kb-section-header {
   display: flex;
@@ -956,9 +1001,6 @@ body {
       <a class="nav-tool" href="https://grid.integratedai.com.au" target="_blank" rel="noopener">
         <div class="nav-tool-dot"></div>Grid.IO
       </a>
-      <a class="nav-tool" href="/pursuits">
-        <div class="nav-tool-dot"></div>Pursuits
-      </a>
       <a class="nav-tool" href="https://marnie-io.vercel.app" target="_blank" rel="noopener">
         <div class="nav-tool-dot"></div>Mio
       </a>
@@ -967,20 +1009,8 @@ body {
       </a>
     </nav>
 
-    <!-- Search -->
-    <div class="nav-search-wrap" id="nav-search-wrap">
-      <svg class="nav-search-icon" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/>
-      </svg>
-      <input type="text" id="kb-search" class="nav-search-input" placeholder="Search knowledge base…" autocomplete="off" spellcheck="false">
-      <div class="nav-search-dropdown" id="nav-search-dropdown">
-        <div class="nav-search-status" id="search-status"></div>
-        <div class="nav-search-results" id="search-results"></div>
-      </div>
-    </div>
-
     <!-- Date -->
-    <div class="header-date" id="header-date"></div>
+    <div class="header-date" id="header-date" style="margin-left:auto;"></div>
   </div>
 </header>
 
@@ -1064,6 +1094,22 @@ body {
       <div class="tile-sub">Brand and project assets</div>
     </a>
 
+  </div>
+
+  <!-- ── File search ───────────────────────────────────────────────────────── -->
+  <div class="file-search-wrap" id="nav-search-wrap">
+    <div class="file-search-bar">
+      <svg class="file-search-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/>
+      </svg>
+      <input type="text" id="kb-search" class="file-search-input"
+        placeholder="Search files by name — try 'reid brief' or 'week21'…"
+        autocomplete="off" spellcheck="false">
+    </div>
+    <div id="nav-search-dropdown">
+      <div class="nav-search-status" id="search-status"></div>
+      <div class="nav-search-results" id="search-results"></div>
+    </div>
   </div>
 
 </div><!-- /main-wrap -->
@@ -1899,11 +1945,12 @@ function openAndScroll(e, sectionId) {
 
 function focusSearch(e) {
   e.preventDefault();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  const wrap = document.getElementById('nav-search-wrap');
+  if (wrap) wrap.scrollIntoView({ behavior: 'smooth', block: 'center' });
   setTimeout(() => {
     const s = document.getElementById('kb-search');
-    if (s) { s.focus(); showDropdown(); }
-  }, 120);
+    if (s) s.focus();
+  }, 200);
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────

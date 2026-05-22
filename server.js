@@ -649,22 +649,42 @@ app.get('/api/kb', async (req, res) => {
   }
 });
 
-// KB code search
+// KB file search — uses Git Trees API for reliable filename + path matching
+// (GitHub code search API is unreliable on private repos and has strict rate limits)
+const KB_TREE_CACHE_KEY = 'kb_tree_v1';
+const KB_TREE_TTL = 5 * 60 * 1000; // 5 min
+
+async function getKBTree() {
+  const cached = cacheGet(KB_TREE_CACHE_KEY);
+  if (cached) return cached;
+  const data = await ghFetch(
+    `https://api.github.com/repos/${KB_REPO}/git/trees/main?recursive=1`,
+    true
+  );
+  if (!data || !Array.isArray(data.tree)) return null;
+  const tree = data.tree.filter(f => f.type === 'blob' && f.path.startsWith('kb/'));
+  cacheSet(KB_TREE_CACHE_KEY, tree, KB_TREE_TTL);
+  return tree;
+}
+
 app.get('/api/search', async (req, res) => {
-  const q = req.query.q;
-  if (!q || q.trim().length < 2) return res.json({ items: [] });
-  const key = `search:${q.trim().toLowerCase()}`;
-  const cached = cacheGet(key);
-  if (cached) return res.json(cached);
+  const q = (req.query.q || '').trim();
+  if (q.length < 2) return res.json({ items: [] });
   try {
-    const url = `https://api.github.com/search/code?q=${encodeURIComponent(q.trim())}+repo:${KB_REPO}&per_page=30`;
-    const data = await ghFetch(url, true);
-    if (!data) {
-      console.error('[GET /api/search] GitHub returned null — check PAT scopes and validity');
-      return res.json({ items: [], error: 'github_auth' });
+    const tree = await getKBTree();
+    if (!tree) {
+      console.error('[GET /api/search] KB tree unavailable — check GITHUB_PAT');
+      return res.json({ items: [] });
     }
-    cacheSet(key, data, TTL_5M);
-    return res.json(data);
+    const terms = q.toLowerCase().split(/\s+/).filter(Boolean);
+    const items = tree
+      .filter(f => {
+        const lp = f.path.toLowerCase();
+        return terms.every(t => lp.includes(t));
+      })
+      .slice(0, 30)
+      .map(f => ({ name: f.path.split('/').pop(), path: f.path }));
+    return res.json({ items });
   } catch (err) {
     console.error('[GET /api/search]', err.message);
     return res.json({ items: [] });
