@@ -3,7 +3,12 @@
 <head>
   <link rel="manifest" href="/manifest.json">
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0E1117">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Base">
+<link rel="apple-touch-icon" href="/icon-192.png">
 <title>Base — Integrated AI</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='112' fill='%230E1117'/><circle cx='256' cy='256' r='96' fill='%23D66A35'/></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1792,37 +1797,43 @@ async function loadImages() {
 let _searchTimer = null;
 const _searchCache = {};
 
-const _kbSearch   = document.getElementById('kb-search');
-const _dropdown   = document.getElementById('nav-search-dropdown');
+function showDropdown() {
+  const d = document.getElementById('nav-search-dropdown');
+  if (d) d.classList.add('visible');
+}
+function hideDropdown() {
+  const d = document.getElementById('nav-search-dropdown');
+  if (d) d.classList.remove('visible');
+}
 
-function showDropdown() { _dropdown.classList.add('visible'); }
-function hideDropdown() { _dropdown.classList.remove('visible'); }
-
-_kbSearch.addEventListener('input', function () {
-  clearTimeout(_searchTimer);
-  const q = this.value.trim();
-  const status  = document.getElementById('search-status');
-  const results = document.getElementById('search-results');
-  if (q.length < 2) {
-    status.textContent = '';
-    results.innerHTML = '';
-    hideDropdown();
-    return;
-  }
-  showDropdown();
-  status.textContent = 'Searching…';
-  _searchTimer = setTimeout(() => doSearch(q), 400);
-});
-
-_kbSearch.addEventListener('keydown', function (e) {
-  if (e.key === 'Escape') { hideDropdown(); this.blur(); }
-});
+// Wire search — deferred so the function never throws on missing element
+(function () {
+  const s = document.getElementById('kb-search');
+  if (!s) return;
+  s.addEventListener('input', function () {
+    clearTimeout(_searchTimer);
+    const q = this.value.trim();
+    const status  = document.getElementById('search-status');
+    const results = document.getElementById('search-results');
+    if (q.length < 2) {
+      if (status)  status.textContent = '';
+      if (results) results.innerHTML = '';
+      hideDropdown();
+      return;
+    }
+    showDropdown();
+    if (status) status.textContent = 'Searching…';
+    _searchTimer = setTimeout(() => doSearch(q), 400);
+  });
+  s.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') { hideDropdown(); this.blur(); }
+  });
+})();
 
 // Close dropdown on outside click
 document.addEventListener('click', function (e) {
-  if (!document.getElementById('nav-search-wrap').contains(e.target)) {
-    hideDropdown();
-  }
+  const wrap = document.getElementById('nav-search-wrap');
+  if (wrap && !wrap.contains(e.target)) hideDropdown();
 });
 
 async function doSearch(q) {
@@ -1870,6 +1881,11 @@ function renderSearchResults(data) {
       <span class="file-badge">${ext.toUpperCase()}</span>
     </a>`;
   }).join('');
+}
+
+// ── Service worker ────────────────────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
 }
 
 // ── Tile nav helpers ──────────────────────────────────────────────────────────
