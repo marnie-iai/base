@@ -1067,19 +1067,18 @@ body {
       <div class="tile-stat-label">live</div>
     </a>
 
-    <a class="home-tile" href="#" onclick="focusSearch(event)">
+    <a class="home-tile" href="/agents">
       <div class="tile-icon-wrap">
         <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
-          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-          <line x1="9" y1="9" x2="15" y2="9"/>
-          <line x1="9" y1="13" x2="13" y2="13"/>
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
         </svg>
       </div>
-      <div class="tile-label">Knowledge Base</div>
-      <div class="tile-sub">Search all KB files and docs</div>
-      <div class="tile-stat" id="tile-kb-count">—</div>
-      <div class="tile-stat-label">files indexed</div>
+      <div class="tile-label">Agents</div>
+      <div class="tile-sub">Team roster and constellations</div>
+      <div class="tile-stat" id="tile-agents-count">—</div>
+      <div class="tile-stat-label">active</div>
     </a>
 
     <a class="home-tile" href="/images">
@@ -1974,17 +1973,13 @@ function focusSearch(e) {
     })
     .catch(() => {});
 
-  // Tile stat: KB file count (sample a few paths)
-  const SAMPLE_PATHS = [
-    'kb/00-foundations','kb/01-business/iai','kb/01-business/hif',
-    'kb/01-business/Reid','kb/01-business/Morgan','kb/02-workshop',
-    'kb/03-family/meal-plans','kb/04-resource/Dev','kb/05-ikigai',
-  ];
-  Promise.all(SAMPLE_PATHS.map(p => fetchKB(p)))
-    .then(results => {
-      const count = results.flat().length;
-      const el = document.getElementById('tile-kb-count');
-      if (el) el.textContent = count + '+';
+  // Tile stat: agent count
+  fetch('/api/roster')
+    .then(r => r.ok ? r.json() : [])
+    .then(roster => {
+      const active = roster.filter(a => a.status !== 'planned');
+      const el = document.getElementById('tile-agents-count');
+      if (el) el.textContent = active.length;
     })
     .catch(() => {});
 

@@ -1085,6 +1085,7 @@ app.get('/read', (_req, res) => {
 });
 
 // Agent constellation page
+app.get('/agents', (_req, res) => res.sendFile(path.join(__dirname, 'agents.html')));
 app.get('/agent/:slug', (_req, res) => {
   res.sendFile(path.join(__dirname, 'agent.html'));
 });

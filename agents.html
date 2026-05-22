@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agents — Base</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;600;800&family=IBM+Plex+Mono:wght@300;400;500&family=Zilla+Slab:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ground:        #F5F2EC;
+  --surface:       #FFFFFF;
+  --text:          #1C242C;
+  --text-muted:    rgba(28,36,44,0.55);
+  --border:        rgba(28,36,44,0.08);
+  --border-strong: rgba(28,36,44,0.16);
+  --denim:         #4A6584;
+  --solar:         #F0C020;
+  --font-body:     'Plus Jakarta Sans', sans-serif;
+  --font-mono:     'IBM Plex Mono', monospace;
+  --font-display:  'Zilla Slab', serif;
+  --radius:        10px;
+  --radius-sm:     6px;
+  --max-w:         1100px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+a { color: inherit; text-decoration: none; }
+body {
+  font-family: var(--font-body); font-weight: 300;
+  color: var(--text); background: var(--ground);
+  background-image:
+    repeating-linear-gradient(rgba(28,36,44,0.04) 0px, rgba(28,36,44,0.04) 1px, transparent 1px, transparent 80px),
+    repeating-linear-gradient(90deg, rgba(28,36,44,0.04) 0px, rgba(28,36,44,0.04) 1px, transparent 1px, transparent 80px);
+  min-height: 100vh;
+}
+
+/* ── Header ─────────────────────────────────────────────────────────────────── */
+.site-header {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 200;
+}
+.header-inner {
+  max-width: var(--max-w); margin: 0 auto; padding: 0 24px;
+  height: 60px; display: flex; align-items: center;
+}
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand-mark {
+  width: 32px; height: 32px; border-radius: 7px;
+  background: #0E1117; display: flex; align-items: center; justify-content: center;
+}
+.brand-dot { width: 12px; height: 12px; border-radius: 50%; background: #D66A35; }
+.brand-name { font-family: var(--font-mono); font-size: 13px; font-weight: 500; letter-spacing: 0.12em; }
+.brand-sub  { font-size: 11px; font-weight: 300; color: var(--text-muted); }
+.header-back {
+  margin-left: 24px; border-left: 1px solid var(--border); padding-left: 24px;
+  font-family: var(--font-mono); font-size: 11px; color: var(--text-muted);
+  display: flex; align-items: center; gap: 6px; transition: color 0.15s;
+}
+.header-back:hover { color: var(--denim); }
+.header-date { margin-left: auto; font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); }
+
+/* ── Page ───────────────────────────────────────────────────────────────────── */
+.page-wrap { max-width: var(--max-w); margin: 0 auto; padding: 40px 24px 80px; }
+.page-heading {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.page-title {
+  font-family: var(--font-display); font-size: 28px; font-weight: 700;
+  color: var(--text); margin-bottom: 36px;
+}
+
+/* ── Point group ─────────────────────────────────────────────────────────────── */
+.point-group { margin-bottom: 40px; }
+.point-label {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 14px;
+  font-family: var(--font-mono); font-size: 9px; font-weight: 500;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-muted);
+}
+.point-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.point-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+/* ── Agent card grid ─────────────────────────────────────────────────────────── */
+.agent-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+.agent-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  text-decoration: none; color: var(--text);
+  display: flex; flex-direction: column;
+}
+.agent-card:hover {
+  border-color: var(--denim);
+  box-shadow: 0 2px 12px rgba(74,101,132,0.12);
+}
+
+/* Portrait */
+.agent-portrait {
+  width: 100%; aspect-ratio: 1;
+  position: relative; overflow: hidden;
+  background: rgba(74,101,132,0.08);
+  flex-shrink: 0;
+}
+.agent-portrait img {
+  width: 100%; height: 100%; object-fit: cover;
+  filter: grayscale(1) contrast(1.05); display: block;
+}
+.agent-portrait::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(160deg, var(--denim) 0%, #F0C020 100%);
+  mix-blend-mode: multiply; opacity: 0.42; pointer-events: none;
+}
+.agent-initials {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-size: 28px; font-weight: 700;
+  color: rgba(74,101,132,0.4);
+}
+
+/* Info */
+.agent-info { padding: 12px 14px 14px; flex: 1; display: flex; flex-direction: column; gap: 3px; }
+.agent-name {
+  font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--text);
+}
+.agent-role {
+  font-family: var(--font-mono); font-size: 10px; color: var(--text-muted);
+  letter-spacing: 0.02em; line-height: 1.4;
+}
+.agent-status {
+  margin-top: 8px;
+  font-family: var(--font-mono); font-size: 8px; font-weight: 500;
+  padding: 2px 7px; border-radius: 20px; letter-spacing: 0.08em;
+  text-transform: uppercase; align-self: flex-start;
+}
+.agent-status.live    { background: rgba(40,120,60,0.1); color: #287844; }
+.agent-status.active  { background: rgba(74,101,132,0.12); color: var(--denim); }
+.agent-status.planned { background: rgba(28,36,44,0.06); color: var(--text-muted); }
+
+/* State messages */
+.state-msg { padding: 60px 0; text-align: center; font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); }
+
+@media (max-width: 768px) {
+  .page-wrap { padding: 28px 16px 60px; }
+  .header-inner { padding: 0 16px; }
+  .agent-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a class="brand" href="/">
+      <div class="brand-mark"><div class="brand-dot"></div></div>
+      <div>
+        <div class="brand-name">BASE.</div>
+        <div class="brand-sub">Integrated AI</div>
+      </div>
+    </a>
+    <a class="header-back" href="/">
+      <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+      Back
+    </a>
+    <div class="header-date" id="header-date"></div>
+  </div>
+</header>
+
+<div class="page-wrap">
+  <div class="page-heading">IAI · Internal OS</div>
+  <div class="page-title">Agent Roster</div>
+  <div id="roster-wrap"><div class="state-msg">Loading agents…</div></div>
+</div>
+
+<script>
+'use strict';
+
+const PORTRAITS = 'https://raw.githubusercontent.com/marnie-iai/agent-portraits/main/portraits/';
+
+const POINT_COLORS = {
+  business:    '#3A5A78',
+  workshop:    '#4A6584',
+  family:      '#2B52A8',
+  ikigai:      '#C4922A',
+  resource:    '#1C242C',
+  foundations: '#4A6584',
+};
+const POINT_LABELS = {
+  business:    'Business',
+  workshop:    'Workshop',
+  family:      'Family',
+  ikigai:      'Operating Protocols',
+  resource:    'Resource',
+  foundations: 'Foundations',
+};
+const STATUS_ORDER = { live: 0, active: 1, planned: 2 };
+
+// Group agents by point, sorted within each group by status then name
+function groupByPoint(agents) {
+  const order = ['business','workshop','family','ikigai','resource','foundations'];
+  const groups = {};
+  agents.forEach(a => {
+    const p = a.point || 'foundations';
+    if (!groups[p]) groups[p] = [];
+    groups[p].push(a);
+  });
+  order.forEach(p => {
+    if (groups[p]) groups[p].sort((a, b) =>
+      (STATUS_ORDER[a.status] ?? 9) - (STATUS_ORDER[b.status] ?? 9) || a.name.localeCompare(b.name)
+    );
+  });
+  return order.filter(p => groups[p] && groups[p].length).map(p => ({ point: p, agents: groups[p] }));
+}
+
+function renderRoster(agents) {
+  const wrap = document.getElementById('roster-wrap');
+  if (!agents.length) { wrap.innerHTML = '<div class="state-msg">No agents found</div>'; return; }
+  const groups = groupByPoint(agents);
+  wrap.innerHTML = groups.map(({ point, agents }) => {
+    const color  = POINT_COLORS[point] || '#4A6584';
+    const label  = POINT_LABELS[point] || point;
+    const cards  = agents.map(a => {
+      const portraitSrc = PORTRAITS + a.name + '_headshot.png';
+      const initials = a.name.slice(0, 2).toUpperCase();
+      const statusCls = a.status || 'live';
+      const statusLabel = { live: 'Live', active: 'Active', planned: 'Planned' }[a.status] || a.status;
+      return `<a class="agent-card" href="/agent/${a.slug}">
+        <div class="agent-portrait">
+          <img src="${portraitSrc}" alt="${a.name}"
+            onerror="this.style.display='none';this.parentNode.innerHTML='<div class=\\'agent-initials\\'>${initials}</div>'">
+        </div>
+        <div class="agent-info">
+          <div class="agent-name">${a.name}</div>
+          <div class="agent-role">${a.role || ''}</div>
+          <span class="agent-status ${statusCls}">${statusLabel}</span>
+        </div>
+      </a>`;
+    }).join('');
+    return `<div class="point-group">
+      <div class="point-label">
+        <div class="point-dot" style="background:${color}"></div>${label}
+      </div>
+      <div class="agent-grid">${cards}</div>
+    </div>`;
+  }).join('');
+}
+
+(function () {
+  const now = new Date();
+  const el = document.getElementById('header-date');
+  if (el) {
+    const d = now.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
+    const t = new Date(Date.UTC(now.getFullYear(), 0, 1));
+    const w = Math.ceil(((now - t) / 86400000 + 1) / 7);
+    el.textContent = d + ' · W' + w;
+  }
+
+  fetch('/api/roster')
+    .then(r => r.ok ? r.json() : [])
+    .then(agents => renderRoster(agents))
+    .catch(() => {
+      document.getElementById('roster-wrap').innerHTML =
+        '<div class="state-msg">Agent roster unavailable</div>';
+    });
+})();
+</script>
+</body>
+</html>
