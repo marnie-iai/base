@@ -139,7 +139,7 @@ body {
 
 <div class="page-wrap">
   <div class="page-heading">Image Library</div>
-  <div class="page-sub">All KB images and agent portraits — filter by point</div>
+  <div class="page-sub">Brand, product, and web images — filter by point</div>
 
   <div id="filter-bar" class="filter-bar"></div>
   <div id="masonry" class="masonry-grid"><div class="state-msg">Loading images…</div></div>
@@ -158,8 +158,6 @@ const ALL_KB_PATHS = [
   'kb/02-workshop','kb/02-workshop/Mirror','kb/02-workshop/Scout',
   'kb/03-family','kb/04-resource','kb/05-ikigai',
 ];
-
-const PORTRAITS_RAW = 'https://raw.githubusercontent.com/marnie-iai/agent-portraits/main/';
 
 function fileExt(name) { const m = name.match(/\.([a-z0-9]+)$/i); return m ? m[1].toLowerCase() : ''; }
 
@@ -182,15 +180,6 @@ async function fetchKB(kbPath) {
   } catch { return []; }
 }
 
-async function fetchPortraits() {
-  try {
-    const r = await fetch('/api/portraits');
-    if (!r.ok) return [];
-    const data = await r.json();
-    return Array.isArray(data) ? data.filter(f => f.type === 'file' && /\.(png|jpg)$/i.test(f.name)) : [];
-  } catch { return []; }
-}
-
 // ── Init ───────────────────────────────────────────────────────────────────────
 (function () {
   const now = new Date();
@@ -202,14 +191,11 @@ async function fetchPortraits() {
     el.textContent = d + ' · W' + w;
   }
 
-  const masonry  = document.getElementById('masonry');
+  const masonry   = document.getElementById('masonry');
   const filterBar = document.getElementById('filter-bar');
 
-  Promise.all([
-    Promise.all(ALL_KB_PATHS.map(fetchKB)),
-    fetchPortraits(),
-  ]).then(([kbResults, portraits]) => {
-    const kbImages = kbResults.flat()
+  Promise.all(ALL_KB_PATHS.map(fetchKB)).then(kbResults => {
+    const images = kbResults.flat()
       .filter(f => IMG_EXTS.has(fileExt(f.name)))
       .map(f => ({
         name: f.name,
@@ -217,15 +203,6 @@ async function fetchPortraits() {
         _rawUrl: '/api/raw?path=' + encodeURIComponent(f.path),
         _linkUrl: 'https://github.com/marnie-iai/kb/blob/main/' + f.path,
       }));
-
-    const portraitImages = portraits.map(p => ({
-      name: p.name,
-      _point: 'Agents',
-      _rawUrl: PORTRAITS_RAW + p.path,
-      _linkUrl: PORTRAITS_RAW + p.path,
-    }));
-
-    const images = [...kbImages, ...portraitImages];
     if (!images.length) { masonry.innerHTML = '<div class="state-msg">No images found</div>'; return; }
 
     const points = [...new Set(images.map(f => f._point))].sort();
