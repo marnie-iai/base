@@ -157,11 +157,17 @@ const ALL_KB_PATHS = [
   'kb/01-business/Content/website','kb/01-business/Branding',
   'kb/02-workshop','kb/02-workshop/Mirror','kb/02-workshop/Scout',
   'kb/03-family','kb/04-resource','kb/05-ikigai',
+  // Drive-synced images (populated by Make scenario)
+  'kb/images/hif','kb/images/brand','kb/images/website','kb/images/content',
 ];
 
 function fileExt(name) { const m = name.match(/\.([a-z0-9]+)$/i); return m ? m[1].toLowerCase() : ''; }
 
 function pointLabel(path) {
+  if (path.includes('images/hif'))     return 'HIF';
+  if (path.includes('images/brand'))   return 'Brand';
+  if (path.includes('images/website')) return 'Website';
+  if (path.includes('images/content')) return 'Content';
   if (path.includes('00-foundations')) return 'Foundations';
   if (path.includes('01-business'))    return 'Business';
   if (path.includes('02-workshop'))    return 'Workshop';
@@ -196,7 +202,7 @@ async function fetchKB(kbPath) {
 
   Promise.all(ALL_KB_PATHS.map(fetchKB)).then(kbResults => {
     const images = kbResults.flat()
-      .filter(f => IMG_EXTS.has(fileExt(f.name)))
+      .filter(f => IMG_EXTS.has(fileExt(f.name)) && !/_headshot\./i.test(f.name))
       .map(f => ({
         name: f.name,
         _point: pointLabel(f.path),
