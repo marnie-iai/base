@@ -910,6 +910,22 @@ app.get('/api/ask', async (req, res) => {
         contextBlock = `Sprint board data (${sprintCtx.total} cards${agentNote}):\n\n${sprintCtx.summary}`;
         sourceLabel = 'the sprint board';
         sources = [{ name: 'Sprint Board (live)', path: 'api.integratedai.com.au/sprint' }];
+
+        // Augment with most recent session intel for the detected agent
+        // so Base can explain what the cards actually mean in context
+        if (sprintCtx.agentFilter) {
+          const sessionPaths = [
+            'kb/00-foundations/session-intel',
+            'kb/00-foundations/Session Intel',
+          ];
+          const sessionFiles = await fetchKBFilesForSearch(sessionPaths, sprintCtx.agentFilter);
+          const sessionContext = await buildSearchContext(sessionFiles.slice(0, 2));
+          if (sessionContext.length) {
+            contextBlock += '\n\n--- Session intel (most recent for ' + sprintCtx.agentFilter + ') ---\n' +
+              sessionContext.map(c => `FILE: ${c.path}\n${c.text}`).join('\n\n');
+            sources.push(...sessionContext.map(c => ({ name: c.name, path: c.path })));
+          }
+        }
       }
     } else if (intent === 'pursuit') {
       const pursuitCtx = await fetchPursuitContext(question);
