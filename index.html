@@ -1032,21 +1032,22 @@ body {
       <div class="tile-stat-label">live</div>
     </a>
 
-    <a class="home-tile" href="#sec-foundations" id="tile-agents" onclick="openAndScroll(event,'sec-foundations')">
+    <a class="home-tile" href="#" onclick="focusSearch(event)">
       <div class="tile-icon-wrap">
         <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-          <circle cx="9" cy="7" r="4"/>
-          <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+          <line x1="9" y1="9" x2="15" y2="9"/>
+          <line x1="9" y1="13" x2="13" y2="13"/>
         </svg>
       </div>
-      <div class="tile-label">Agents</div>
-      <div class="tile-sub">Team roster and context</div>
-      <div class="tile-stat" id="tile-agents-count">—</div>
-      <div class="tile-stat-label">active</div>
+      <div class="tile-label">Knowledge Base</div>
+      <div class="tile-sub">Search all KB files and docs</div>
+      <div class="tile-stat" id="tile-kb-count">—</div>
+      <div class="tile-stat-label">files indexed</div>
     </a>
 
-    <a class="home-tile" href="#sec-images" onclick="openAndScroll(event,'sec-images')">
+    <a class="home-tile" href="/images">
       <div class="tile-icon-wrap">
         <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
           <rect x="3" y="3" width="18" height="18" rx="2"/>
@@ -1059,128 +1060,6 @@ body {
     </a>
 
   </div>
-
-  <!-- ── Knowledge Base ────────────────────────────────────────────────────── -->
-  <div class="kb-section-header">Knowledge Base</div>
-
-  <!-- ── Business ─────────────────────────────────────────────────────────── -->
-  <section class="point-section business-section" id="sec-business">
-    <div class="section-header" onclick="toggleSection('sec-business')">
-      <div class="section-accent"></div>
-      <div class="section-header-content">
-        <div class="section-titles">
-          <span class="section-name">Business</span>
-          <span class="section-sub">IAI · ICS · TMM · HMA · HIF</span>
-        </div>
-        <span class="section-chevron">▼</span>
-      </div>
-    </div>
-    <div class="section-body" id="body-business">
-      <div class="section-loading">Loading…</div>
-    </div>
-  </section>
-
-  <!-- ── Workshop ─────────────────────────────────────────────────────────── -->
-  <section class="point-section workshop-section" id="sec-workshop">
-    <div class="section-header" onclick="toggleSection('sec-workshop')">
-      <div class="section-accent"></div>
-      <div class="section-header-content">
-        <div class="section-titles">
-          <span class="section-name">Workshop</span>
-          <span class="section-sub">AI Style Files · KB</span>
-        </div>
-        <span class="section-chevron">▼</span>
-      </div>
-    </div>
-    <div class="section-body" id="body-workshop">
-      <div class="section-loading">Loading…</div>
-    </div>
-  </section>
-
-  <!-- ── Family ───────────────────────────────────────────────────────────── -->
-  <section class="point-section family-section" id="sec-family">
-    <div class="section-header" onclick="toggleSection('sec-family')">
-      <div class="section-accent"></div>
-      <div class="section-header-content">
-        <div class="section-titles">
-          <span class="section-name">Family</span>
-          <span class="section-sub">Life · Meal Plans</span>
-        </div>
-        <span class="section-chevron">▼</span>
-      </div>
-    </div>
-    <div class="section-body" id="body-family">
-      <div class="section-loading">Loading…</div>
-    </div>
-  </section>
-
-  <!-- ── Operating Protocols (Ikigai) ─────────────────────────────────────── -->
-  <section class="point-section ikigai-section" id="sec-ikigai">
-    <div class="section-header" onclick="toggleSection('sec-ikigai')">
-      <div class="section-accent"></div>
-      <div class="section-header-content">
-        <div class="section-titles">
-          <span class="section-name">Operating Protocols</span>
-          <span class="section-sub">Ikigai Point</span>
-        </div>
-        <span class="section-chevron">▼</span>
-      </div>
-    </div>
-    <div class="section-body" id="body-ikigai">
-      <div class="section-loading">Loading…</div>
-    </div>
-  </section>
-
-  <!-- ── Resource ─────────────────────────────────────────────────────────── -->
-  <section class="point-section resource-section" id="sec-resource">
-    <div class="section-header" onclick="toggleSection('sec-resource')">
-      <div class="section-accent"></div>
-      <div class="section-header-content">
-        <div class="section-titles">
-          <span class="section-name">Resource</span>
-          <span class="section-sub">Shared Services · KB</span>
-        </div>
-        <span class="section-chevron">▼</span>
-      </div>
-    </div>
-    <div class="section-body" id="body-resource">
-      <div class="section-loading">Loading…</div>
-    </div>
-  </section>
-
-  <!-- ── Image Library ────────────────────────────────────────────────────── -->
-  <section class="point-section image-section" id="sec-images">
-    <div class="section-header" onclick="toggleSection('sec-images')">
-      <div class="section-accent"></div>
-      <div class="section-header-content">
-        <div class="section-titles">
-          <span class="section-name">Image Library</span>
-          <span class="section-sub">All Points · PNG · JPG · GIF · WEBP</span>
-        </div>
-        <span class="section-chevron">▼</span>
-      </div>
-    </div>
-    <div class="section-body" id="body-images">
-      <div class="section-loading">Loading…</div>
-    </div>
-  </section>
-
-  <!-- ── Foundations (system layer) ───────────────────────────────────────── -->
-  <section class="point-section foundations-section" id="sec-foundations">
-    <div class="section-header" onclick="toggleSection('sec-foundations')">
-      <div class="section-accent"></div>
-      <div class="section-header-content">
-        <div class="section-titles">
-          <span class="section-name">Foundations</span>
-          <span class="section-sub">Agent Library · Vault · Filing Standards</span>
-        </div>
-        <span class="section-chevron">▼</span>
-      </div>
-    </div>
-    <div class="section-body" id="body-foundations">
-      <div class="section-loading">Loading…</div>
-    </div>
-  </section>
 
 </div><!-- /main-wrap -->
 
@@ -1993,7 +1872,7 @@ function renderSearchResults(data) {
   }).join('');
 }
 
-// ── Tile nav helper ───────────────────────────────────────────────────────────
+// ── Tile nav helpers ──────────────────────────────────────────────────────────
 function openAndScroll(e, sectionId) {
   e.preventDefault();
   const sec = document.getElementById(sectionId);
@@ -2002,17 +1881,22 @@ function openAndScroll(e, sectionId) {
   setTimeout(() => sec.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
 }
 
+function focusSearch(e) {
+  e.preventDefault();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  setTimeout(() => {
+    const s = document.getElementById('kb-search');
+    if (s) { s.focus(); showDropdown(); }
+  }, 120);
+}
+
 // ── Init ──────────────────────────────────────────────────────────────────────
 (function () {
   const now = new Date();
   const el = document.getElementById('header-date');
   if (el) el.textContent = fmtDate(now) + ' · W' + isoWeek(now);
 
-  // Preload Foundations in background (Agent Library roster fetch)
-  _loaded['sec-foundations'] = true;
-  loadFoundations();
-
-  // Tile stats: pursuits count
+  // Tile stat: pursuits count (active)
   fetch('/api/pursuits')
     .then(r => r.ok ? r.json() : null)
     .then(data => {
@@ -2027,13 +1911,17 @@ function openAndScroll(e, sectionId) {
     })
     .catch(() => {});
 
-  // Tile stats: agent count (from roster)
-  fetch('/api/roster')
-    .then(r => r.ok ? r.json() : [])
-    .then(roster => {
-      const active = roster.filter(a => a.status !== 'planned');
-      const el = document.getElementById('tile-agents-count');
-      if (el) el.textContent = active.length;
+  // Tile stat: KB file count (sample a few paths)
+  const SAMPLE_PATHS = [
+    'kb/00-foundations','kb/01-business/iai','kb/01-business/hif',
+    'kb/01-business/Reid','kb/01-business/Morgan','kb/02-workshop',
+    'kb/03-family/meal-plans','kb/04-resource/Dev','kb/05-ikigai',
+  ];
+  Promise.all(SAMPLE_PATHS.map(p => fetchKB(p)))
+    .then(results => {
+      const count = results.flat().length;
+      const el = document.getElementById('tile-kb-count');
+      if (el) el.textContent = count + '+';
     })
     .catch(() => {});
 

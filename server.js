@@ -1065,6 +1065,9 @@ app.get('/agent/:slug', (_req, res) => {
 app.get('/pursuits',       (_req, res) => res.sendFile(path.join(__dirname, 'pursuits.html')));
 app.get('/pursuits/:code', (_req, res) => res.sendFile(path.join(__dirname, 'pursuit-detail.html')));
 
+// Image Library
+app.get('/images', (_req, res) => res.sendFile(path.join(__dirname, 'images.html')));
+
 // Main intranet — catch-all
 app.get('*', (_req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));

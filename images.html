@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Image Library — Base</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;600;800&family=IBM+Plex+Mono:wght@300;400;500&family=Zilla+Slab:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ground:        #F5F2EC;
+  --surface:       #FFFFFF;
+  --text:          #1C242C;
+  --text-muted:    rgba(28,36,44,0.55);
+  --border:        rgba(28,36,44,0.08);
+  --border-strong: rgba(28,36,44,0.16);
+  --denim:         #4A6584;
+  --teal:          #00D4B4;
+  --font-body:     'Plus Jakarta Sans', sans-serif;
+  --font-mono:     'IBM Plex Mono', monospace;
+  --font-display:  'Zilla Slab', serif;
+  --radius:        10px;
+  --radius-sm:     6px;
+  --max-w:         1200px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+a { color: inherit; text-decoration: none; }
+img { display: block; max-width: 100%; }
+button { font: inherit; cursor: pointer; border: none; background: none; }
+body {
+  font-family: var(--font-body);
+  font-weight: 300;
+  color: var(--text);
+  background-color: var(--ground);
+  background-image:
+    repeating-linear-gradient(rgba(28,36,44,0.04) 0px, rgba(28,36,44,0.04) 1px, transparent 1px, transparent 80px),
+    repeating-linear-gradient(90deg, rgba(28,36,44,0.04) 0px, rgba(28,36,44,0.04) 1px, transparent 1px, transparent 80px);
+  min-height: 100vh;
+}
+
+/* ── Header ─────────────────────────────────────────────────────────────────── */
+.site-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 200;
+}
+.header-inner {
+  max-width: var(--max-w); margin: 0 auto; padding: 0 24px;
+  height: 60px; display: flex; align-items: center; gap: 0;
+}
+.brand { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.brand-mark {
+  width: 32px; height: 32px; border-radius: 7px;
+  background: #0E1117; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.brand-dot { width: 12px; height: 12px; border-radius: 50%; background: #D66A35; }
+.brand-name { font-family: var(--font-mono); font-size: 13px; font-weight: 500; letter-spacing: 0.12em; }
+.brand-sub  { font-size: 11px; font-weight: 300; color: var(--text-muted); letter-spacing: 0.02em; }
+.header-back {
+  margin-left: 24px;
+  font-family: var(--font-mono); font-size: 11px; color: var(--text-muted);
+  display: flex; align-items: center; gap: 6px;
+  border-left: 1px solid var(--border); padding-left: 24px;
+  transition: color 0.15s;
+}
+.header-back:hover { color: var(--denim); }
+.header-date {
+  margin-left: auto;
+  font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); letter-spacing: 0.04em;
+}
+
+/* ── Page ───────────────────────────────────────────────────────────────────── */
+.page-wrap { max-width: var(--max-w); margin: 0 auto; padding: 32px 24px 80px; }
+.page-heading {
+  font-family: var(--font-display); font-size: 22px; font-weight: 700;
+  color: var(--text); margin-bottom: 4px;
+}
+.page-sub {
+  font-family: var(--font-mono); font-size: 11px; color: var(--text-muted);
+  letter-spacing: 0.04em; margin-bottom: 24px;
+}
+
+/* ── Filter bar ─────────────────────────────────────────────────────────────── */
+.filter-bar {
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 20px;
+}
+.filter-btn {
+  padding: 4px 10px; border: 1px solid var(--border-strong); border-radius: 20px;
+  font-family: var(--font-mono); font-size: 10px; font-weight: 500;
+  color: var(--text-muted); cursor: pointer; transition: all 0.12s;
+}
+.filter-btn:hover  { border-color: var(--denim); color: var(--denim); }
+.filter-btn.active { background: var(--denim); border-color: var(--denim); color: white; }
+
+/* ── Masonry ────────────────────────────────────────────────────────────────── */
+.masonry-grid { columns: 4; column-gap: 10px; }
+.masonry-item {
+  break-inside: avoid; margin-bottom: 10px; position: relative;
+  border-radius: var(--radius-sm); overflow: hidden;
+  border: 1px solid var(--border); cursor: pointer; transition: border-color 0.12s;
+}
+.masonry-item:hover { border-color: var(--denim); }
+.masonry-item img { width: 100%; display: block; }
+.masonry-hover {
+  position: absolute; inset: 0;
+  background: rgba(28,36,44,0.7);
+  display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-end;
+  padding: 10px; opacity: 0; transition: opacity 0.15s;
+}
+.masonry-item:hover .masonry-hover { opacity: 1; }
+.masonry-fname { font-family: var(--font-mono); font-size: 10px; color: white; line-height: 1.4; word-break: break-all; }
+.state-msg { padding: 40px 0; text-align: center; font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); }
+
+@media (max-width: 900px)  { .masonry-grid { columns: 3; } }
+@media (max-width: 600px)  { .masonry-grid { columns: 2; } .page-wrap { padding: 20px 16px 60px; } }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a class="brand" href="/">
+      <div class="brand-mark"><div class="brand-dot"></div></div>
+      <div>
+        <div class="brand-name">BASE.</div>
+        <div class="brand-sub">Integrated AI</div>
+      </div>
+    </a>
+    <a class="header-back" href="/">
+      <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+      Back
+    </a>
+    <div class="header-date" id="header-date"></div>
+  </div>
+</header>
+
+<div class="page-wrap">
+  <div class="page-heading">Image Library</div>
+  <div class="page-sub">All KB images and agent portraits — filter by point</div>
+
+  <div id="filter-bar" class="filter-bar"></div>
+  <div id="masonry" class="masonry-grid"><div class="state-msg">Loading images…</div></div>
+</div>
+
+<script>
+'use strict';
+
+const IMG_EXTS = new Set(['png','jpg','jpeg','gif','webp']);
+
+const ALL_KB_PATHS = [
+  'kb/00-foundations','kb/01-business/iai','kb/01-business/iai/design',
+  'kb/01-business/hif','kb/01-business/hma','kb/01-business/ics',
+  'kb/01-business/Content','kb/01-business/Content/image prompts',
+  'kb/01-business/Content/website','kb/01-business/Branding',
+  'kb/02-workshop','kb/02-workshop/Mirror','kb/02-workshop/Scout',
+  'kb/03-family','kb/04-resource','kb/05-ikigai',
+];
+
+const PORTRAITS_RAW = 'https://raw.githubusercontent.com/marnie-iai/agent-portraits/main/';
+
+function fileExt(name) { const m = name.match(/\.([a-z0-9]+)$/i); return m ? m[1].toLowerCase() : ''; }
+
+function pointLabel(path) {
+  if (path.includes('00-foundations')) return 'Foundations';
+  if (path.includes('01-business'))    return 'Business';
+  if (path.includes('02-workshop'))    return 'Workshop';
+  if (path.includes('03-family'))      return 'Family';
+  if (path.includes('04-resource'))    return 'Resource';
+  if (path.includes('05-ikigai'))      return 'Ikigai';
+  return 'Other';
+}
+
+async function fetchKB(kbPath) {
+  try {
+    const r = await fetch('/api/kb?path=' + encodeURIComponent(kbPath));
+    if (!r.ok) return [];
+    const data = await r.json();
+    return Array.isArray(data) ? data.filter(f => f.type === 'file') : [];
+  } catch { return []; }
+}
+
+async function fetchPortraits() {
+  try {
+    const r = await fetch('/api/portraits');
+    if (!r.ok) return [];
+    const data = await r.json();
+    return Array.isArray(data) ? data.filter(f => f.type === 'file' && /\.(png|jpg)$/i.test(f.name)) : [];
+  } catch { return []; }
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────────
+(function () {
+  const now = new Date();
+  const el = document.getElementById('header-date');
+  if (el) {
+    const d = now.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
+    const t = new Date(Date.UTC(now.getFullYear(), 0, 1));
+    const w = Math.ceil(((now - t) / 86400000 + 1) / 7);
+    el.textContent = d + ' · W' + w;
+  }
+
+  const masonry  = document.getElementById('masonry');
+  const filterBar = document.getElementById('filter-bar');
+
+  Promise.all([
+    Promise.all(ALL_KB_PATHS.map(fetchKB)),
+    fetchPortraits(),
+  ]).then(([kbResults, portraits]) => {
+    const kbImages = kbResults.flat()
+      .filter(f => IMG_EXTS.has(fileExt(f.name)))
+      .map(f => ({
+        name: f.name,
+        _point: pointLabel(f.path),
+        _rawUrl: '/api/raw?path=' + encodeURIComponent(f.path),
+        _linkUrl: 'https://github.com/marnie-iai/kb/blob/main/' + f.path,
+      }));
+
+    const portraitImages = portraits.map(p => ({
+      name: p.name,
+      _point: 'Agents',
+      _rawUrl: PORTRAITS_RAW + p.path,
+      _linkUrl: PORTRAITS_RAW + p.path,
+    }));
+
+    const images = [...kbImages, ...portraitImages];
+    if (!images.length) { masonry.innerHTML = '<div class="state-msg">No images found</div>'; return; }
+
+    const points = [...new Set(images.map(f => f._point))].sort();
+    let activePoint = 'All';
+
+    const renderMasonry = () => {
+      const filtered = activePoint === 'All' ? images : images.filter(f => f._point === activePoint);
+      if (!filtered.length) { masonry.innerHTML = '<div class="state-msg">No images in this category</div>'; return; }
+      masonry.innerHTML = filtered.map(f =>
+        `<a class="masonry-item" href="${f._linkUrl}" target="_blank" rel="noopener">
+          <img src="${f._rawUrl}" alt="${f.name}" loading="lazy">
+          <div class="masonry-hover">
+            <div class="masonry-fname">${f.name}</div>
+            <div class="masonry-fname" style="opacity:0.55;margin-top:2px;">${f._point}</div>
+          </div>
+        </a>`
+      ).join('');
+    };
+
+    ['All', ...points].forEach(pt => {
+      const btn = document.createElement('button');
+      btn.className = 'filter-btn' + (pt === 'All' ? ' active' : '');
+      btn.textContent = pt;
+      btn.onclick = () => {
+        filterBar.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        activePoint = pt;
+        renderMasonry();
+      };
+      filterBar.appendChild(btn);
+    });
+
+    renderMasonry();
+  }).catch(() => {
+    masonry.innerHTML = '<div class="state-msg">Image library unavailable</div>';
+  });
+})();
+</script>
+</body>
+</html>
