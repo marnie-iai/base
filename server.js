@@ -424,6 +424,113 @@ async function buildSearchContext(files) {
   return chunks;
 }
 
+// ── Multi-source intent detection — sprint board | pursuits DB | KB files ─────
+
+const SPRINT_AGENT_NAMES = [
+  'arna','reid','morgan','harlow','lumen','sterling','steel','casey',
+  'wilder','dev','mel','jd','clio','maren','vex','piper','flint','rook',
+  'mirror','scout','sage','rue','wren','alex',
+];
+
+function detectQueryIntent(question) {
+  const q = question.toLowerCase();
+  const SPRINT_KEYWORDS = [
+    'card','cards','sprint','working on','open card','assigned','due this week',
+    'in progress','blocked','backlog','active card','gate card','review card',
+  ];
+  const hasSprintKeyword = SPRINT_KEYWORDS.some(kw => q.includes(kw));
+  const hasAgentWorkQuery = SPRINT_AGENT_NAMES.some(a => q.includes(a)) &&
+    ['working','doing','card','sprint','open','active','up to','assigned','what'].some(w => q.includes(w));
+  if (hasSprintKeyword || hasAgentWorkQuery) return 'sprint';
+
+  const PURSUIT_KEYWORDS = ["constellation","who's on","who is on","pursuit","who works on"];
+  const PURSUIT_NAMES = [
+    'iops','i-ops','project compliance','hunter innovation festival',
+    'hunter manufacturing awards','hed','hedweld',
+  ];
+  if (
+    PURSUIT_KEYWORDS.some(kw => q.includes(kw)) ||
+    PURSUIT_NAMES.some(n => q.includes(n))
+  ) return 'pursuit';
+
+  return 'kb';
+}
+
+async function fetchSprintContext(question) {
+  const q = question.toLowerCase();
+  const detectedAgent = SPRINT_AGENT_NAMES.find(a => q.includes(a));
+  try {
+    const r = await fetch(`${GRID_API}/sprint`, { headers: { 'User-Agent': 'IAI-Base/3.0' } });
+    if (!r.ok) return null;
+    const data = await r.json();
+    const tasks = data.tasks || data || [];
+    let filtered = tasks;
+    if (detectedAgent) {
+      filtered = tasks.filter(t => t.owner && t.owner.toLowerCase() === detectedAgent.toLowerCase());
+    }
+    const active = filtered.filter(t =>
+      ['active','review','gate','blocked'].includes((t.status || '').toLowerCase())
+    );
+    const toShow = active.length > 0 ? active : filtered.filter(t => t.status === 'complete').slice(0, 10);
+    const summary = toShow.slice(0, 25).map(t =>
+      `id:${t.id} | ${t.status} | Owner: ${t.owner} | Priority: ${t.priority} | ${t.title}` +
+      (t.sessionNotes ? `\n  Notes: ${String(t.sessionNotes).slice(0, 200)}` : '') +
+      (t.blockedReason ? `\n  Blocked: ${t.blockedReason}` : '')
+    ).join('\n');
+    return { source: 'sprint board', agentFilter: detectedAgent || null, summary, total: toShow.length };
+  } catch (err) {
+    console.error('[fetchSprintContext]', err.message);
+    return null;
+  }
+}
+
+async function fetchPursuitContext(question) {
+  const q = question.toLowerCase();
+  const PURSUIT_MAP = [
+    { keywords: ['iops','i-ops'], code: 'IO' },
+    { keywords: ['project compliance','inspector'], code: 'PC' },
+    { keywords: ['hif','hunter innovation'], code: 'HIF' },
+    { keywords: ['hma','hunter manufacturing'], code: 'HMA' },
+    { keywords: ['hed','hedweld'], code: 'HED' },
+    { keywords: ['workshop'], code: 'WS' },
+  ];
+  const match = PURSUIT_MAP.find(p => p.keywords.some(kw => q.includes(kw)));
+  try {
+    if (match) {
+      const r = await fetch(`${GRID_API}/pursuits/${match.code}`, { headers: { 'User-Agent': 'IAI-Base/3.0' } });
+      if (!r.ok) return null;
+      const data = await r.json();
+      let summary = `Pursuit: ${match.code}`;
+      if (data.pursuit) {
+        summary += `\nName: ${data.pursuit.name || ''}\nStatus: ${data.pursuit.status || ''}`;
+        if (data.pursuit.description) summary += `\nDescription: ${data.pursuit.description}`;
+      }
+      if (data.members && data.members.length) {
+        summary += '\n\nConstellation:\n' + data.members.map(m => `  ${m.agent_name || m.agent}: ${m.role || ''}`).join('\n');
+      }
+      if (data.sprints) {
+        const activeSprints = (data.sprints || []).filter(s =>
+          ['active','review','gate','blocked'].includes((s.status || '').toLowerCase())
+        );
+        if (activeSprints.length) {
+          summary += '\n\nActive cards:\n' + activeSprints.slice(0, 15).map(s => `  id:${s.id} | ${s.status} | ${s.title}`).join('\n');
+        }
+      }
+      return { source: 'pursuits', code: match.code, summary };
+    } else {
+      const r = await fetch(`${GRID_API}/pursuits`, { headers: { 'User-Agent': 'IAI-Base/3.0' } });
+      if (!r.ok) return null;
+      const data = await r.json();
+      const pursuits = Array.isArray(data) ? data : (data.pursuits || []);
+      const summary = 'Active pursuits:\n' + pursuits.map(p => `  ${p.code}: ${p.name} — ${p.status}`).join('\n');
+      return { source: 'pursuits', code: null, summary };
+    }
+  } catch (err) {
+    console.error('[fetchPursuitContext]', err.message);
+    return null;
+  }
+}
+
 // ── Agent Context endpoints ───────────────────────────────────────────────────
 app.get('/api/agent-context/:agent_id', requireAgentAuth, async (req, res) => {
   if (!turso) return res.status(503).json({ error: 'turso_not_configured' });
@@ -779,11 +886,10 @@ app.get('/api/pursuits/:code', async (req, res) => {
   }
 });
 
-// ── Conversational KB search — /api/ask ───────────────────────────────────────
-// Accepts: GET /api/ask?q=<new question>&ctx=<conversation history (optional)>
-// q  — used for KB file routing (keyword match on THIS question only)
-// ctx — passed to Anthropic for synthesis context (not used for routing)
-// Returns: { answer: string, sources: Array<{name,path}> }
+// ── Conversational search — /api/ask ─────────────────────────────────────────
+// Routes to: sprint board | pursuits DB | KB files — based on intent detection
+// Accepts: GET /api/ask?q=<question>&ctx=<conversation history (optional)>
+// Returns: { answer: string, sources: Array<{name,path}>, intent: string }
 app.get('/api/ask', async (req, res) => {
   const question = (req.query.q   || '').trim();
   const ctx      = (req.query.ctx || '').trim();
@@ -794,35 +900,61 @@ app.get('/api/ask', async (req, res) => {
   }
 
   try {
-    const { paths, agentFilter } = routeQuestion(question);
-    const files   = await fetchKBFilesForSearch(paths, agentFilter);
-    const context = await buildSearchContext(files);
+    const intent = detectQueryIntent(question);
+    let contextBlock = '', sources = [], sourceLabel = 'the knowledge base';
 
-    if (!context.length) {
-      return res.json({
-        answer: 'Nothing relevant found in the KB for that question. Try rephrasing with an agent name, project name, or topic.',
-        sources: [],
-      });
+    if (intent === 'sprint') {
+      const sprintCtx = await fetchSprintContext(question);
+      if (sprintCtx) {
+        const agentNote = sprintCtx.agentFilter ? ` for ${sprintCtx.agentFilter}` : '';
+        contextBlock = `Sprint board data (${sprintCtx.total} cards${agentNote}):\n\n${sprintCtx.summary}`;
+        sourceLabel = 'the sprint board';
+        sources = [{ name: 'Sprint Board (live)', path: 'api.integratedai.com.au/sprint' }];
+      }
+    } else if (intent === 'pursuit') {
+      const pursuitCtx = await fetchPursuitContext(question);
+      if (pursuitCtx) {
+        contextBlock = `Pursuit data:\n\n${pursuitCtx.summary}`;
+        sourceLabel = pursuitCtx.code ? `the ${pursuitCtx.code} pursuit` : 'the pursuits database';
+        sources = [{ name: `Pursuits${pursuitCtx.code ? ' — ' + pursuitCtx.code : ''} (live)`, path: 'api.integratedai.com.au/pursuits' }];
+      }
     }
 
-    const contextBlock = context.map(c => `--- FILE: ${c.path} ---\n${c.text}`).join('\n\n');
+    // Fall back to KB if live sources returned nothing
+    if (!contextBlock) {
+      const { paths, agentFilter } = routeQuestion(question);
+      const files   = await fetchKBFilesForSearch(paths, agentFilter);
+      const context = await buildSearchContext(files);
+      if (!context.length) {
+        return res.json({
+          answer: 'Nothing relevant found for that question. Try rephrasing with an agent name, project name, or topic.',
+          sources: [],
+          intent: intent || 'kb',
+        });
+      }
+      contextBlock = context.map(c => `--- FILE: ${c.path} ---\n${c.text}`).join('\n\n');
+      sources = context.map(c => ({ name: c.name, path: c.path }));
+      sourceLabel = 'the knowledge base';
+    }
 
     const systemPrompt = [
       'You are Base, the IAI internal knowledge interface.',
-      'You answer questions about how Integrated AI (IAI) works — its agents, decisions, projects, and operating protocols — by synthesising information from the IAI knowledge base.',
+      'You answer questions about how Integrated AI (IAI) works — its agents, decisions, projects, and operating protocols.',
+      'You draw from live sprint board data, the pursuits database, and the IAI knowledge base depending on what the question needs.',
       '',
       'Rules:',
       '- Answer directly and concisely. No preamble, no filler.',
       '- Australian English. No em dashes. Use commas, colons, or new sentences instead.',
-      '- Cite which KB files you drew from by filename (not full path) at the end of your answer.',
+      `- When answering from live data, begin with "From ${sourceLabel}:" to signal the source.`,
+      '- Cite which KB files you drew from by filename (not full path) at the end of your answer, when answering from the KB.',
       '- If the answer is partial or uncertain, say so clearly.',
       '- If the user says "yes" or gives a short affirmative, check the conversation context to understand what they are confirming and respond accordingly.',
-      '- End with a brief offer to surface a specific file if useful: "Want me to pull up [filename]?" Only include this if there is something genuinely worth surfacing.',
-      '- If nothing in the provided files answers the question, say so directly. Do not fabricate.',
+      '- End with a brief offer to surface a specific file if useful: "Want me to pull up [filename]?" Only include this when answering from the KB and there is something genuinely worth surfacing.',
+      '- If nothing in the provided data answers the question, say so directly. Do not fabricate.',
     ].join('\n');
 
-    const ctxSection   = ctx ? `Conversation so far:\n${ctx}\n\n---\n\n` : '';
-    const userMessage  = `KB files retrieved:\n\n${contextBlock}\n\n---\n\n${ctxSection}New question: ${question}`;
+    const ctxSection  = ctx ? `Conversation so far:\n${ctx}\n\n---\n\n` : '';
+    const userMessage = `Data retrieved:\n\n${contextBlock}\n\n---\n\n${ctxSection}Question: ${question}`;
 
     const anthropicRes = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -847,11 +979,10 @@ app.get('/api/ask', async (req, res) => {
       return res.status(502).json({ error: `Synthesis failed (${anthropicRes.status})${errDetail ? ': ' + errDetail : ' — check ANTHROPIC_API_KEY and model access'}` });
     }
 
-    const data    = await anthropicRes.json();
-    const answer  = data.content?.[0]?.text || 'No response generated.';
-    const sources = context.map(c => ({ name: c.name, path: c.path }));
+    const data   = await anthropicRes.json();
+    const answer = data.content?.[0]?.text || 'No response generated.';
 
-    return res.json({ answer, sources });
+    return res.json({ answer, sources, intent });
 
   } catch (err) {
     console.error('[/api/ask]', err.message);
