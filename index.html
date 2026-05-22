@@ -737,6 +737,10 @@ body {
 }
 .ask-source-chip:hover { border-color: var(--denim); color: var(--denim); }
 .ask-chat-sources { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.ask-inline-link {
+  color: var(--denim); text-decoration: underline; text-decoration-style: dotted;
+  font-family: var(--font-mono); font-size: 0.85em;
+}
 .ask-chat-input-row {
   border-top: 1px solid var(--border); padding: 10px 12px;
   display: flex; gap: 8px; align-items: center; flex-shrink: 0;
@@ -1942,6 +1946,22 @@ function dlFile(e, rawUrl, filename) {
     setTimeout(() => chatInput.focus(), 50);
   }
 
+  // Wrap filenames from the sources array as clickable links inside rendered HTML.
+  // Only matches standalone filenames (not already inside an anchor or code tag).
+  function linkifySourcesInText(html, sources) {
+    if (!sources || !sources.length) return html;
+    let result = html;
+    sources.forEach(s => {
+      if (!s.path || !s.name) return;
+      const esc = s.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      // Skip if already inside an href or preceded by a slash (part of a path)
+      const re = new RegExp(`(?<![/"'>\\w])${esc}(?![\\w<])`, 'g');
+      const link = `<a href="/read?path=${encodeURIComponent(s.path)}&from=/" target="_blank" rel="noopener" class="ask-inline-link">${s.name}</a>`;
+      result = result.replace(re, link);
+    });
+    return result;
+  }
+
   function appendMsg(role, content, sources) {
     const msgs   = document.getElementById('ask-messages');
     const msg    = document.createElement('div');
@@ -1951,8 +1971,9 @@ function dlFile(e, rawUrl, filename) {
     if (content === null) {
       bubble.innerHTML = '<span class="ask-loading">Searching the KB…</span>';
     } else {
-      bubble.innerHTML = role === 'bot' && window.marked
+      const rendered = role === 'bot' && window.marked
         ? marked.parse(content) : escHtml(content);
+      bubble.innerHTML = role === 'bot' ? linkifySourcesInText(rendered, sources) : rendered;
     }
     msg.appendChild(bubble);
     if (sources && sources.length) {
@@ -1974,7 +1995,8 @@ function dlFile(e, rawUrl, filename) {
 
   function updateMsg(msgEl, content, sources) {
     const bubble = msgEl.querySelector('.ask-bubble');
-    bubble.innerHTML = window.marked ? marked.parse(content) : escHtml(content);
+    const rendered = window.marked ? marked.parse(content) : escHtml(content);
+    bubble.innerHTML = linkifySourcesInText(rendered, sources);
     if (sources && sources.length) {
       let src = msgEl.querySelector('.ask-chat-sources');
       if (!src) { src = document.createElement('div'); src.className = 'ask-chat-sources'; msgEl.appendChild(src); }

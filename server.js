@@ -998,7 +998,12 @@ app.get('/api/ask', async (req, res) => {
     const data   = await anthropicRes.json();
     const answer = data.content?.[0]?.text || 'No response generated.';
 
-    return res.json({ answer, sources, intent });
+    // Trim sources to only files actually mentioned in the answer — avoids
+    // surfacing the full fetch context when only 1-2 files were cited
+    const citedSources = sources.filter(s => answer.includes(s.name));
+    const finalSources = citedSources.length > 0 ? citedSources : sources.slice(0, 3);
+
+    return res.json({ answer, sources: finalSources, intent });
 
   } catch (err) {
     console.error('[/api/ask]', err.message);
