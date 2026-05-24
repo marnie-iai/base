@@ -1,6 +1,6 @@
 // Base service worker — network-first, cache shell for offline resilience
-const CACHE_NAME = 'base-shell-v1';
-const SHELL_URLS = ['/', '/images', '/pursuits'];
+const CACHE_NAME = 'base-shell-v2';
+const SHELL_URLS = ['/', '/images', '/pursuits', '/dashboards', '/agents'];
 
 self.addEventListener('install', e => {
   e.waitUntil(
