@@ -977,6 +977,9 @@ app.get('/api/debug', async (_req, res) => {
 });
 
 // ── Dashboards ────────────────────────────────────────────────────────────────
+app.get(['/dashboards', '/dashboards/'], requireDashboardAuth, (_req, res) => {
+  res.sendFile(path.join(__dirname, 'dashboards', 'index.html'));
+});
 app.get('/dashboards/Index', requireDashboardAuth, (_req, res) => {
   res.sendFile(path.join(__dirname, 'dashboards', 'index-analytics.html'));
 });
