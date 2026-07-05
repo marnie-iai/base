@@ -2,14 +2,28 @@
 
 const express = require('express');
 const path = require('path');
+const crypto = require('crypto');
+const cookieSession = require('cookie-session');
 const { createClient } = require('@libsql/client');
 
 const app = express();
 const PORT = process.env.PORT || 8080;
 const GITHUB_PAT      = process.env.GITHUB_PAT;
 const SITE_AUTH       = process.env.SITE_AUTH;
-const DASHBOARD_AUTH  = process.env.DASHBOARD_AUTH;
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
+
+// ── Google OAuth (site-wide sign-in) ─────────────────────────────────────────
+const GOOGLE_CLIENT_ID     = process.env.GOOGLE_CLIENT_ID;
+const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
+const SESSION_SECRET       = process.env.SESSION_SECRET;
+const OAUTH_REDIRECT_URI   = process.env.OAUTH_REDIRECT_URI || 'https://base.integratedai.com.au/auth/callback';
+const ALLOWED_EMAILS       = (process.env.ALLOWED_EMAILS || 'marnie@integratedcoatingservices.com')
+  .split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+const GOOGLE_AUTH_ENABLED  = !!(GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET && SESSION_SECRET);
+
+if (!GOOGLE_AUTH_ENABLED) {
+  console.warn('[auth] Google OAuth not fully configured — falling back to SITE_AUTH basic auth');
+}
 const KB_REPO = 'marnie-iai/kb';
 const PORTRAITS_REPO = 'marnie-iai/agent-portraits';
 const PORTRAITS_RAW = `https://raw.githubusercontent.com/${PORTRAITS_REPO}/main/portraits/`;
@@ -32,8 +46,8 @@ const SHEETS_API_KEY        = process.env.SHEETS_API_KEY;
 const SHEETS_SPREADSHEET_ID = process.env.SHEETS_SPREADSHEET_ID;
 const SHEETS_SECTOR_COL     = 0;
 
-// ── Site-wide Basic Auth ──────────────────────────────────────────────────────
-function requireSiteAuth(req, res, next) {
+// ── Site-wide Basic Auth (fallback when Google OAuth env vars aren't set) ────
+function requireBasicAuth(req, res, next) {
   if (!SITE_AUTH) {
     console.warn('[site] SITE_AUTH not set — site is unprotected');
     return next();
@@ -52,21 +66,30 @@ function requireSiteAuth(req, res, next) {
   next();
 }
 
-// ── Dashboard auth middleware ──────────────────────────────────────────────────
-function requireDashboardAuth(req, res, next) {
-  if (!DASHBOARD_AUTH) return next();
-  const header = req.headers.authorization || '';
-  if (!header.startsWith('Basic ')) {
-    res.setHeader('WWW-Authenticate', 'Basic realm="IAI Dashboards"');
-    return res.status(401).send('Authentication required');
+// ── Google OAuth site auth ────────────────────────────────────────────────────
+function isAllowedEmail(email) {
+  if (!email) return false;
+  return ALLOWED_EMAILS.includes(String(email).toLowerCase());
+}
+
+function decodeJwtPayload(jwt) {
+  const parts = String(jwt || '').split('.');
+  if (parts.length !== 3) return null;
+  try {
+    const b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    return JSON.parse(Buffer.from(b64, 'base64').toString('utf8'));
+  } catch { return null; }
+}
+
+function requireSiteAuth(req, res, next) {
+  if (!GOOGLE_AUTH_ENABLED) return requireBasicAuth(req, res, next);
+  const email = req.session && req.session.email;
+  if (email && isAllowedEmail(email)) return next();
+  const accept = String(req.headers.accept || '');
+  if (req.method === 'GET' && accept.includes('text/html')) {
+    return res.redirect('/auth/login?returnTo=' + encodeURIComponent(req.originalUrl));
   }
-  const decoded = Buffer.from(header.slice(6), 'base64').toString('utf8');
-  const pass = decoded.includes(':') ? decoded.split(':').slice(1).join(':') : decoded;
-  if (pass !== DASHBOARD_AUTH) {
-    res.setHeader('WWW-Authenticate', 'Basic realm="IAI Dashboards"');
-    return res.status(401).send('Incorrect credentials');
-  }
-  next();
+  return res.status(401).json({ error: 'unauthorized' });
 }
 
 // ── Cache ─────────────────────────────────────────────────────────────────────
@@ -509,6 +532,96 @@ app.get('/api/public/completions/summary', async (req, res) => {
 app.get('/manifest.json', (_req, res) => res.sendFile(path.join(__dirname, 'manifest.json')));
 app.get('/icon-192.png',  (_req, res) => res.sendFile(path.join(__dirname, 'icon-192.png')));
 app.get('/icon-512.png',  (_req, res) => res.sendFile(path.join(__dirname, 'icon-512.png')));
+
+// ── Session cookie + Google OAuth routes (public — before site auth) ─────────
+if (GOOGLE_AUTH_ENABLED) {
+  app.set('trust proxy', 1);
+  app.use(cookieSession({
+    name:     'base_sess',
+    keys:     [SESSION_SECRET],
+    maxAge:   30 * 24 * 60 * 60 * 1000,
+    httpOnly: true,
+    secure:   true,
+    sameSite: 'lax',
+  }));
+
+  app.get('/auth/login', (req, res) => {
+    const state = crypto.randomBytes(16).toString('hex');
+    req.session.oauthState = state;
+    const returnTo = typeof req.query.returnTo === 'string' && req.query.returnTo.startsWith('/')
+      ? req.query.returnTo : '/';
+    req.session.returnTo = returnTo;
+    const params = new URLSearchParams({
+      client_id:     GOOGLE_CLIENT_ID,
+      redirect_uri:  OAUTH_REDIRECT_URI,
+      response_type: 'code',
+      scope:         'openid email profile',
+      access_type:   'online',
+      prompt:        'select_account',
+      state,
+    });
+    res.redirect('https://accounts.google.com/o/oauth2/v2/auth?' + params.toString());
+  });
+
+  app.get('/auth/callback', async (req, res) => {
+    const { code, state, error } = req.query;
+    if (error) return res.status(401).send('Sign-in failed: ' + String(error));
+    if (!code || !state) return res.status(400).send('Missing code or state.');
+    if (state !== req.session.oauthState) {
+      return res.status(400).send('Bad state — <a href="/auth/login">try signing in again</a>.');
+    }
+    req.session.oauthState = undefined;
+    try {
+      const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          code:          String(code),
+          client_id:     GOOGLE_CLIENT_ID,
+          client_secret: GOOGLE_CLIENT_SECRET,
+          redirect_uri:  OAUTH_REDIRECT_URI,
+          grant_type:    'authorization_code',
+        }),
+      });
+      if (!tokenRes.ok) {
+        console.error('[oauth] token exchange failed:', tokenRes.status, await tokenRes.text());
+        return res.status(502).send('Google token exchange failed.');
+      }
+      const tokens = await tokenRes.json();
+      const payload = decodeJwtPayload(tokens.id_token);
+      if (!payload || !payload.email) return res.status(502).send('No email in Google response.');
+      const email = String(payload.email).toLowerCase();
+      const verified = payload.email_verified !== false;
+      if (!verified || !isAllowedEmail(email)) {
+        console.warn('[oauth] rejected sign-in for', email);
+        return res.status(403).send(
+          `<html><body style="font-family:sans-serif;padding:2em;max-width:32em;">` +
+          `<h2>Not authorised</h2>` +
+          `<p>The Google account <code>${email}</code> is not on Base's allowlist.</p>` +
+          `<p><a href="/auth/logout">Try a different account</a></p></body></html>`
+        );
+      }
+      req.session.email = email;
+      req.session.loggedInAt = Date.now();
+      const returnTo = (typeof req.session.returnTo === 'string' && req.session.returnTo.startsWith('/'))
+        ? req.session.returnTo : '/';
+      req.session.returnTo = undefined;
+      return res.redirect(returnTo);
+    } catch (err) {
+      console.error('[oauth] callback error:', err);
+      return res.status(500).send('OAuth callback error.');
+    }
+  });
+
+  app.get('/auth/logout', (req, res) => {
+    req.session = null;
+    res.send(
+      `<html><body style="font-family:sans-serif;padding:2em;max-width:32em;">` +
+      `<h2>Signed out of Base</h2>` +
+      `<p><a href="/auth/login">Sign back in</a></p></body></html>`
+    );
+  });
+}
 
 // ── Apply site-wide auth ───────────────────────────────────────────────────────
 app.use(requireSiteAuth);
@@ -977,22 +1090,22 @@ app.get('/api/debug', async (_req, res) => {
 });
 
 // ── Dashboards ────────────────────────────────────────────────────────────────
-app.get(['/dashboards', '/dashboards/'], requireDashboardAuth, (_req, res) => {
+app.get(['/dashboards', '/dashboards/'], (_req, res) => {
   res.sendFile(path.join(__dirname, 'dashboards', 'index.html'));
 });
-app.get('/dashboards/Index', requireDashboardAuth, (_req, res) => {
+app.get('/dashboards/Index', (_req, res) => {
   res.sendFile(path.join(__dirname, 'dashboards', 'index-analytics.html'));
 });
-app.get('/dashboards/clear-ground', requireDashboardAuth, (_req, res) => {
+app.get('/dashboards/clear-ground', (_req, res) => {
   res.sendFile(path.join(__dirname, 'dashboards', 'clear-ground.html'));
 });
-app.get('/dashboards/clear-ground-metrics', requireDashboardAuth, (_req, res) => {
+app.get('/dashboards/clear-ground-metrics', (_req, res) => {
   res.sendFile(path.join(__dirname, 'dashboards', 'clear-ground-metrics.html'));
 });
-app.get('/dashboards/iai-website', requireDashboardAuth, (_req, res) => {
+app.get('/dashboards/iai-website', (_req, res) => {
   res.sendFile(path.join(__dirname, 'dashboards', 'iai-website.html'));
 });
-app.use('/dashboards', requireDashboardAuth, express.static(path.join(__dirname, 'dashboards')));
+app.use('/dashboards', express.static(path.join(__dirname, 'dashboards')));
 
 // In-app document reader
 app.get('/read', (_req, res) => {
