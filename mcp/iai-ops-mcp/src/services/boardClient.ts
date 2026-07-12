@@ -137,6 +137,16 @@ export interface WritableFields {
   dependsOn?: (string | number)[];
 }
 
+/**
+ * Delays (ms) between verification re-reads after a write, applied in order.
+ * Sums to ~5s total. Grid API latency was measured at 2,173ms in a live
+ * session (Reid review, card 657) — the original single fixed 600ms wait
+ * was false-flagging good writes as unverified because it didn't clear that
+ * latency. This retries instead of guessing one number: try again a few
+ * times with increasing gaps before actually giving up.
+ */
+const VERIFY_RETRY_DELAYS_MS = [1000, 1500, 2500];
+
 export async function patchCard(
   pursuit: string,
   ref: string | number,
@@ -154,9 +164,15 @@ export async function patchCard(
 
   let ok = true;
   if (verifyField && verifyField in body) {
-    await new Promise((r) => setTimeout(r, 600));
-    const fresh = await getCard(pursuit, numId);
-    ok = String((fresh as Record<string, unknown> | undefined)?.[verifyField]) === String(body[verifyField]);
+    ok = false;
+    for (const delay of VERIFY_RETRY_DELAYS_MS) {
+      await new Promise((r) => setTimeout(r, delay));
+      const fresh = await getCard(pursuit, numId);
+      if (String((fresh as Record<string, unknown> | undefined)?.[verifyField]) === String(body[verifyField])) {
+        ok = true;
+        break;
+      }
+    }
   }
   return { card: resp, ok };
 }

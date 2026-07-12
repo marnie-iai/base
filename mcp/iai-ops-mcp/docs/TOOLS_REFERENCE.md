@@ -82,6 +82,9 @@ Creates a new card (POST).
   41) on board 'io'."`
 - **Errors:** unrecognised board code; a `dependsOn` entry that can't be
   resolved to a numeric id; network/auth errors.
+- **Auth note:** `agent` is a payload field only — it is not tied to the
+  bearer token used to authenticate the call, which is always the single
+  cached Google session (see Architecture doc's "Known limitation").
 
 ### `iai_update_card`
 
@@ -95,11 +98,14 @@ Patches a card and verifies the write.
 - **Output:** `{ ok: boolean, card: unknown }`. Text response is
   `"Updated ... — verified."` or a `WARNING:` if the re-query didn't confirm
   the change.
-- **Verification behaviour:** waits 600ms, re-fetches the card, and compares
+- **Verification behaviour:** re-fetches the card after each of up to 3
+  retry delays (1s, then 1.5s, then 2.5s — roughly 5s total) and compares
   the first changed field provided (`status` takes priority if present)
-  against what was sent. `ok: false` means retry — it does not mean the
-  request failed outright, it means the change wasn't confirmed to have
-  landed.
+  against what was sent, stopping as soon as it matches. `ok: false` means
+  it never matched across all three attempts — retry the update, don't
+  assume corruption. (Previously this was a single fixed 600ms wait, which
+  measured Grid API latency of ~2,173ms showed was too short and could
+  false-flag good writes.)
 - **Errors:** unrecognised board code; unresolvable `ref` or `dependsOn`
   entry; network/auth errors.
 

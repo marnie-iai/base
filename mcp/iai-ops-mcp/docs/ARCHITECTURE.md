@@ -72,9 +72,10 @@ services/boardAuth.ts     — getAccessToken(): cached token, or refresh
 axios PATCH to the board API
         │
         ▼
-services/boardClient.ts   — 600ms settle delay, then re-GET the card
-        │                    (verify-after-write) and compare the field
-        │                    that was just changed
+services/boardClient.ts   — re-GET the card (verify-after-write) after each
+        │                    of up to 3 retry delays (1s, 1.5s, 2.5s — ~5s
+        │                    total), comparing the field that was just
+        │                    changed, and stopping as soon as it matches
         ▼
 tools/board.ts            — ok:true → "Updated, verified."
                              ok:false → "WARNING: did not verify, re-run."
@@ -100,7 +101,7 @@ bypassed by calling a different tool:
 | PATCH needs numeric id, not cardId | `services/boardClient.ts`'s `resolveId()`, called by every write path — a tool can never PATCH a raw cardId |
 | `dependsOn` must be integers | `services/boardClient.ts`'s `toIntIds()`, called inside `postCard()`/`patchCard()` — not something a tool author (or a Zod schema) needs to remember |
 | `sessionNotes` auto-timestamps, don't double it | Documented in the Zod field `.describe()` (schemas/board.ts) *and* the tool description (tools/board.ts) — this one can't be enforced in code without knowing the API's exact timestamp format, so it's a documentation control, not a code control |
-| Writes can silently fail or revert | `services/boardClient.ts`'s `patchCard()` — every write re-queries and compares before returning `ok` |
+| Writes can silently fail, revert, or just be slow to settle | `services/boardClient.ts`'s `patchCard()` — every write re-queries and compares, retrying up to 3 times (1s/1.5s/2.5s) before giving up, rather than checking once against a guessed fixed delay |
 | `cards` vs `tasks` response key | `services/boardClient.ts`'s `cardsFrom()`, the single place that parses a board response |
 
 If you're extending this server and find yourself re-implementing any of
@@ -118,6 +119,19 @@ about *how* that token is obtained — the loopback HTTP server, the browser
 launch, the token cache file, the refresh-on-expiry — is contained in
 `boardAuth.ts` and exposed through exactly two functions: `getAccessToken()`
 and `login()`.
+
+**Known limitation, flagged in Reid's review (card 657):** there is currently
+only one cached OAuth session per machine, always `marnie@integratedcoatingservices.com`.
+The `agent` field on writes (e.g. `"alex"`, `"reid"`) is a payload value only
+— it is not tied to authentication in any way. Every write, regardless of
+what `agent` string is sent, is authenticated as the same Google identity.
+This is the same class of problem the Managed Agents report's Finding 3
+raised: the board API has no way to actually distinguish which agent
+performed a write via auth, only what that agent claims about itself in the
+request body. Fixing this properly needs either per-agent credentials or an
+impersonation/delegation scheme on the board API's own side — it isn't
+something this client can solve alone by changing how it calls
+`getAccessToken()`.
 
 ## Extending this server
 
